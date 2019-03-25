@@ -15,8 +15,9 @@ def update_hash_fields(**kwargs):
         and column_name not like 'etl%'
     '''.format(table_schema=table_schema, table_name=table_name)
     hash_fields = pg_hook.get_records(hash_fields_stmt)[0][0]
-    print(hash_fields)
-    hash_calc = 'md5(' + ' || '.join(hash_fields) + ')::uuid'
+    hash_fields_fmt = [f + '::text' for f in hash_fields]
+    #print(hash_fields)
+    hash_calc = 'md5(' + ' || '.join(hash_fields_fmt) + ')::uuid'
     print(hash_calc)
     update_stmt = '''
     update {table_name_full} set {hash_field} = {hash_calc}
