@@ -1,0 +1,110 @@
+{
+  "primaryKey": ["objectid"],
+  "fields": [
+    {
+      "constraints": {
+        "required": true
+      },
+      "name": "objectid",
+      "type": "number"
+    },
+    {
+      "name": "addresskey",
+      "type": "text"
+    },
+    {
+      "name": "opa_account_num",
+      "type": "text"
+    },
+    {
+      "name": "address",
+      "type": "text"
+    },
+    {
+      "name": "unit",
+      "type": "text"
+    },
+    {
+      "name": "zip",
+      "type": "text"
+    },
+    {
+      "name": "censustract",
+      "type": "text"
+    },
+    {
+      "name": "ownername",
+      "type": "text"
+    },
+    {
+      "name": "organization",
+      "type": "text"
+    },
+    {
+      "name": "casenumber",
+      "type": "text"
+    },
+    {
+      "name": "casegroup",
+      "type": "text"
+    },
+    {
+      "name": "caseprocessed",
+      "type": "date"
+    },
+    {
+      "name": "caseresolution",
+      "type": "text"
+    },
+    {
+      "name": "caseresdate",
+      "type": "date"
+    },
+    {
+      "name": "mostrecentinsp",
+      "type": "date"
+    },
+    {
+      "name": "acttype",
+      "type": "text"
+    },
+    {
+      "name": "actdate",
+      "type": "date"
+    },
+    {
+      "name": "actnumber",
+      "type": "number"
+    },
+    {
+      "name": "reviewstatus",
+      "type": "text"
+    },
+    {
+      "name": "logtype",
+      "type": "text"
+    },
+    {
+      "name": "logdescription",
+      "type": "text"
+    },
+    {
+      "name": "logadded",
+      "type": "date"
+    },
+    {
+      "name": "geocode_x",
+      "type": "number"
+    },
+    {
+      "name": "geocode_y",
+      "type": "number"
+    },
+    {
+      "name": "shape",
+      "type": "geometry",
+      "geometry_type": "point",
+      "srid": 2272
+    }
+  ]
+}

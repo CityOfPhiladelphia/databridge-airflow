@@ -1,0 +1,28 @@
+{
+  "primaryKey": ["complaint_id"],
+  "fields": [
+    {
+      "constraints": {
+        "required": true
+      },
+      "name": "complaint_id",
+      "type": "text"
+    },
+    {
+      "name": "date_received",
+      "type": "date"
+    },
+    {
+      "name": "district_occurrence",
+      "type": "text"
+    },
+    {
+      "name": "general_cap_classification",
+      "type": "text"
+    },
+    {
+      "name": "summary",
+      "type": "text"
+    }
+  ]
+}

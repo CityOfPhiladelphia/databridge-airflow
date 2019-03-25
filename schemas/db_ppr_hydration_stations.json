@@ -1,0 +1,42 @@
+{
+  "primaryKey": ["objectid"],
+  "fields": [
+    {
+      "constraints": {
+        "required": true
+      },
+      "name": "objectid",
+      "type": "integer"
+    },
+    {
+      "name": "asset_name",
+      "type": "text"
+    },
+    {
+      "name": "display_label",
+      "type": "text"
+    },
+    {
+      "name": "station_type",
+      "type": "text"
+    },
+    {
+      "name": "location",
+      "type": "text"
+    },
+    {
+      "name": "display_type",
+      "type": "text"
+    },
+    {
+      "name": "data_source",
+      "type": "text"
+    },
+    {
+      "name": "shape",
+      "type": "geometry",
+      "geometry_type": "point",
+      "srid": 2272
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "primaryKey": ["objectid"],
+  "fields": [
+    {
+      "constraints": {
+        "required": true
+      },
+      "name": "objectid",
+      "type": "integer"
+    },
+    {
+      "name": "permiter",
+      "type": "number"
+    },
+    {
+      "name": "empzn_id",
+      "type": "number"
+    },
+    {
+      "name": "zone_name",
+      "type": "text"
+    },
+    {
+      "name": "shape",
+      "type": "geometry",
+      "geometry_type": "polygon",
+      "srid":: 2272
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "primaryKey": ["objectid"],
+  "fields": [
+    {
+      "constraints": {
+        "required": true
+      },
+      "name": "objectid",
+      "type": "integer"
+    },
+    {
+      "name": "avg_height",
+      "type": "number"
+    },
+    {
+      "name": "polyid",
+      "type": "text"
+    },
+    {
+      "name": "fcode",
+      "type": "number"
+    },
+    {
+      "name": "shape",
+      "type": "geometry",
+      "geometry_type": "polygon",
+      "srid": 2272
+    }
+  ]
+}
