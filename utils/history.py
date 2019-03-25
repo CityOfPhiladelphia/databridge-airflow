@@ -3,7 +3,7 @@ from airflow.hooks.postgres_hook import PostgresHook
 def get_hash_fields(pg_conn_id, table_schema, table_name):
     pg_hook = PostgresHook(postgres_conn_id=pg_conn_id)
     hash_fields_stmt = '''
-        SELECT array_agg(COLUMN_NAME::text order by COLUMN_NAME)
+        SELECT array_agg(COLUMN_NAME::text)
         FROM information_schema.columns
         WHERE table_schema='{table_schema}' AND table_name='{table_name}'
         and column_name not like 'etl%'
@@ -19,6 +19,8 @@ def update_history_table(**kwargs):
     hash_field=kwargs['hash_field']
     pg_hook = PostgresHook(postgres_conn_id=pg_conn_id)
     hash_fields = get_hash_fields(pg_conn_id, table_schema, table_name)
+    etl_fields = 'etl_read_timestamp, etl_write_timestamp, etl_hash, etl_action'
+    insert_fields = hash_fields + ', ' + etl_fields
     update_history_stmt = '''
         WITH
         current_hashes as (
@@ -54,7 +56,7 @@ def update_history_table(**kwargs):
             UNION
             SELECT deleted.*, 'delete' as etl_action from computed_deleted deleted
         )
-        INSERT INTO {table_schema}.{table_name}_history
+        INSERT INTO {table_schema}.{table_name}_history ({insert_fields})
         select * from computed_final
-    '''.format(hash_field=hash_field, hash_fields=hash_fields, table_schema=table_schema, table_name=table_name)
+    '''.format(hash_field=hash_field, hash_fields=hash_fields, table_schema=table_schema, table_name=table_name, insert_fields=insert_fields)
     pg_hook.run(update_history_stmt)
