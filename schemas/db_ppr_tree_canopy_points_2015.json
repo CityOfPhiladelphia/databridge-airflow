@@ -1,0 +1,22 @@
+{
+  "primaryKey": ["objectid"],
+  "fields": [
+    {
+      "constraints": {
+        "required": true
+      },
+      "name": "objectid",
+      "type": "integer"
+    },
+    {
+      "name": "fcode",
+      "type": "number"
+    },
+    {
+      "name": "shape",
+      "type": "geometry",
+      "geometry_type": "point",
+      "srid": 2272
+    }
+  ]
+}

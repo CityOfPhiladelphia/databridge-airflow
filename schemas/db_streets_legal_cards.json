@@ -1,0 +1,51 @@
+{
+  "primaryKey": ["objectid"],
+  "fields": [
+    {
+      "constraints": {
+        "required": true
+      },
+      "name": "objectid",
+      "type": "integer"
+    },
+    {
+      "name": "link",
+      "type": "text"
+    },
+    {
+      "name": "st_name",
+      "type": "text"
+    },
+    {
+      "name": "image_",
+      "type": "text"
+    },
+    {
+      "name": "l_hundred",
+      "type": "number"
+    },
+    {
+      "name": "r_hundred",
+      "type": "number"
+    },
+    {
+      "name": "moddate",
+      "type": "datetime",
+      "format": "fmt:%Y-%m-%d %H:%M:%S"
+    },
+    {
+      "name": "status",
+      "type": "text"
+    },
+    {
+      "name": "seg_id",
+      "type": "number"
+    },
+    {
+      "name": "shape",
+      "type": "geometry",
+      "geometry_type": "line",
+      "srid": 2272
+    }
+  ]
+}
