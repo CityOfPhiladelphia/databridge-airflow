@@ -4,6 +4,8 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.operators import GeopetlReadOperator, GeopetlWriteOperator
 from airflow.operators import CreateStagingFolder, DestroyStagingFolder
 from airflow.utils.slack import slack_failed_alert, slack_success_alert
+from airflow.utils.hash import update_hash_fields
+from airflow.utils.history import update_history_table
 from datetime import datetime, timedelta
 
 
@@ -209,6 +211,156 @@ write_owners = GeopetlWriteOperator(
 )
 
 # -----------------------------------------------------------------
+# Update hashes
+
+update_properties_hash = PythonOperator(
+    task_id='update_properties_hash',
+    dag=pipeline,
+    python_callable=update_hash_fields,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'properties', 'hash_field': 'etl_hash'},
+)
+
+update_propertycharacteristics_hash = PythonOperator(
+    task_id='update_propertycharacteristics_hash',
+    dag=pipeline,
+    python_callable=update_hash_fields,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'propertycharacteristics', 'hash_field': 'etl_hash'},
+)
+
+update_recordhistories_hash = PythonOperator(
+    task_id='update_recordhistories_hash',
+    dag=pipeline,
+    python_callable=update_hash_fields,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'recordhistories', 'hash_field': 'etl_hash'},
+)
+
+update_sales_hash = PythonOperator(
+    task_id='update_sales_hash',
+    dag=pipeline,
+    python_callable=update_hash_fields,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'sales', 'hash_field': 'etl_hash'},
+)
+
+update_streetcodes_hash = PythonOperator(
+    task_id='update_streetcodes_hash',
+    dag=pipeline,
+    python_callable=update_hash_fields,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'streetcodes', 'hash_field': 'etl_hash'},
+)
+
+update_owners_hash = PythonOperator(
+    task_id='update_owners_hash',
+    dag=pipeline,
+    python_callable=update_hash_fields,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'owners', 'hash_field': 'etl_hash'},
+)
+
+update_homestead_hash = PythonOperator(
+    task_id='update_homestead_hash',
+    dag=pipeline,
+    python_callable=update_hash_fields,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'homestead', 'hash_field': 'etl_hash'},
+)
+
+update_dimensions_hash = PythonOperator(
+    task_id='update_dimensions_hash',
+    dag=pipeline,
+    python_callable=update_hash_fields,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'dimensions', 'hash_field': 'etl_hash'},
+)
+
+update_buildingcodes_hash = PythonOperator(
+    task_id='update_buildingcodes_hash',
+    dag=pipeline,
+    python_callable=update_hash_fields,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'buildingcodes', 'hash_field': 'etl_hash'},
+)
+
+update_categorycodes_hash = PythonOperator(
+    task_id='update_categorycodes_hash',
+    dag=pipeline,
+    python_callable=update_hash_fields,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'categorycodes', 'hash_field': 'etl_hash'},
+)
+
+# -----------------------------------------------------------------
+# Update histories
+
+update_properties_history = PythonOperator(
+    task_id='update_properties_history',
+    dag=pipeline,
+    python_callable=update_history_table,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'properties', 'hash_field': 'etl_hash'},
+)
+
+update_propertycharacteristics_history = PythonOperator(
+    task_id='update_propertycharacteristics_history',
+    dag=pipeline,
+    python_callable=update_history_table,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'propertycharacteristics', 'hash_field': 'etl_hash'},
+)
+
+update_recordhistories_history = PythonOperator(
+    task_id='update_recordhistories_history',
+    dag=pipeline,
+    python_callable=update_history_table,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'recordhistories', 'hash_field': 'etl_hash'},
+)
+
+update_sales_history = PythonOperator(
+    task_id='update_sales_history',
+    dag=pipeline,
+    python_callable=update_history_table,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'sales', 'hash_field': 'etl_hash'},
+)
+
+update_streetcodes_history = PythonOperator(
+    task_id='update_streetcodes_history',
+    dag=pipeline,
+    python_callable=update_history_table,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'streetcodes', 'hash_field': 'etl_hash'},
+)
+
+update_owners_history = PythonOperator(
+    task_id='update_owners_history',
+    dag=pipeline,
+    python_callable=update_history_table,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'owners', 'hash_field': 'etl_hash'},
+)
+
+update_homestead_history = PythonOperator(
+    task_id='update_homestead_history',
+    dag=pipeline,
+    python_callable=update_history_table,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'homestead', 'hash_field': 'etl_hash'},
+)
+
+update_dimensions_history = PythonOperator(
+    task_id='update_dimensions_history',
+    dag=pipeline,
+    python_callable=update_history_table,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'dimensions', 'hash_field': 'etl_hash'},
+)
+
+update_buildingcodes_history = PythonOperator(
+    task_id='update_buildingcodes_history',
+    dag=pipeline,
+    python_callable=update_history_table,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'buildingcodes', 'hash_field': 'etl_hash'},
+)
+
+update_categorycodes_history = PythonOperator(
+    task_id='update_categorycodes_history',
+    dag=pipeline,
+    python_callable=update_history_table,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'categorycodes', 'hash_field': 'etl_hash'},
+)
+
+
+
+
+
+# -----------------------------------------------------------------
 # Cleanup - delete staging folder
 
 cleanup = DestroyStagingFolder(
@@ -241,14 +393,35 @@ extract_dimensions.set_downstream(write_dimensions)
 extract_homestead.set_downstream(write_homestead)
 extract_owners.set_downstream(write_owners)
 
-write_properties.set_downstream(cleanup)
-write_propertycharacteristics.set_downstream(cleanup)
-write_recordhistories.set_downstream(cleanup)
-write_sales.set_downstream(cleanup)
-write_streetcodes.set_downstream(cleanup)
-write_buildingcodes.set_downstream(cleanup)
-write_categorycodes.set_downstream(cleanup)
-write_dimensions.set_downstream(cleanup)
-write_homestead.set_downstream(cleanup)
-write_owners.set_downstream(cleanup)
+write_properties.set_downstream(update_properties_hash)
+write_propertycharacteristics.set_downstream(update_propertycharacteristics_hash)
+write_recordhistories.set_downstream(update_recordhistories_hash)
+write_sales.set_downstream(update_sales_hash)
+write_streetcodes.set_downstream(update_streetcodes_hash)
+write_buildingcodes.set_downstream(update_buildingcodes_hash)
+write_categorycodes.set_downstream(update_categorycodes_hash)
+write_dimensions.set_downstream(update_dimensions_hash)
+write_homestead.set_downstream(update_homestead_hash)
+write_owners.set_downstream(update_owners_hash)
 
+update_properties_hash.set_downstream(update_properties_history)
+update_propertycharacteristics_hash.set_downstream(update_propertycharacteristics_history)
+update_recordhistories_hash.set_downstream(update_recordhistories_history)
+update_sales_hash.set_downstream(update_sales_history)
+update_streetcodes_hash.set_downstream(update_streetcodes_history)
+update_buildingcodes_hash.set_downstream(update_buildingcodes_history)
+update_categorycodes_hash.set_downstream(update_categorycodes_history)
+update_dimensions_hash.set_downstream(update_dimensions_history)
+update_homestead_hash.set_downstream(update_homestead_history)
+update_owners_hash.set_downstream(update_owners_history)
+
+update_properties_history.set_downstream(cleanup)
+update_propertycharacteristics_history.set_downstream(cleanup)
+update_recordhistories_history.set_downstream(cleanup)
+update_sales_history.set_downstream(cleanup)
+update_streetcodes_history.set_downstream(cleanup)
+update_buildingcodes_history.set_downstream(cleanup)
+update_categorycodes_history.set_downstream(cleanup)
+update_dimensions_history.set_downstream(cleanup)
+update_homestead_history.set_downstream(cleanup)
+update_owners_history.set_downstream(cleanup)
