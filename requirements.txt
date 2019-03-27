@@ -1,4 +1,4 @@
-apache-airflow[postgres,s3,celery,rabbitmq,mssql,slack]==1.10.2
+apache-airflow[crypto,postgres,s3,celery,rabbitmq,mssql,slack]==1.10.2
 boto3==1.7.84
 carto==1.4.0
 cx-Oracle==7.0.0

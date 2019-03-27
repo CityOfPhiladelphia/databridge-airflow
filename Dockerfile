@@ -6,8 +6,8 @@ ENV TERM linux
 
 # Airflow
 ARG AIRFLOW_VERSION=1.10.2
-ENV AIRFLOW_HOME=/usr/local/airflow
-ENV SLUGIFY_USES_TEXT_UNIDECODE=yes
+ENV AIRFLOW_HOME /usr/local/airflow
+ENV SLUGIFY_USES_TEXT_UNIDECODE yes
 
 # Define en_US.
 ENV LANGUAGE en_US.UTF-8
@@ -75,16 +75,18 @@ RUN set -ex \
 COPY bin/entrypoint.sh /entrypoint.sh
 COPY requirements.txt /requirements.txt
 
+RUN pip3 install -r requirements.txt
+
 COPY airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
 COPY dags ${AIRFLOW_HOME}/dags
 COPY plugins ${AIRFLOW_HOME}/plugins
 COPY utils ${AIRFLOW_HOME}/utils
 
-RUN chown -R airflow: ${AIRFLOW_HOME}
+RUN chown -R airflow: ${AIRFLOW_HOME} \
+    && chmod +x /entrypoint.sh
 
-EXPOSE 8080 5555 8793
+EXPOSE 8080 5432 8793 5555
 
 USER airflow
 WORKDIR ${AIRFLOW_HOME}
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["webserver"] # set default arg for entrypoint

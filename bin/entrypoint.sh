@@ -2,10 +2,11 @@
 
 TRY_LOOP="20"
 
-: "${RABBITMQ_DEFAULT_USER:="airflow"}"
-: "${RABBITMQ_DEFAULT_PASS:="airflow"}"
+: "${RABBITMQ_HOST:="rabbitmq"}"
+: "${RABBITMQ_PORT:="5672"}"
+: "${RABBITMQ_USER:="airflow"}"
 : "${RABBITMQ_PASSWORD:="airflow"}"
-: "${RABBITMQ_DEFAULT_VHOST:="airflow"}"
+: "${RABBITMQ_VHOST:="airflow"}"
 
 : "${POSTGRES_HOST:="postgres"}"
 : "${POSTGRES_PORT:="5432"}"
@@ -24,11 +25,6 @@ export \
   AIRFLOW__CORE__FERNET_KEY \
   AIRFLOW__CORE__LOAD_EXAMPLES \
   AIRFLOW__CORE__SQL_ALCHEMY_CONN \
-
-# Install custom python package if requirements.txt is present
-if [ -e "/requirements.txt" ]; then
-    $(which pip) install --user -r /requirements.txt
-fi
 
 if [ -n "$RABBITMQ_PASSWORD" ]; then
     RABBITMQ_PREFIX=:${RABBITMQ_PASSWORD}@
@@ -51,8 +47,10 @@ wait_for_port() {
 }
 
 if [ "$AIRFLOW__CORE__EXECUTOR" = "CeleryExecutor" ]; then
-  AIRFLOW__CELERY__BROKER_URL="amqp://$RABBITMQ_PREFIX$RABBITMQ_HOST:$RABBITMQ_PORT/rabbitmq_airflow_host"
+  AIRFLOW__CELERY__BROKER_URL="amqp://$RABBITMQ_USER:$RABBITMQ_PASSWORD@$RABBITMQ_HOST:$RABBITMQ_PORT//$RABBITMQ_VHOST"
+  AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql+psycopg2://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB"
   wait_for_port "RabbitMQ" "$RABBITMQ_HOST" "$RABBITMQ_PORT"
+  wait_for_port "Postgres" "$POSTGRES_HOST" "$POSTGRES_PORT"
 fi
 
 case "$1" in
