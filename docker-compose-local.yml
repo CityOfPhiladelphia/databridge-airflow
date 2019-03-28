@@ -17,6 +17,7 @@ services:
             - POSTGRES_DB=airflow
 
     webserver:
+        image: airflow
         build: .
         restart: always
         depends_on:
@@ -38,7 +39,7 @@ services:
         command: webserver
 
     flower:
-        build: .
+        image: airflow
         restart: always
         depends_on:
             - rabbitmq
@@ -50,7 +51,7 @@ services:
         command: flower
 
     scheduler:
-        build: .
+        image: airflow
         restart: always
         depends_on:
             - webserver
@@ -68,7 +69,7 @@ services:
         command: scheduler
 
     worker:
-        build: .
+        image: airflow
         restart: always
         depends_on:
             - scheduler

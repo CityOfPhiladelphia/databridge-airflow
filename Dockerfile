@@ -7,6 +7,7 @@ ENV TERM linux
 # Airflow
 ARG AIRFLOW_VERSION=1.10.2
 ENV AIRFLOW_HOME /usr/local/airflow
+ENV AIRFLOW_INSTALL /usr/local/lib/python3.5/dist-packages/airflow
 ENV SLUGIFY_USES_TEXT_UNIDECODE yes
 
 # Define en_US.
@@ -80,12 +81,12 @@ RUN pip3 install -r requirements.txt
 COPY airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
 COPY dags ${AIRFLOW_HOME}/dags
 COPY plugins ${AIRFLOW_HOME}/plugins
-COPY utils ${AIRFLOW_HOME}/utils
+COPY utils ${AIRFLOW_INSTALL}/utils
 
 RUN chown -R airflow: ${AIRFLOW_HOME} \
     && chmod +x /entrypoint.sh
 
-EXPOSE 8080 5432 8793 5555
+EXPOSE 8080 5432 8793 5672 5555
 
 USER airflow
 WORKDIR ${AIRFLOW_HOME}
