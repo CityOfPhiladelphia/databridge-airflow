@@ -73,7 +73,7 @@ RUN set -ex \
         /usr/share/doc \
         /usr/share/doc-base
 
-COPY bin/entrypoint.sh /entrypoint.sh
+COPY scripts/entrypoint.sh /entrypoint.sh
 COPY requirements.txt /requirements.txt
 
 RUN pip3 install -r requirements.txt
