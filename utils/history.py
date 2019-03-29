@@ -24,31 +24,33 @@ def update_history_table(**kwargs):
     update_history_stmt = '''
         WITH
         current_hashes as (
+            SELECT * FROM (
             SELECT DISTINCT ON ({hash_field}) *
             FROM   {table_schema}.{table_name}_history
-            ORDER  BY etl_hash, etl_read_timestamp DESC NULLS LAST, {hash_field}
+            ORDER  BY {hash_field}, etl_read_timestamp DESC NULLS LAST
+            ) foo WHERE etl_action != 'delete'
         )
         ,
         computed_new as (
-            select {hash_fields}, raw.etl_read_timestamp, raw.etl_write_timestamp, raw.etl_hash
+            select {hash_fields}, raw.etl_read_timestamp, raw.etl_write_timestamp, raw.{hash_field}
             from {table_schema}.{table_name} raw
             inner join
             (
-                SELECT etl_hash from {table_schema}.{table_name} 
+                SELECT {hash_field} from {table_schema}.{table_name} 
                 EXCEPT
-                select etl_hash from current_hashes
-            ) new_hashes  on new_hashes.etl_hash = raw.etl_hash
+                select {hash_field} from current_hashes
+            ) new_hashes  on new_hashes.{hash_field} = raw.{hash_field}
         )
         ,
         computed_deleted as (
-            select {hash_fields}, etl_read_timestamp, etl_write_timestamp, cur.etl_hash
+            select {hash_fields}, etl_read_timestamp, etl_write_timestamp, cur.{hash_field}
             from current_hashes cur
             inner join
             (
-                SELECT etl_hash from current_hashes
+                SELECT {hash_field} from current_hashes
                 EXCEPT
-                select etl_hash from opa.buildingcodes
-            ) del_hashes  on del_hashes.etl_hash = cur.etl_hash
+                select {hash_field} from opa.buildingcodes
+            ) del_hashes  on del_hashes.{hash_field} = cur.{hash_field}
         )
         ,
         computed_final as (
