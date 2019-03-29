@@ -71,12 +71,12 @@ extract_eclipse_addressobjectid_mvw = GeopetlReadOperator(
     db_table_where='',
 )
 
-extract_eclipse_business_licenses = GeopetlReadOperator(
-    task_id='read_eclipse_business_licenses',
+extract_business_licenses = GeopetlReadOperator(
+    task_id='read_business_licenses',
     dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_lni_staging") }}/eclipse_business_licenses.csv',
-    db_conn_id='hansen',
-    db_table_name='gis_lni.eclipse_business_licenses',
+    csv_path='{{ ti.xcom_pull("make_lni_staging") }}/li_business_licenses.csv',
+    db_conn_id='databridge',
+    db_table_name='gis_lni.li_business_licenses',
     db_table_where='',
 )
 
@@ -134,12 +134,12 @@ write_eclipse_addressobjectid_mvw = GeopetlWriteOperator(
     db_table_name='lni.hansen_eclipse_addressobjectid_mvw',
 )
 
-write_eclipse_business_licenses = GeopetlWriteOperator(
-    task_id='write_eclipse_business_licenses',
+write_business_licenses = GeopetlWriteOperator(
+    task_id='write_business_licenses',
     dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_lni_staging") }}/eclipse_business_licenses.csv',
+    csv_path='{{ ti.xcom_pull("make_lni_staging") }}/li_business_licenses.csv',
     db_conn_id='databridge2',
-    db_table_name='lni.hansen_eclipse_business_licenses',
+    db_table_name='lni.databridge_li_business_licenses',
 )
 
 write_parsed_addr = GeopetlWriteOperator(
@@ -184,9 +184,9 @@ extract_eclipse_addressobjectid_mvw.set_upstream(make_staging)
 extract_eclipse_addressobjectid_mvw.set_downstream(write_eclipse_addressobjectid_mvw)
 write_eclipse_addressobjectid_mvw.set_downstream(cleanup)
 
-extract_eclipse_business_licenses.set_upstream(make_staging)
-extract_eclipse_business_licenses.set_downstream(write_eclipse_business_licenses)
-write_eclipse_business_licenses.set_downstream(cleanup)
+extract_business_licenses.set_upstream(make_staging)
+extract_business_licenses.set_downstream(write_business_licenses)
+write_business_licenses.set_downstream(cleanup)
 
 extract_parsed_addr.set_upstream(make_staging)
 extract_parsed_addr.set_downstream(write_parsed_addr)
