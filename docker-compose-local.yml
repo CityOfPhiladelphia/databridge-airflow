@@ -31,6 +31,7 @@ services:
             - POSTGRES_PASSWORD=airflow
             - POSTGRES_DB=airflow
             - RABBITMQ_PASSWORD=airflow
+            - AIRFLOW_CONN_SLACK=${AIRFLOW_CONN_SLACK}
         volumes:
             - ./dags:/usr/local/airflow/dags
             - ./plugins:/usr/local/airflow/plugins
@@ -66,6 +67,7 @@ services:
             - POSTGRES_PASSWORD=airflow
             - POSTGRES_DB=airflow
             - RABBITMQ_PASSWORD=airflow
+            - AIRFLOW_CONN_SLACK=${AIRFLOW_CONN_SLACK}
         command: scheduler
 
     worker:
@@ -83,4 +85,5 @@ services:
             - POSTGRES_PASSWORD=airflow
             - POSTGRES_DB=airflow
             - RABBITMQ_PASSWORD=airflow
+            - AIRFLOW_CONN_SLACK=${AIRFLOW_CONN_SLACK}
         command: worker
