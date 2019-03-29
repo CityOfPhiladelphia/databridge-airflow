@@ -15,7 +15,7 @@ TRY_LOOP="20"
 : "${POSTGRES_DB:="airflow"}"
 
 # Defaults and back-compat
-: "${AIRFLOW__CORE__FERNET_KEY:=${FERNET_KEY:=$(python -c "from cryptography.fernet import Fernet; FERNET_KEY = Fernet.generate_key().decode(); print(FERNET_KEY)")}}"
+: "${AIRFLOW__CORE__FERNET_KEY:=${FERNET_KEY:=$(python3 -c "from cryptography.fernet import Fernet; FERNET_KEY = Fernet.generate_key().decode(); print(FERNET_KEY)")}}"
 : "${AIRFLOW__CORE__EXECUTOR:=${EXECUTOR:-Sequential}Executor}"
 
 export \
@@ -25,12 +25,7 @@ export \
   AIRFLOW__CORE__FERNET_KEY \
   AIRFLOW__CORE__LOAD_EXAMPLES \
   AIRFLOW__CORE__SQL_ALCHEMY_CONN \
-
-if [ -n "$RABBITMQ_PASSWORD" ]; then
-    RABBITMQ_PREFIX=:${RABBITMQ_PASSWORD}@
-else
-    RABBITMQ_PREFIX=
-fi
+  AIRFLOW_HOME \
 
 wait_for_port() {
   local name="$1" host="$2" port="$3"
@@ -47,7 +42,7 @@ wait_for_port() {
 }
 
 if [ "$AIRFLOW__CORE__EXECUTOR" = "CeleryExecutor" ]; then
-  AIRFLOW__CELERY__BROKER_URL="amqp://$RABBITMQ_USER:$RABBITMQ_PASSWORD@$RABBITMQ_HOST:$RABBITMQ_PORT//$RABBITMQ_VHOST"
+  AIRFLOW__CELERY__BROKER_URL="amqp://$RABBITMQ_USER:$RABBITMQ_PASSWORD@$RABBITMQ_HOST:$RABBITMQ_PORT/$RABBITMQ_VHOST"
   AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql+psycopg2://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB"
   wait_for_port "RabbitMQ" "$RABBITMQ_HOST" "$RABBITMQ_PORT"
   wait_for_port "Postgres" "$POSTGRES_HOST" "$POSTGRES_PORT"
@@ -55,7 +50,7 @@ fi
 
 case "$1" in
   webserver)
-    airflow initdb
+    airflow initdb && airflow variables -s schemas $AIRFLOW_HOME/schemas/
     if [ "$AIRFLOW__CORE__EXECUTOR" = "LocalExecutor" ]; then
       # With the "Local" executor it should all run in one container.
       airflow scheduler &

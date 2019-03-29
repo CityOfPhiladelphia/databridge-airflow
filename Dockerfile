@@ -81,12 +81,13 @@ RUN pip3 install -r requirements.txt
 COPY airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
 COPY dags ${AIRFLOW_HOME}/dags
 COPY plugins ${AIRFLOW_HOME}/plugins
+COPY schemas ${AIRFLOW_HOME}/schemas
 COPY utils ${AIRFLOW_INSTALL}/utils
 
 RUN chown -R airflow: ${AIRFLOW_HOME} \
     && chmod +x /entrypoint.sh
 
-EXPOSE 8080 5432 8793 5672 5555
+EXPOSE 8080
 
 USER airflow
 WORKDIR ${AIRFLOW_HOME}
