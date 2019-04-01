@@ -49,7 +49,7 @@ def update_history_table(**kwargs):
             (
                 SELECT {hash_field} from current_hashes
                 EXCEPT
-                select {hash_field} from opa.buildingcodes
+                select {hash_field} from {table_schema}.{table_name}
             ) del_hashes  on del_hashes.{hash_field} = cur.{hash_field}
         )
         ,
