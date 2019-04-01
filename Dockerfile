@@ -73,6 +73,18 @@ RUN set -ex \
         /usr/share/doc \
         /usr/share/doc-base
 
+# instant basic-lite instant oracle client
+RUN set -ex \
+    && wget https://s3.amazonaws.com/data-engineering-assets/oracle-instantclient12.1-basiclite-12.1.0.2.0-1.x86_64.rpm \
+    && alien -i oracle-instantclient12.1-basiclite-12.1.0.2.0-1.x86_64.rpm \
+    && rm oracle-instantclient12.1-basiclite-12.1.0.2.0-1.x86_64.rpm
+
+# instant oracle-sdk
+RUN set -ex \
+    && wget https://s3.amazonaws.com/data-engineering-assets/oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm \
+    && alien -i oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm \
+    && rm oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm
+
 COPY scripts/entrypoint.sh /entrypoint.sh
 COPY requirements.txt /requirements.txt
 
