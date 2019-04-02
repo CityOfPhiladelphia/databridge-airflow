@@ -41,7 +41,6 @@ RUN set -ex \
         netcat \
         locales \
         git \
-        wget \
         alien \
         libgdal-dev \
         libgeos-dev \
@@ -63,6 +62,7 @@ RUN set -ex \
     && pip3 install ndg-httpsclient \
     && pip3 install pyasn1 \
     && pip3 install click \
+    && pip3 install awscli \
     && apt-get remove --purge -yqq $buildDeps \
     && apt-get clean \
     && rm -rf \
@@ -75,13 +75,19 @@ RUN set -ex \
 
 # instant basic-lite instant oracle client
 RUN set -ex \
-    && wget https://s3.amazonaws.com/data-engineering-assets/oracle-instantclient12.1-basiclite-12.1.0.2.0-1.x86_64.rpm \
+    && aws s3api get-object \
+           --bucket citygeo-oracle-instant-client \
+           --key oracle-instantclient12.1-basiclite-12.1.0.2.0-1.x86_64.rpm \
+                 oracle-instantclient12.1-basiclite-12.1.0.2.0-1.x86_64.rpm \
     && alien -i oracle-instantclient12.1-basiclite-12.1.0.2.0-1.x86_64.rpm \
     && rm oracle-instantclient12.1-basiclite-12.1.0.2.0-1.x86_64.rpm
 
 # instant oracle-sdk
 RUN set -ex \
-    && wget https://s3.amazonaws.com/data-engineering-assets/oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm \
+    && aws s3api get-object \
+           --bucket citygeo-oracle-instant-client \ 
+           --key oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm \
+                 oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm \
     && alien -i oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm \
     && rm oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm
 
