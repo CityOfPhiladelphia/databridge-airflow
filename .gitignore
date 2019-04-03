@@ -103,6 +103,9 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-#config
+# Airflow config
 airflow.cfg
 airflow.db
+
+# .Save files
+*.save
