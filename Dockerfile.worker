@@ -84,9 +84,9 @@ RUN set -ex \
     && alien -i oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm \
     && rm oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm
 
-COPY scripts/entrypoint.sh /entrypoint.sh
+COPY scripts/fetch_and_run.sh /fetch_and_run.sh
 COPY requirements.worker.txt /requirements.worker.txt
 
 RUN pip3 install -r requirements.worker.txt
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/fetch_and_run.sh"]
