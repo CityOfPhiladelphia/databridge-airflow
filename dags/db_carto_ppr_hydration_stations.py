@@ -26,7 +26,7 @@ default_args = {
     # 'pool': 'backfill',  # TODO: Lookup what pool is
 }
 
-pipeline = DAG('etl_db_carto_ppr_hydration_stations_v0', default_args=default_args)  # TODO: Look up how to schedule a DAG
+pipeline = DAG('etl_db_carto_ppr_hydration_stations_v0', schedule_interval='0 5 * * *', default_args=default_args)  # TODO: Look up how to schedule a DAG
 
 # ------------------------------------------------------------
 # Make staging area
@@ -57,8 +57,8 @@ write_hydration_stations = CartoUpdateOperator(
     task_id='write_db_ppr_hydration_stations',
     dag=pipeline,
     csv_path='{{ ti.xcom_pull("make_db_carto_ppr_hydration_stations_staging") }}/db_ppr_hydration_stations.csv',
-    db_conn_id='carto_gsg',
-    db_table_name='hydration_stations',
+    db_conn_id='carto_phl',
+    db_table_name='ppr_hydration_stations',
     db_schema_json=ppr_hydration_stations_schema,
     db_select_users=['publicuser', 'tileuser']
 )
