@@ -41,36 +41,7 @@ wait_for_port() {
   done
 }
 
-if [ "$AIRFLOW__CORE__EXECUTOR" = "CeleryExecutor" ]; then
-  AIRFLOW__CELERY__BROKER_URL="amqp://$RABBITMQ_USER:$RABBITMQ_PASSWORD@$RABBITMQ_HOST:$RABBITMQ_PORT/$RABBITMQ_VHOST"
-  AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql+psycopg2://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB"
-  wait_for_port "RabbitMQ" "$RABBITMQ_HOST" "$RABBITMQ_PORT"
-  wait_for_port "Postgres" "$POSTGRES_HOST" "$POSTGRES_PORT"
-fi
-
-case "$1" in
-  webserver)
-    airflow initdb && airflow variables -s schemas $AIRFLOW_HOME/schemas/
-    if [ "$AIRFLOW__CORE__EXECUTOR" = "LocalExecutor" ]; then
-      # With the "Local" executor it should all run in one container.
-      airflow scheduler &
-    fi
-    exec airflow webserver
-    ;;
-  worker|scheduler)
-    # To give the webserver time to run initdb.
-    sleep 10
-    exec airflow "$@"
-    ;;
-  flower)
-    sleep 10
-    exec airflow "$@"
-    ;;
-  version)
-    exec airflow "$@"
-    ;;
-  *)
-    # The command is something like bash, not an airflow subcommand. Just run it in the right environment.
-    exec "$@"
-    ;;
-esac
+AIRFLOW__CELERY__BROKER_URL="amqp://$RABBITMQ_USER:$RABBITMQ_PASSWORD@$RABBITMQ_HOST:$RABBITMQ_PORT/$RABBITMQ_VHOST"
+AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql+psycopg2://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB"
+wait_for_port "RabbitMQ" "$RABBITMQ_HOST" "$RABBITMQ_PORT"
+wait_for_port "Postgres" "$POSTGRES_HOST" "$POSTGRES_PORT"
