@@ -1,9 +1,10 @@
-'''This script fetches all your secrets from AWS Secrets Manager and sets them 
-as environment variables.'''
+'''This script fetches all your secrets from AWS Secrets Manager and writes them to stdout to be set as environment variables.'''
 
 from collections import namedtuple
+import json
 import base64
 import os
+import sys
 
 import boto3
 from botocore.exceptions import ClientError
@@ -17,35 +18,39 @@ class AirflowSecret():
 
     @property
     def connection_uri(self):
-        if self.secret.engine == 'oracle':
-            import cx_Oracle
+        secret = self.secret
+        # Databases
+        if 'engine' in secret:
+            if secret['engine'] == 'oracle':
+                import cx_Oracle
 
-            dbname   = secret['dbname']
-            username = secret['username']
-            password = secret['password']
-            host     = secret['host']
-            port     = secret['port'] or 1521
+                dbname   = secret['dbname']
+                username = secret['username']
+                password = secret['password']
+                host     = secret['host']
+                port     = secret['port'] or 1521
 
-            if host.endswith('__tns'):
+                if host.endswith('__tns'):
                     host = host.replace('__tns', '')
-                    conn_str = '{username}/{password}@{host}'.format(username, password, host)
-            else:
-                dsn = cx_Oracle.makedsn(host, port, database)
-                conn_str = '{username}/{password}@{dsn}'.format(username, password, dsn)
-            return conn_str
-        elif self.secret.engine == 'postgres':
-            import psycopg2
+                    conn_str = '{}/{}@{}'.format(username, password, host)
+                else:
+                    dsn = cx_Oracle.makedsn(host, port, dbname)
+                    conn_str = '{}/{}@{}'.format(username, password, dsn)
+                return conn_str
+            elif secret['engine'] == 'postgres':
+                import psycopg2
 
-            dbname   = secret['db_name'],
-            username = secret['username'],
-            password = secret['password'],
-            host     = secret['host']
-            port     = secret['port'] or 5432
+                dbname   = secret['dbname']
+                username = secret['username']
+                password = secret['password']
+                host     = secret['host']
+                port     = secret['port'] or 5432
 
-            conn_str = 'postgres://{username}:{password}@{host}:{port}/{dbname}'.format(username, password, host, port, dbname)
+                conn_str = 'postgres://{}:{}@{}:{}/{}'.format(username, password, host, port, dbname)
+                return conn_str
+        else:
+            conn_str = secret['connection_string']
             return conn_str
-        elif connection_type == 'slack':
-            pass
 
     @staticmethod
     def get_secret(secret_name):
@@ -77,21 +82,17 @@ class AirflowSecret():
             if 'SecretString' in get_secret_value_response:
                 secret = get_secret_value_response['SecretString']
             else:
-                decoded_binary_secret = base64.b64decode(get_secret_value_response['SecretBinary'])
+                secret = base64.b64decode(get_secret_value_response['SecretBinary'])
 
-        return secret or decoded_binary_secret
+        secret = json.loads(secret)
+        return secret 
 
-SecretMetadata = namedtuple('Secret', ['secret_name', 'airflow_env'])
-
-# Change theses to the names of your secrets in AWS Secrets Manager
-# Mind the specific formatting of environment variables that Airflow expects
-SECRET_METADATAS = (
-    # SecretMetadata('databridge', 'AIRFLOW_CONN_DATABRIDGE_DEV'),
-    AirflowSecret('databridge', 'AIRFLOW_CONN_DATABRIDGE_DEV')
+SECRETS = (
+    AirflowSecret('databridge', 'AIRFLOW_CONN_DATABRIDGE'),
+    AirflowSecret('databridge-dev', 'AIRFLOW_CONN_DATABRIDGE'),
+    AirflowSecret('brt-viewer', 'AIRFLOW_CONN_BRT_VIEWER'),
+    AirflowSecret('carto-prod', 'AIRFLOW_CONN_CARTO_PROD'),
 )
 
-for metadata in SECRET_METADATAS:
-    # secret = get_secret(metadata.secret_name)
-    # print(secret)
-    print(metadata.connection_uri)
-    #os.environ[metadata.airflow_env] = secret
+for s in SECRETS:
+    sys.stdout.write(s.airflow_env + '=' + s.connection_uri + '\n')
