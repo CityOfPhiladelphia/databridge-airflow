@@ -2,6 +2,9 @@
 
 TRY_LOOP="20"
 
+# Run set_secrets.py and set outputs as environment variables
+eval $(python3 set_secrets.py | sed 's/^/export /')
+
 : "${RABBITMQ_HOST:="rabbitmq"}"
 : "${RABBITMQ_PORT:="5672"}"
 : "${RABBITMQ_USER:="airflow"}"
@@ -14,16 +17,13 @@ TRY_LOOP="20"
 : "${POSTGRES_PASSWORD:="airflow"}"
 : "${POSTGRES_DB:="airflow"}"
 
-# Defaults and back-compat
-: "${AIRFLOW__CORE__FERNET_KEY:=${FERNET_KEY:=$(python3 -c "from cryptography.fernet import Fernet; FERNET_KEY = Fernet.generate_key().decode(); print(FERNET_KEY)")}}"
-: "${AIRFLOW__CORE__EXECUTOR:=${EXECUTOR:-Sequential}Executor}"
+: "${AIRFLOW__CORE__EXECUTOR:=${EXECUTOR:-Celery}Executor}"
 
 export \
   AIRFLOW__CELERY__BROKER_URL \
   AIRFLOW__CELERY__RESULT_BACKEND \
   AIRFLOW__CORE__EXECUTOR \
   AIRFLOW__CORE__FERNET_KEY \
-  AIRFLOW__CORE__LOAD_EXAMPLES \
   AIRFLOW__CORE__SQL_ALCHEMY_CONN \
   AIRFLOW_HOME \
 
