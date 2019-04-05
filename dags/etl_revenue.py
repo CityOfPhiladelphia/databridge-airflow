@@ -53,7 +53,14 @@ extract_ti_entity = GeopetlReadOperator(
     db_table_where='',
 )
 
-
+extract_ti_street_code = GeopetlReadOperator(
+    task_id='read_ti_street_code',
+    dag=pipeline,
+    csv_path='{{ ti.xcom_pull("make_revenue_staging") }}/ti_street_code.csv',
+    db_conn_id='tips',
+    db_table_name='ti_street_code',
+    db_table_where='',
+)
 # ----------------------------------------------------
 # Write extracted files to Databridge
 
@@ -73,6 +80,14 @@ write_ti_entity = GeopetlWriteOperator(
     db_table_name='revenue.tips_ti_entity',
 )
 
+write_ti_street_code = GeopetlWriteOperator(
+    task_id='write_ti_street_code',
+    dag=pipeline,
+    csv_path='{{ ti.xcom_pull("make_revenue_staging") }}/ti_street_code.csv',
+    db_conn_id='databridge2',
+    db_table_name='revenue.tips_ti_street_code',
+)
+
 # -----------------------------------------------------------------
 # Cleanup - delete staging folder
 
@@ -90,3 +105,6 @@ extract_ti_entity.set_upstream(make_staging)
 extract_ti_entity.set_downstream(write_ti_entity)
 write_ti_entity.set_downstream(cleanup)
 
+extract_ti_street_code.set_upstream(make_staging)
+extract_ti_street_code.set_downstream(write_ti_street_code)
+write_ti_street_code.set_downstream(cleanup)
