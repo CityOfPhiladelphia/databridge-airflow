@@ -97,7 +97,7 @@ COPY requirements.server.txt /requirements.server.txt
 
 RUN pip3 install -r requirements.server.txt
 
-COPY airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
+COPY config/airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
 COPY dags ${AIRFLOW_HOME}/dags
 COPY plugins ${AIRFLOW_HOME}/plugins
 COPY schemas ${AIRFLOW_HOME}/schemas

@@ -48,9 +48,11 @@ class AirflowSecret():
 
                 conn_str = 'postgres://{}:{}@{}:{}/{}'.format(username, password, host, port, dbname)
                 return conn_str
-        else:
+        elif 'connection_string' in secret:
             conn_str = secret['connection_string']
             return conn_str
+        elif 'fernet-key' in secret:
+            fernet_key = secret['fernet_key']
 
     @staticmethod
     def get_secret(secret_name):
@@ -92,6 +94,7 @@ SECRETS = (
     AirflowSecret('databridge-dev', 'AIRFLOW_CONN_DATABRIDGE'),
     AirflowSecret('brt-viewer', 'AIRFLOW_CONN_BRT_VIEWER'),
     AirflowSecret('carto-prod', 'AIRFLOW_CONN_CARTO_PROD'),
+    AirflowSecret('fernet-key', 'AIRFLOW__CORE__FERNET_KEY'),
 )
 
 for s in SECRETS:
