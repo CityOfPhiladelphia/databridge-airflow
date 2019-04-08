@@ -103,9 +103,14 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-# Airflow config
-airflow.cfg
+# VS Code
+.vscode/
+
+# Airflow
 airflow.db
 
 # .Save files
 *.save
+
+# Postgres
+pgdata/

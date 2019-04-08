@@ -15,23 +15,22 @@ services:
             - POSTGRES_USER=airflow
             - POSTGRES_PASSWORD=airflow
             - POSTGRES_DB=airflow
+            # persist data on the local filesystem.
+            - PGDATA=/var/lib/postgresql/data/pgdata
+        volumes:
+            - ./pgdata:/var/lib/postgresql/data/pgdata
 
     webserver:
+        build:
+            context: .
+            dockerfile: Dockerfile.server
         image: airflow
-        build: .
         restart: always
         depends_on:
             - postgres
             - rabbitmq
         environment:
             - LOAD_EX=n
-            - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
-            - EXECUTOR=Celery
-            - POSTGRES_USER=airflow
-            - POSTGRES_PASSWORD=airflow
-            - POSTGRES_DB=airflow
-            - RABBITMQ_PASSWORD=airflow
-            - AIRFLOW_CONN_SLACK=${AIRFLOW_CONN_SLACK}
         volumes:
             - ./dags:/usr/local/airflow/dags
             - ./plugins:/usr/local/airflow/plugins
@@ -43,10 +42,7 @@ services:
         image: airflow
         restart: always
         depends_on:
-            - rabbitmq
-        environment:
-            - EXECUTOR=Celery
-            - RABBITMQ_PASSWORD=airflow
+            - webserver
         ports:
             - "5555:5555"
         command: flower
@@ -61,29 +57,14 @@ services:
             - ./plugins:/usr/local/airflow/plugins
         environment:
             - LOAD_EX=n
-            - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
-            - EXECUTOR=Celery
-            - POSTGRES_USER=airflow
-            - POSTGRES_PASSWORD=airflow
-            - POSTGRES_DB=airflow
-            - RABBITMQ_PASSWORD=airflow
-            - AIRFLOW_CONN_SLACK=${AIRFLOW_CONN_SLACK}
         command: scheduler
 
     worker:
         image: airflow
         restart: always
         depends_on:
-            - scheduler
+            - webserver
         volumes:
             - ./dags:/usr/local/airflow/dags
             - ./plugins:/usr/local/airflow/plugins
-        environment:
-            - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
-            - EXECUTOR=Celery
-            - POSTGRES_USER=airflow
-            - POSTGRES_PASSWORD=airflow
-            - POSTGRES_DB=airflow
-            - RABBITMQ_PASSWORD=airflow
-            - AIRFLOW_CONN_SLACK=${AIRFLOW_CONN_SLACK}
         command: worker
