@@ -28,8 +28,7 @@ RUN set -ex \
         build-essential \
         libblas-dev \
         liblapack-dev \
-        libpq-dev \
-    ' \
+   ' \
     && apt-get update -yqq \
     && apt-get install -yqq --no-install-recommends \
         $buildDeps \
@@ -50,6 +49,7 @@ RUN set -ex \
         libspatialindex-dev \
         libaio1 \
         freetds-dev \
+        libpq-dev \
     && sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen \
     && locale-gen \
     && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
@@ -62,6 +62,7 @@ RUN set -ex \
     && pip3 install ndg-httpsclient \
     && pip3 install pyasn1 \
     && pip3 install click \
+    && pip3 install apache-airflow[crypto,postgres,s3,celery,rabbitmq,mssql,slack]==1.10.2 \
     && pip3 install awscli \
     && apt-get remove --purge -yqq $buildDeps \
     && apt-get clean \
@@ -91,19 +92,25 @@ RUN set -ex \
     && alien -i oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm \
     && rm oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm
 
+COPY scripts/set_secrets.py /set_secrets.py
 COPY scripts/entrypoint.sh /entrypoint.sh
 COPY requirements.server.txt /requirements.server.txt
+# Remove this when we get batch working
+COPY requirements.worker.txt /requirements.worker.txt
 
 RUN pip3 install -r requirements.server.txt
+# Remove this when we get batch working
+RUN pip3 install -r requirements.worker.txt
 
-COPY airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
+COPY config/airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
 COPY dags ${AIRFLOW_HOME}/dags
 COPY plugins ${AIRFLOW_HOME}/plugins
 COPY schemas ${AIRFLOW_HOME}/schemas
 COPY utils ${AIRFLOW_INSTALL}/utils
 
 RUN chown -R airflow: ${AIRFLOW_HOME} \
-    && chmod +x /entrypoint.sh
+    && chmod +x /entrypoint.sh \
+    && chmod +x /set_secrets.py
 
 EXPOSE 8080
 
