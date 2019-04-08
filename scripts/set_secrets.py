@@ -32,11 +32,10 @@ class AirflowSecret():
 
                 if host.endswith('__tns'):
                     host = host.replace('__tns', '')
-                    conn_str = '{}/{}@{}'.format(username, password, host)
+                    conn_str = 'oracle+cx_oracle://{}/{}@{}'.format(username, password, host)
                 else:
                     dsn = cx_Oracle.makedsn(host, port, dbname)
-                    conn_str = '{}/{}@{}'.format(username, password, dsn)
-                return conn_str
+                    conn_str = 'oracle+cx_oracle://{}/{}@{}'.format(username, password, dsn)
             elif secret['engine'] == 'postgres':
                 import psycopg2
 
@@ -46,13 +45,12 @@ class AirflowSecret():
                 host     = secret['host']
                 port     = secret['port'] or 5432
 
-                conn_str = 'postgres://{}:{}@{}:{}/{}'.format(username, password, host, port, dbname)
-                return conn_str
+                conn_str = 'postgresql://{}:{}@{}:{}/{}'.format(username, password, host, port, dbname)
         elif 'connection_string' in secret:
             conn_str = secret['connection_string']
-            return conn_str
-        elif 'fernet-key' in secret:
-            fernet_key = secret['fernet_key']
+        elif 'fernet_key' in secret:
+            conn_str = secret['fernet_key']
+        return conn_str
 
     @staticmethod
     def get_secret(secret_name):
@@ -94,8 +92,9 @@ SECRETS = (
     AirflowSecret('databridge-dev', 'AIRFLOW_CONN_DATABRIDGE'),
     AirflowSecret('brt-viewer', 'AIRFLOW_CONN_BRT_VIEWER'),
     AirflowSecret('carto-prod', 'AIRFLOW_CONN_CARTO_PROD'),
-    AirflowSecret('fernet-key', 'AIRFLOW__CORE__FERNET_KEY'),
+    AirflowSecret('airflow-fernet', 'AIRFLOW__CORE__FERNET_KEY'),
+    AirflowSecret('airflow-slack-dev', 'AIRFLOW_CONN_SLACK'),
 )
 
 for s in SECRETS:
-    sys.stdout.write(s.airflow_env + '=' + s.connection_uri + '\n')
+    sys.stdout.write(s.airflow_env + '=' + '"' + s.connection_uri + '"' + '\n')
