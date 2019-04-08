@@ -11,9 +11,8 @@ from botocore.exceptions import ClientError
 
 
 class AirflowSecret():
-    def __init__(self, secret_name, airflow_env):
+    def __init__(self, secret_name):
         self.secret_name = secret_name
-        self.airflow_env = airflow_env
         self.secret = self.get_secret(secret_name)
 
     @property
@@ -30,12 +29,13 @@ class AirflowSecret():
                 host     = secret['host']
                 port     = secret['port'] or 1521
 
-                if host.endswith('__tns'):
-                    host = host.replace('__tns', '')
-                    conn_str = 'oracle+cx_oracle://{}/{}@{}'.format(username, password, host)
-                else:
-                    dsn = cx_Oracle.makedsn(host, port, dbname)
-                    conn_str = 'oracle+cx_oracle://{}/{}@{}'.format(username, password, dsn)
+                bash_cmd = f'''airflow connections -add \
+                                                   --conn_id={dbname} \
+                                                   --conn_type=Oracle \
+                                                   --conn_host={host} \
+                                                   --conn_login={username} \
+                                                   --conn_password={password} \
+                                                   --conn_port={port}'''
             elif secret['engine'] == 'postgres':
                 import psycopg2
 
@@ -45,12 +45,30 @@ class AirflowSecret():
                 host     = secret['host']
                 port     = secret['port'] or 5432
 
-                conn_str = 'postgresql://{}:{}@{}:{}/{}'.format(username, password, host, port, dbname)
-        elif 'connection_string' in secret:
-            conn_str = secret['connection_string']
+                bash_cmd = f'''airflow connections -add \
+                                                   --conn_id={dbname} \
+                                                   --conn_type=Postgres \
+                                                   --conn_host={host} \
+                                                   --conn_login={username} \
+                                                   --conn_password={password} \
+                                                   --conn_port={port}'''
+        elif 'airflow-slack-dev' in secret:
+            bash_cmd = f'''airflow connections -add \
+                                               --conn_id=slack \
+                                               --conn_type=Postgres \
+                                               --conn_host=https://hooks.slack.com/services \
+                                               --conn_login={secret["airflow-slack-dev"].split(':')[0]} \
+                                               --conn_password={secret["airflow-slack-dev"].split(':')[1]}'''
+        elif 'airflow-slack-test' in secret:
+            bash_cmd = f'''airflow connections -add \
+                                               --conn_id=slack \
+                                               --conn_type=Postgres \
+                                               --conn_host=https://hooks.slack.com/services \
+                                               --conn_login={secret["airflow-slack-test"].split(':')[0]} \
+                                               --conn_password={secret["airflow-slack-test"].split(':')[1]}'''
         elif 'fernet_key' in secret:
-            conn_str = secret['fernet_key']
-        return conn_str
+            bash_cmd = f'export AIRFLOW__CORE__FERNET_KEY={secret["fernet_key"]}'
+        return bash_cmd
 
     @staticmethod
     def get_secret(secret_name):
@@ -88,12 +106,12 @@ class AirflowSecret():
         return secret 
 
 SECRETS = (
-    AirflowSecret('databridge', 'AIRFLOW_CONN_DATABRIDGE'),
-    AirflowSecret('databridge-dev', 'AIRFLOW_CONN_DATABRIDGE'),
-    AirflowSecret('brt-viewer', 'AIRFLOW_CONN_BRT_VIEWER'),
-    AirflowSecret('carto-prod', 'AIRFLOW_CONN_CARTO_PROD'),
-    AirflowSecret('airflow-fernet', 'AIRFLOW__CORE__FERNET_KEY'),
-    AirflowSecret('airflow-slack-dev', 'AIRFLOW_CONN_SLACK'),
+    AirflowSecret('databridge'),
+    AirflowSecret('databridge-dev'),
+    AirflowSecret('brt-viewer'),
+    AirflowSecret('carto-prod'),
+    AirflowSecret('airflow-fernet'),
+    AirflowSecret('airflow-slack-dev'),
 )
 
 for s in SECRETS:
