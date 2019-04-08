@@ -21,8 +21,10 @@ services:
             - ./pgdata:/var/lib/postgresql/data/pgdata
 
     webserver:
+        build:
+            context: .
+            dockerfile: Dockerfile.server
         image: airflow
-        build: .
         restart: always
         depends_on:
             - postgres
@@ -40,7 +42,7 @@ services:
         image: airflow
         restart: always
         depends_on:
-            - rabbitmq
+            - webserver
         ports:
             - "5555:5555"
         command: flower
@@ -61,7 +63,7 @@ services:
         image: airflow
         restart: always
         depends_on:
-            - scheduler
+            - webserver
         volumes:
             - ./dags:/usr/local/airflow/dags
             - ./plugins:/usr/local/airflow/plugins
