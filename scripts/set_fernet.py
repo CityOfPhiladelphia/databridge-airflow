@@ -42,11 +42,11 @@ def get_secret(secret_name):
     return secret 
 
 def build_bash_cmd(secret):
-    bash_cmd = f'export AIRFLOW__CORE__FERNET_KEY={secret["fernet_key"]}'
+    bash_cmd = 'export AIRFLOW__CORE__FERNET_KEY={}'.format(secret['fernet_key'])
     return bash_cmd
 
 def main():
-    secret = get_secret('airflow-slack-dev')
+    secret = get_secret('airflow-fernet')
     bash_cmd = build_bash_cmd(secret)
     sys.stdout.write(bash_cmd)
 
