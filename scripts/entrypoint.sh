@@ -2,9 +2,6 @@
 
 TRY_LOOP="20"
 
-# Run set_secrets.py and set outputs as environment variables
-eval $(python3 /set_secrets.py | sed 's/^/export /')
-
 : "${RABBITMQ_HOST:="rabbitmq"}"
 : "${RABBITMQ_PORT:="5672"}"
 : "${RABBITMQ_USER:="airflow"}"
@@ -25,7 +22,6 @@ export \
   AIRFLOW__CORE__EXECUTOR \
   AIRFLOW__CORE__FERNET_KEY \
   AIRFLOW__CORE__SQL_ALCHEMY_CONN \
-  AIRFLOW_HOME \
 
 wait_for_port() {
   local name="$1" host="$2" port="$3"
@@ -43,6 +39,8 @@ wait_for_port() {
 
 AIRFLOW__CELERY__BROKER_URL="amqp://$RABBITMQ_USER:$RABBITMQ_PASSWORD@$RABBITMQ_HOST:$RABBITMQ_PORT/$RABBITMQ_VHOST"
 AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql+psycopg2://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB"
+# Set the fernet environment variable
+eval $(python3 /set_fernet.py)
 wait_for_port "RabbitMQ" "$RABBITMQ_HOST" "$RABBITMQ_PORT"
 wait_for_port "Postgres" "$POSTGRES_HOST" "$POSTGRES_PORT"
 
@@ -55,7 +53,8 @@ case "$1" in
     exec airflow webserver
     ;;
   worker)
-    pip3 install -r requirements.worker.txt
+    # Uncomment this when batch is working
+    # pip3 install -r requirements.worker.txt
     # Give the webserver time to run initdb.
     sleep 10
     exec airflow "$@"
