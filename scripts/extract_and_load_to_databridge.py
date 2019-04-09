@@ -1,9 +1,9 @@
-import sys
+import sys, os
 import petl as etl
 import geopetl
 import psycopg2
 import cx_Oracle
-# import boto3
+from boto3 import s3
 
 
 class BatchDatabridgeTask():
@@ -25,7 +25,12 @@ class BatchDatabridgeTask():
         self.conn = ''
         self.csv_path = '/tmp/'
 
-    # def load_to_s3(self):
+
+    def load_to_s3(self):
+        s3.Object(self.s3_bucket, self.db_schema_table_name + '_.csv').put(Body=open(self.csv_path, 'rb'))
+
+    def get_from_s3(self):
+        s3.Object(self.s3_bucket, self.db_schema_table_name + '_.csv').download_file(self.csv_path)
 
 
     def make_connection(self):
@@ -39,7 +44,7 @@ class BatchDatabridgeTask():
 
 
     def extract(self):
-        self.csv_path = self.csv_path + self.source_table_name + '_.csv'
+        self.csv_path = self.csv_path + self.db_schema_table_name + '_.csv'
         try:
             self.make_connection()
         except Exception as e:
@@ -50,6 +55,11 @@ class BatchDatabridgeTask():
         elif self.source_db_type == 'postgres':
             etl.frompostgis(self.conn, self.source_table_name).tocsv(self.csv_path, encoding='latin-1')
         self.load_to_s3()
+        ## Try to delete the local file ##
+        try:
+            os.remove(self.csv_path)
+        except OSError as e:  ## if failed, report it back to the user ##
+            print("Error: %s - %s." % (e.filename, e.strerror))
 
 
     def write(self):
@@ -58,12 +68,20 @@ class BatchDatabridgeTask():
         except Exception as e:
             print("Couldn't connect to {}".format(self.db_name))
             raise e
-        # if self.db_type == 'oracle':
-        #     etl.fromcsv(self.csv_path, encoding='latin-1').tooraclesde(self.conn, self.db_schema_table_name)
-        # elif self.db_type == 'postgres':
+
+        # Retrieve file from s3 bucket:
+        self.csv_path = self.csv_path + self.db_schema_table_name + '_.csv'
+        self.get_from_s3()
+
         if self.db_type == 'postgres':
             rows = etl.fromcsv(self.csv_path, encoding='latin-1')
             rows.topostgis(self.conn, self.db_schema_table_name)
+
+        ## Try to delete the local file ##
+        try:
+            os.remove(self.csv_path)
+        except OSError as e:  ## if failed, report it back to the user ##
+            print("Error: %s - %s." % (e.filename, e.strerror))
 
 
     def update_hash(self):
