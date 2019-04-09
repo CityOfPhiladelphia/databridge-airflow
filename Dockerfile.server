@@ -92,7 +92,7 @@ RUN set -ex \
     && alien -i oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm \
     && rm oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm
 
-COPY scripts/set_secrets.py /set_secrets.py
+COPY scripts/set_fernet.py /set_fernet.py
 COPY scripts/entrypoint.sh /entrypoint.sh
 COPY requirements.server.txt /requirements.server.txt
 # Remove this when we get batch working
@@ -110,7 +110,7 @@ COPY utils ${AIRFLOW_INSTALL}/utils
 
 RUN chown -R airflow: ${AIRFLOW_HOME} \
     && chmod +x /entrypoint.sh \
-    && chmod +x /set_secrets.py
+    && chmod +x /set_fernet.py
 
 EXPOSE 8080
 
