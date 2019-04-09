@@ -10,21 +10,22 @@ class BatchDatabridgeTask():
 
     def __init__(self, task_name, **kwargs):
         self.task_name = task_name
-        self.db_conn_str = kwargs.get('db_conn_str', '')
         self.db_type = kwargs.get('db_type', '')
         self.db_host = kwargs.get('db_host', '')
         self.db_user = kwargs.get('db_user', '')
         self.db_password = kwargs.get('db_password', '')
         self.db_name = kwargs.get('db_name', '')
         self.db_port = kwargs.get('db_port', '')
-        self.db_type = kwargs.get('db_type', '')
         self.db_table_schema = kwargs.get('db_table_schema', '')
         self.db_table_name = kwargs.get('db_table_name', '')
         self.db_schema_table_name = "{}.{}".format(self.db_table_schema, self.db_table_name)
         self.db_timestamp=kwargs.get('db_timestamp', True)
-        self.conn = ''
         self.hash_field = kwargs.get('hash_field', 'etl_hash')
-        self.s3_bucket = ''
+        self.s3_bucket = kwargs.get('s3_bucket', '')
+        self.conn = ''
+        self.csv_path = '/tmp/'
+
+    # def load_to_s3(self):
 
 
     def make_connection(self):
@@ -38,15 +39,17 @@ class BatchDatabridgeTask():
 
 
     def extract(self):
+        self.csv_path = self.csv_path + self.source_table_name + '_.csv'
         try:
             self.make_connection()
         except Exception as e:
             print("Couldn't connect to {}".format(self.db_name))
             raise e
         if self.source_db_type == 'oracle':
-            etl.fromoraclesde(self.conn, self.source_table_name, timestamp=self.db_timestamp).tocsv(self.source_table_name + '_.csv')
+            etl.fromoraclesde(self.conn, self.source_table_name, timestamp=self.db_timestamp).tocsv(self.csv_path, encoding='latin-1')
         elif self.source_db_type == 'postgres':
-            etl.frompostgis(self.conn, self.source_table_name).tocsv(self.source_table_name + '_.csv')
+            etl.frompostgis(self.conn, self.source_table_name).tocsv(self.csv_path, encoding='latin-1')
+        self.load_to_s3()
 
 
     def write(self):
@@ -55,10 +58,11 @@ class BatchDatabridgeTask():
         except Exception as e:
             print("Couldn't connect to {}".format(self.db_name))
             raise e
-        if self.db_type == 'oracle':
-            etl.fromcsv(self.csv_path).tooraclesde(self.conn, self.db_schema_table_name)
-        elif self.db_type == 'postgres':
-            rows = etl.fromcsv(self.csv_path)
+        # if self.db_type == 'oracle':
+        #     etl.fromcsv(self.csv_path, encoding='latin-1').tooraclesde(self.conn, self.db_schema_table_name)
+        # elif self.db_type == 'postgres':
+        if self.db_type == 'postgres':
+            rows = etl.fromcsv(self.csv_path, encoding='latin-1')
             rows.topostgis(self.conn, self.db_schema_table_name)
 
 
