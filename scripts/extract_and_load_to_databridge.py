@@ -1,9 +1,11 @@
-import sys, os
+import sys
+import os
+
 import petl as etl
 import geopetl
 import psycopg2
 import cx_Oracle
-from boto3 import s3
+import boto3
 
 
 class BatchDatabridgeTask():
@@ -16,21 +18,30 @@ class BatchDatabridgeTask():
         self.db_password = kwargs.get('db_password', '')
         self.db_name = kwargs.get('db_name', '')
         self.db_port = kwargs.get('db_port', '')
-        self.db_table_schema = kwargs.get('db_table_schema', '')
-        self.db_table_name = kwargs.get('db_table_name', '')
+        self.db_table_schema = kwargs.get('db_table_schema', '').upper()
+        self.db_table_name = kwargs.get('db_table_name', '').upper()
         self.db_schema_table_name = "{}.{}".format(self.db_table_schema, self.db_table_name)
         self.db_timestamp=kwargs.get('db_timestamp', True)
         self.hash_field = kwargs.get('hash_field', 'etl_hash')
         self.s3_bucket = kwargs.get('s3_bucket', '')
         self.conn = ''
-        self.csv_path = '/tmp/'
 
+    @property
+    def csv_path(self):
+        # On Windows, save to a relative folder
+        if os.name == 'nt':
+            csv_path = 'tmp/' + self.db_table_schema +  '_' + self.db_table_name + '.csv'
+        # On Linux, save to absolute tmp folder
+        else:
+            csv_path = '/tmp/' + self.db_table_schema +  '_' + self.db_table_name + '.csv'
 
     def load_to_s3(self):
-        s3.Object(self.s3_bucket, self.db_schema_table_name + '_.csv').put(Body=open(self.csv_path, 'rb'))
+        s3 = boto3.resource('s3')
+        s3.Object(self.s3_bucket, self.csv_path).put(Body=open(self.csv_path, 'rb'))
 
     def get_from_s3(self):
-        s3.Object(self.s3_bucket, self.db_schema_table_name + '_.csv').download_file(self.csv_path)
+        s3 = boto3.resource('s3')
+        s3.Object(self.s3_bucket, self.csv_path).download_file(self.csv_path)
 
 
     def make_connection(self):
@@ -44,16 +55,17 @@ class BatchDatabridgeTask():
 
 
     def extract(self):
-        self.csv_path = self.csv_path + self.db_schema_table_name + '_.csv'
         try:
             self.make_connection()
         except Exception as e:
             print("Couldn't connect to {}".format(self.db_name))
             raise e
-        if self.source_db_type == 'oracle':
-            etl.fromoraclesde(self.conn, self.source_table_name, timestamp=self.db_timestamp).tocsv(self.csv_path, encoding='latin-1')
-        elif self.source_db_type == 'postgres':
-            etl.frompostgis(self.conn, self.source_table_name).tocsv(self.csv_path, encoding='latin-1')
+        if self.db_type == 'oracle':
+            etl.fromoraclesde(self.conn, self.db_schema_table_name, timestamp=self.db_timestamp) \
+               .tocsv(self.csv_path, encoding='latin-1')
+        elif self.db_type == 'postgres':
+            etl.frompostgis(self.conn, self.db_schema_table_name) \
+               .tocsv(self.csv_path, encoding='latin-1')
         self.load_to_s3()
         ## Try to delete the local file ##
         try:
@@ -70,7 +82,6 @@ class BatchDatabridgeTask():
             raise e
 
         # Retrieve file from s3 bucket:
-        self.csv_path = self.csv_path + self.db_schema_table_name + '_.csv'
         self.get_from_s3()
 
         if self.db_type == 'postgres':
