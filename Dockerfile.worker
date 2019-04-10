@@ -56,6 +56,7 @@ RUN set -ex \
     && pip3 install pyasn1 \
     && pip3 install click \
     && pip3 install awscli \
+    && pip3 install psycopg2 \
     && apt-get remove --purge -yqq $buildDeps \
     && apt-get clean \
     && rm -rf \
