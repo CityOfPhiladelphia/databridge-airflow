@@ -20,39 +20,45 @@ class BatchDatabridgeTask():
         self.db_port = kwargs.get('db_port', '')
         self.db_table_schema = kwargs.get('db_table_schema', '').upper()
         self.db_table_name = kwargs.get('db_table_name', '').upper()
-        self.db_schema_table_name = "{}.{}".format(self.db_table_schema, self.db_table_name)
         self.db_timestamp=kwargs.get('db_timestamp', True)
         self.hash_field = kwargs.get('hash_field', 'etl_hash')
         self.s3_bucket = kwargs.get('s3_bucket', '')
         self.conn = ''
 
     @property
+    def db_schema_table_name(self):
+        return '{}.{}'.format(self.db_table_schema, self.db_table_name)
+
+    @property
+    def s3_key(self):
+        return 'staging/{}/{}'.format(self.db_table_schema, self.db_table_name)
+
+    @property
     def csv_path(self):
-        # On Windows, save to a relative folder
+        # On Windows, save to current directory
         if os.name == 'nt':
-            csv_path = 'tmp/' + self.db_table_schema +  '_' + self.db_table_name + '.csv'
-        # On Linux, save to absolute tmp folder
+            csv_path = '{}_{}.csv'.format(self.db_table_schema, self.db_table_name)
+        # On Linux, save to tmp folder
         else:
-            csv_path = '/tmp/' + self.db_table_schema +  '_' + self.db_table_name + '.csv'
+            csv_path = '/tmp/{}_{}.csv'.format(self.db_table_schema, self.db_table_name)
+        return csv_path
 
     def load_to_s3(self):
         s3 = boto3.resource('s3')
-        s3.Object(self.s3_bucket, self.csv_path).put(Body=open(self.csv_path, 'rb'))
+        s3.Object(self.s3_bucket, self.s3_key).put(Body=open(self.csv_path, 'rb'))
 
     def get_from_s3(self):
         s3 = boto3.resource('s3')
-        s3.Object(self.s3_bucket, self.csv_path).download_file(self.csv_path)
-
+        s3.Object(self.s3_bucket, self.s3_key).download_file(self.csv_path)
 
     def make_connection(self):
-        print("Connecting to the database {}".format(self.db_name))
+        print('Connecting to the database {}'.format(self.db_name))
         if self.db_type == 'oracle':
             self.dsn = cx_Oracle.makedsn(self.db_host, self.db_port, self.db_name)
             self.conn = cx_Oracle.connect(user=self.db_user, password=self.db_password, dsn=self.dsn)
         elif self.db_type == 'postgres':
             self.conn = psycopg2.connect(dbname=self.db_name, user=self.db_user, password=self.db_password,
                                          host=self.db_host, port=self.db_port)
-
 
     def extract(self):
         try:
@@ -73,7 +79,6 @@ class BatchDatabridgeTask():
         except OSError as e:  ## if failed, report it back to the user ##
             print("Error: %s - %s." % (e.filename, e.strerror))
 
-
     def write(self):
         try:
             self.make_connection()
@@ -93,7 +98,6 @@ class BatchDatabridgeTask():
             os.remove(self.csv_path)
         except OSError as e:  ## if failed, report it back to the user ##
             print("Error: %s - %s." % (e.filename, e.strerror))
-
 
     def update_hash(self):
         try:
@@ -118,7 +122,6 @@ class BatchDatabridgeTask():
             update {table_name_full} set {hash_field} = {hash_calc}
         '''.format(table_name_full=self.db_schema_table_name, hash_field=self.hash_field, hash_calc=hash_calc)
         cur.execute(update_hash_stmt)
-
 
     def update_history(self):
         try:
@@ -181,7 +184,6 @@ class BatchDatabridgeTask():
 
         cur.execute(update_history_stmt)
 
-
     def run_task(self):
         task_map = {
             'extract': self.extract(),
@@ -190,7 +192,6 @@ class BatchDatabridgeTask():
             'update_history': self.update_history()
         }
         return task_map.get(self.task_name)
-
 
 def main(task_name, **kwargs):
     batch_databridge_task = BatchDatabridgeTask(task_name, **kwargs)
