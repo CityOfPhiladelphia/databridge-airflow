@@ -114,3 +114,6 @@ airflow.db
 
 # Postgres
 pgdata/
+
+# CSV
+*.csv
