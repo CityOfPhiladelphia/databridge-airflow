@@ -12,6 +12,11 @@ ENV LC_CTYPE en_US.UTF-8
 ENV LC_MESSAGES en_US.UTF-8
 ENV LC_ALL  en_US.UTF-8
 
+# Oracle
+ENV ORACLE_HOME=/usr/lib/oracle/12.1/client64
+ENV LD_LIBRARY_PATH=$ORACLE_HOME/lib
+ENV PATH=$ORACLE_HOME/bin:$PATH
+
 COPY requirements.worker.txt /requirements.worker.txt
 
 RUN set -ex \
