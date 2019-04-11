@@ -61,19 +61,20 @@ class BatchDatabridgeTask():
        return self._logger 
 
     def load_to_s3(self):
-       self.logger.info('Starting load to s3: {}'.format(self.s3_key)) 
+       self.logger.info('Starting load to s3: {}'.format(self.s3_key))
+       s3 = boto3.resource('s3') 
        try:
-            s3 = boto3.resource('s3')
             s3.Object(self.s3_bucket, self.s3_key).put(Body=open(self.csv_path, 'rb'))
             self.logger.info('Successfully loaded to s3: {}'.format(self.s3_key))
        except Exception as e:
-            self.logger.error('Error loading to s3')
+            self.logger.exception('Error loading to s3')
             raise e
     def get_from_s3(self):
         self.logger.info('Fetching s3://{}/{}'.format(self.s3_bucket, self.s3_key))
+        s3 = boto3.resource('s3')
         try:
-            s3 = boto3.resource('s3')
             s3.Object(self.s3_bucket, self.s3_key).download_file(self.csv_path)
+            self.logger.info('s3://{}/{} successfully downloaded'.format(self.s3_bucket, self.s3_key))
         except ClientError as e:
             self.logger.exception('No s3 object found: s3://{}/{}'.format(self.s3_bucket, self.s3_key))
     def make_connection(self):
@@ -88,6 +89,7 @@ class BatchDatabridgeTask():
 
         except cx_Oracle.DatabaseError as e:
             self.logger.exception('Could not connect to database {}'.format(self.db_name))
+            raise e
     def extract(self):
         self.logger.info('Starting extract from {}: {}'.format(self.db_name, self.db_schema_table_name))
         try:
@@ -102,8 +104,10 @@ class BatchDatabridgeTask():
             os.remove(self.csv_path)
         except OSError as e:
             self.logger.exception('Error removing temporary file {} - {}'.format(e.filename, e.strerror))
+            raise e
         except Exception as e:
             self.logger.exception('Error extracting from {}: {}'.format(self.db_name, self.db_schema_table_name))
+            raise e
     def write(self):
         self.logger.info('Starting write to {}: {}'.format(self.db_name, self.db_schema_table_name))
         try:
@@ -115,10 +119,13 @@ class BatchDatabridgeTask():
                 rows.topostgis(self.conn, self.db_schema_table_name)
 
             os.remove(self.csv_path)
+            self.logger.info('Successfully wrote to {}: {}'.format(self.db_name, self.db_schema_table_name))
         except OSError as e: 
             self.logger.exception("Error removing temporary file: {} - {}".format(e.filename, e.strerror))
+            raise e
         except Exception as e:
             self.logger.exception('Error writing to {}: {}'.format(self.db_name, self.db_schema_table_name))
+            raise e
     def update_hash(self):
         self.logger.info('Starting update hash on {}: {}'.format(self.db_name, self.db_schema_table_name))
         try:
@@ -143,6 +150,7 @@ class BatchDatabridgeTask():
             self.logger.info('Sucessfully updated hash {}: {}'.format(self.db_name, self.db_schema_table_name))
         except Exception as e:
             self.logger.exception('Error updating hash on {}: {}'.format(self.db_name, self.db_schema_table_name))
+            raise e
 
     def update_history(self):
         self.logger.info('Starting update history on {}: {}'.format(self.db_name, self.db_schema_table_name))
@@ -202,8 +210,10 @@ class BatchDatabridgeTask():
                            insert_fields=insert_fields)
 
             cur.execute(update_history_stmt)
+            self.logger.info('Successfully updated history for {}:{}'.format(self.db_name, self.db_schema_table_name))
         except Exception as e:
             self.logger.exception('Error updating history for {}:{}'.format(self.db_name, self.db_schema_table_name))
+            raise e
 
     def run_task(self):
         return methodcaller(self.task_name)(self)
