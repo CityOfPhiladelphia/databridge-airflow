@@ -33,7 +33,7 @@ class BatchDatabridgeTask():
 
     @property
     def s3_key(self):
-        return 'staging/{}/{}'.format(self.db_table_schema, self.db_table_name)
+        return 'staging/{}/{}.csv'.format(self.db_table_schema, self.db_table_name)
 
     @property
     def csv_path(self):
