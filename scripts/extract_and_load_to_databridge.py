@@ -1,8 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python3.5
 
 import sys
 import os
-
+from operator import methodcaller
 import petl as etl
 import geopetl
 import psycopg2
@@ -33,7 +33,7 @@ class BatchDatabridgeTask():
 
     @property
     def s3_key(self):
-        return 'staging/{}/{}'.format(self.db_table_schema, self.db_table_name)
+        return 'staging/{}/{}.csv'.format(self.db_table_schema, self.db_table_name)
 
     @property
     def csv_path(self):
@@ -187,13 +187,7 @@ class BatchDatabridgeTask():
         cur.execute(update_history_stmt)
 
     def run_task(self):
-        task_map = {
-            'extract': self.extract(),
-            'write': self.write(),
-            'update_hash': self.update_hash(),
-            'update_history': self.update_history()
-        }
-        return task_map.get(self.task_name)
+        return methodcaller(self.task_name)(self)
 
 def main(task_name, **kwargs):
     batch_databridge_task = BatchDatabridgeTask(task_name, **kwargs)
