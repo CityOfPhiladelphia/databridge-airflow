@@ -38,6 +38,7 @@ RUN set -ex \
         python3-pip \
         netbase \
         apt-utils \
+        unzip \
         curl \
         netcat \
         locales \

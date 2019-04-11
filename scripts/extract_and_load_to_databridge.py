@@ -3,6 +3,7 @@
 import sys
 import os
 import logging
+from operator import methodcaller
 
 import petl as etl
 import geopetl
@@ -205,13 +206,7 @@ class BatchDatabridgeTask():
             self.logger.exception('Error updating history for {}:{}'.format(self.db_name, self.db_schema_table_name))
 
     def run_task(self):
-        task_map = {
-            'extract': self.extract(),
-            'write': self.write(),
-            'update_hash': self.update_hash(),
-            'update_history': self.update_history()
-        }
-        return task_map.get(self.task_name)
+        return methodcaller(self.task_name)(self)
 
 def main(task_name, **kwargs):
     batch_databridge_task = BatchDatabridgeTask(task_name, **kwargs)
