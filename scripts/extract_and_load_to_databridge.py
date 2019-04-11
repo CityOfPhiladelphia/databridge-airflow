@@ -2,12 +2,14 @@
 
 import sys
 import os
+import logging
 
 import petl as etl
 import geopetl
 import psycopg2
 import cx_Oracle
 import boto3
+from botocore.exceptions import ClientError
 
 
 class BatchDatabridgeTask():
@@ -26,6 +28,7 @@ class BatchDatabridgeTask():
         self.hash_field = kwargs.get('hash_field', 'etl_hash')
         self.s3_bucket = kwargs.get('s3_bucket', '')
         self.conn = ''
+        self._logger = None
 
     @property
     def db_schema_table_name(self):
@@ -45,146 +48,161 @@ class BatchDatabridgeTask():
             csv_path = '/tmp/{}_{}.csv'.format(self.db_table_schema, self.db_table_name)
         return csv_path
 
+    @property
+    def logger(self):
+       if self._logger is None:
+           logger = logging.getLogger(__name__)
+           sh = logging.StreamHandler()
+           formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+           sh.setFormatter(formatter)
+           logger.addHandler(sh)
+           self._logger = logger
+       return self._logger 
+
     def load_to_s3(self):
-        s3 = boto3.resource('s3')
-        s3.Object(self.s3_bucket, self.s3_key).put(Body=open(self.csv_path, 'rb'))
-
+       self.logger.info('Starting load to s3: {}'.format(self.s3_key)) 
+       try:
+            s3 = boto3.resource('s3')
+            s3.Object(self.s3_bucket, self.s3_key).put(Body=open(self.csv_path, 'rb'))
+            self.logger.info('Successfully loaded to s3: {}'.format(self.s3_key))
+       except Exception as e:
+            self.logger.error('Error loading to s3')
+            raise e
     def get_from_s3(self):
-        s3 = boto3.resource('s3')
-        s3.Object(self.s3_bucket, self.s3_key).download_file(self.csv_path)
-
+        self.logger.info('Fetching s3://{}/{}'.format(self.s3_bucket, self.s3_key))
+        try:
+            s3 = boto3.resource('s3')
+            s3.Object(self.s3_bucket, self.s3_key).download_file(self.csv_path)
+        except ClientError as e:
+            self.logger.exception('No s3 object found: s3://{}/{}'.format(self.s3_bucket, self.s3_key))
     def make_connection(self):
-        print('Connecting to the database {}'.format(self.db_name))
-        if self.db_type == 'oracle':
-            self.dsn = cx_Oracle.makedsn(self.db_host, self.db_port, self.db_name)
-            self.conn = cx_Oracle.connect(user=self.db_user, password=self.db_password, dsn=self.dsn)
-        elif self.db_type == 'postgres':
-            self.conn = psycopg2.connect(dbname=self.db_name, user=self.db_user, password=self.db_password,
-                                         host=self.db_host, port=self.db_port)
+        try:
+            if self.db_type == 'oracle':
+                self.dsn = cx_Oracle.makedsn(self.db_host, self.db_port, self.db_name)
+                self.conn = cx_Oracle.connect(user=self.db_user, password=self.db_password, dsn=self.dsn)
+            elif self.db_type == 'postgres':
+                self.conn = psycopg2.connect(dbname=self.db_name, user=self.db_user, password=self.db_password,
+                                             host=self.db_host, port=self.db_port)
+            self.logger.info('Connected to database {}'.format(self.db_name))
 
+        except cx_Oracle.DatabaseError as e:
+            self.logger.exception('Could not connect to database {}'.format(self.db_name))
     def extract(self):
+        self.logger.info('Starting extract from {}: {}'.format(self.db_name, self.db_schema_table_name))
         try:
             self.make_connection()
-        except Exception as e:
-            print("Couldn't connect to {}".format(self.db_name))
-            raise e
-        if self.db_type == 'oracle':
-            etl.fromoraclesde(self.conn, self.db_schema_table_name, timestamp=self.db_timestamp) \
-               .tocsv(self.csv_path, encoding='latin-1')
-        elif self.db_type == 'postgres':
-            etl.frompostgis(self.conn, self.db_schema_table_name) \
-               .tocsv(self.csv_path, encoding='latin-1')
-        self.load_to_s3()
-        ## Try to delete the local file ##
-        try:
+            if self.db_type == 'oracle':
+                etl.fromoraclesde(self.conn, self.db_schema_table_name, timestamp=self.db_timestamp) \
+                   .tocsv(self.csv_path, encoding='latin-1')
+            elif self.db_type == 'postgres':
+                etl.frompostgis(self.conn, self.db_schema_table_name) \
+                   .tocsv(self.csv_path, encoding='latin-1')
+            self.load_to_s3()
             os.remove(self.csv_path)
-        except OSError as e:  ## if failed, report it back to the user ##
-            print("Error: %s - %s." % (e.filename, e.strerror))
-
+        except OSError as e:
+            self.logger.exception('Error removing temporary file {} - {}'.format(e.filename, e.strerror))
+        except Exception as e:
+            self.logger.exception('Error extracting from {}: {}'.format(self.db_name, self.db_schema_table_name))
     def write(self):
+        self.logger.info('Starting write to {}: {}'.format(self.db_name, self.db_schema_table_name))
         try:
             self.make_connection()
-        except Exception as e:
-            print("Couldn't connect to {}".format(self.db_name))
-            raise e
+            self.get_from_s3()
 
-        # Retrieve file from s3 bucket:
-        self.get_from_s3()
+            if self.db_type == 'postgres':
+                rows = etl.fromcsv(self.csv_path, encoding='latin-1')
+                rows.topostgis(self.conn, self.db_schema_table_name)
 
-        if self.db_type == 'postgres':
-            rows = etl.fromcsv(self.csv_path, encoding='latin-1')
-            rows.topostgis(self.conn, self.db_schema_table_name)
-
-        ## Try to delete the local file ##
-        try:
             os.remove(self.csv_path)
-        except OSError as e:  ## if failed, report it back to the user ##
-            print("Error: %s - %s." % (e.filename, e.strerror))
-
+        except OSError as e: 
+            self.logger.exception("Error removing temporary file: {} - {}".format(e.filename, e.strerror))
+        except Exception as e:
+            self.logger.exception('Error writing to {}: {}'.format(self.db_name, self.db_schema_table_name))
     def update_hash(self):
+        self.logger.info('Starting update hash on {}: {}'.format(self.db_name, self.db_schema_table_name))
         try:
             self.make_connection()
+            cur = self.conn.cursor()
+            hash_fields_stmt = '''
+                SELECT array_agg(COLUMN_NAME::text order by COLUMN_NAME)
+                FROM information_schema.columns
+                WHERE table_schema='{table_schema}' AND table_name='{table_name}'
+                and column_name not like 'etl%'
+            '''.format(table_schema=self.db_table_schema, table_name=self.db_table_name)
+            cur.execute(hash_fields_stmt)
+            hash_fields = cur.fetchone()[0]
+            hash_fields_fmt = ["COALESCE({}::text,  '')".format(f) for f in hash_fields]
+            self.logger.info('Hash fields: {}'.format(hash_fields))
+            hash_calc = 'md5(' + ' || '.join(hash_fields_fmt) + ')::uuid'
+            self.logger.info('Hash calc: {}'.format(hash_calc))
+            update_hash_stmt = '''
+                update {table_name_full} set {hash_field} = {hash_calc}
+            '''.format(table_name_full=self.db_schema_table_name, hash_field=self.hash_field, hash_calc=hash_calc)
+            cur.execute(update_hash_stmt)
+            self.logger.info('Sucessfully updated hash {}: {}'.format(self.db_name, self.db_schema_table_name))
         except Exception as e:
-            print("Couldn't connect to {}".format(self.db_name))
-            raise e
-        cur = self.conn.cursor()
-        hash_fields_stmt = '''
-            SELECT array_agg(COLUMN_NAME::text order by COLUMN_NAME)
-            FROM information_schema.columns
-            WHERE table_schema='{table_schema}' AND table_name='{table_name}'
-            and column_name not like 'etl%'
-        '''.format(table_schema=self.db_table_schema, table_name=self.db_table_name)
-        cur.execute(hash_fields_stmt)
-        hash_fields = cur.fetchone()[0]
-        hash_fields_fmt = ["COALESCE({}::text,  '')".format(f) for f in hash_fields]
-        print(hash_fields)
-        hash_calc = 'md5(' + ' || '.join(hash_fields_fmt) + ')::uuid'
-        print(hash_calc)
-        update_hash_stmt = '''
-            update {table_name_full} set {hash_field} = {hash_calc}
-        '''.format(table_name_full=self.db_schema_table_name, hash_field=self.hash_field, hash_calc=hash_calc)
-        cur.execute(update_hash_stmt)
+            self.logger.exception('Error updating hash on {}: {}'.format(self.db_name, self.db_schema_table_name))
 
     def update_history(self):
+        self.logger.info('Starting update history on {}: {}'.format(self.db_name, self.db_schema_table_name))
         try:
             self.make_connection()
-        except Exception as e:
-            print("Couldn't connect to {}".format(self.db_name))
-            raise e
-        cur = self.conn.cursor()
-        non_admin_fields_stmt = '''
-               SELECT array_agg(COLUMN_NAME::text)
-               FROM information_schema.columns
-               WHERE table_schema='{table_schema}' AND table_name='{table_name}'
-               and column_name not like 'etl%'
-           '''.format(table_schema=self.table_schema, table_name=self.table_name)
-        cur.execute(non_admin_fields_stmt)
-        non_admin_fields = cur.fetchone()[0]
-        admin_fields = 'etl_read_timestamp, etl_write_timestamp, etl_hash, etl_action'
-        insert_fields = non_admin_fields + ', ' + admin_fields
-        update_history_stmt = '''
-            WITH
-            current_hashes as (
-                SELECT * FROM (
-                SELECT DISTINCT ON ({hash_field}) *
-                FROM   {table_schema}.{table_name}_history
-                ORDER  BY {hash_field}, etl_read_timestamp DESC NULLS LAST
-                ) foo WHERE etl_action != 'delete'
-            )
-            ,
-            computed_new as (
-                select {non_admin_fields}, raw.etl_read_timestamp, raw.etl_write_timestamp, raw.{hash_field}
-                from {table_schema}.{table_name} raw
-                inner join
-                (
-                    SELECT {hash_field} from {table_schema}.{table_name}
-                    EXCEPT
-                    select {hash_field} from current_hashes
-                ) new_hashes  on new_hashes.{hash_field} = raw.{hash_field}
-            )
-            ,
-            computed_deleted as (
-                select {non_admin_fields}, etl_read_timestamp, etl_write_timestamp, cur.{hash_field}
-                from current_hashes cur
-                inner join
-                (
-                    SELECT {hash_field} from current_hashes
-                    EXCEPT
-                    select {hash_field} from {table_schema}.{table_name}
-                ) del_hashes  on del_hashes.{hash_field} = cur.{hash_field}
-            )
-            ,
-            computed_final as (
-                SELECT new.*, 'insert' as etl_action from computed_new new
-                UNION
-                SELECT deleted.*, 'delete' as etl_action from computed_deleted deleted
-            )
-            INSERT INTO {table_schema}.{table_name}_history ({insert_fields})
-            select * from computed_final
-            '''.format(hash_field=self.hash_field, non_admin_fields=non_admin_fields, table_schema=self.db_table_schema, table_name=self.db_table_name,
-                   insert_fields=insert_fields)
+            cur = self.conn.cursor()
+            non_admin_fields_stmt = '''
+                   SELECT array_agg(COLUMN_NAME::text)
+                   FROM information_schema.columns
+                   WHERE table_schema='{table_schema}' AND table_name='{table_name}'
+               	   and column_name not like 'etl%'
+               '''.format(table_schema=self.table_schema, table_name=self.table_name)
+            cur.execute(non_admin_fields_stmt)
+            non_admin_fields = cur.fetchone()[0]
+            admin_fields = 'etl_read_timestamp, etl_write_timestamp, etl_hash, etl_action'
+            insert_fields = non_admin_fields + ', ' + admin_fields
+            update_history_stmt = '''
+                WITH
+                current_hashes as (
+                    SELECT * FROM (
+                    SELECT DISTINCT ON ({hash_field}) *
+                    FROM   {table_schema}.{table_name}_history
+                    ORDER  BY {hash_field}, etl_read_timestamp DESC NULLS LAST
+                    ) foo WHERE etl_action != 'delete'
+                )
+                ,
+                computed_new as (
+                    select {non_admin_fields}, raw.etl_read_timestamp, raw.etl_write_timestamp, raw.{hash_field}
+                    from {table_schema}.{table_name} raw
+                    inner join
+                    (
+                        SELECT {hash_field} from {table_schema}.{table_name}
+                        EXCEPT
+                        select {hash_field} from current_hashes
+                    ) new_hashes  on new_hashes.{hash_field} = raw.{hash_field}
+                )
+                ,
+                computed_deleted as (
+                    select {non_admin_fields}, etl_read_timestamp, etl_write_timestamp, cur.{hash_field}
+                    from current_hashes cur
+                    inner join
+                    (
+                        SELECT {hash_field} from current_hashes
+                        EXCEPT
+                        select {hash_field} from {table_schema}.{table_name}
+                    ) del_hashes  on del_hashes.{hash_field} = cur.{hash_field}
+                )
+                ,
+                computed_final as (
+                    SELECT new.*, 'insert' as etl_action from computed_new new
+                    UNION
+                    SELECT deleted.*, 'delete' as etl_action from computed_deleted deleted
+                )
+                INSERT INTO {table_schema}.{table_name}_history ({insert_fields})
+                select * from computed_final
+                '''.format(hash_field=self.hash_field, non_admin_fields=non_admin_fields, table_schema=self.db_table_schema, table_name=self.db_table_name,
+                           insert_fields=insert_fields)
 
-        cur.execute(update_history_stmt)
+            cur.execute(update_history_stmt)
+        except Exception as e:
+            self.logger.exception('Error updating history for {}:{}'.format(self.db_name, self.db_schema_table_name))
 
     def run_task(self):
         task_map = {
