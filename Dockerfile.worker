@@ -88,11 +88,10 @@ RUN set -ex \
     && alien -i oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm \
     && rm oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm
 
-COPY scripts/secrets_manager.py /secrets_manager.py
-COPY scripts/extract_and_load_to_databridge.py /extract_and_load_to_databridge.py
+COPY scripts/fetch_and_run.sh /fetch_and_run.sh
 
-RUN chmod +x /extract_and_load_to_databridge.py
+RUN chmod +x /fetch_and_run.sh
 
 USER worker
-
+ENTRYPOINT ["/fetch_and_run.sh"]
 #CMD ["/bin/bash"] 
