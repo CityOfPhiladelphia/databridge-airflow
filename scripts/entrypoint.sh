@@ -39,7 +39,7 @@ wait_for_port() {
 
 AIRFLOW__CELERY__BROKER_URL="pyamqp://$RABBITMQ_USER:$RABBITMQ_PASSWORD@$RABBITMQ_HOST/$RABBITMQ_VHOST"
 # Set the fernet environment variable
-eval $(python3 /secrets_manager.py --name airflow-fernet --key=fernet_key --env=AIRFLOW__CORE__FERNET_KEY)
+eval $(python3 /secrets_manager.py --name=airflow-fernet --key=fernet_key --env=AIRFLOW__CORE__FERNET_KEY)
 wait_for_port "RabbitMQ" "$RABBITMQ_HOST" "$RABBITMQ_PORT"
 wait_for_port "Postgres" "$POSTGRES_HOST" "$POSTGRES_PORT"
 
