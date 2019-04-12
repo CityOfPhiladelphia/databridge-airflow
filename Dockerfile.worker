@@ -89,13 +89,10 @@ RUN set -ex \
     && rm oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm
 
 COPY scripts/secrets_manager.py /secrets_manager.py
-COPY scripts/fetch_and_run.sh /fetch_and_run.sh
+COPY scripts/extract_and_load_to_databridge.py /extract_and_load_to_databridge.py
 
-# Fix OID geneneration error https://github.com/oracle/node-oracledb/issues/645
-RUN eval $(python3 /secrets_manager.py --name=databridge --key=host --env=DATABRIDGE_HOST) \
-    && echo "127.0.0.1 localhost ${DATABRIDGE_HOST}" >> /etc/hosts
-
-RUN chmod +x /fetch_and_run.sh
+RUN chmod +x /extract_and_load_to_databridge.py
 
 USER worker
-ENTRYPOINT ["/fetch_and_run.sh"]
+
+#CMD ["/bin/bash"] 
