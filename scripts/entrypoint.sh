@@ -2,6 +2,8 @@
 
 TRY_LOOP="20"
 
+: "${FIRST_TIME:=false}"
+
 : "${RABBITMQ_HOST:="rabbitmq"}"
 : "${RABBITMQ_PORT:="5672"}"
 : "${RABBITMQ_USER:="airflow"}"
@@ -43,8 +45,10 @@ eval $(python3 /secrets_manager.py --name=airflow-fernet --key=fernet_key --env=
 wait_for_port "RabbitMQ" "$RABBITMQ_HOST" "$RABBITMQ_PORT"
 wait_for_port "Postgres" "$POSTGRES_HOST" "$POSTGRES_PORT"
 
-# Set the schemas variable
-airflow variables --set schemas $AIRFLOW_HOME/schemas
+if [ $FIRST_TIME = true] ; then
+  # Set the schemas variable
+  airflow variables --set schemas $AIRFLOW_HOME/schemas
+fi
 
 case "$1" in
   webserver)
