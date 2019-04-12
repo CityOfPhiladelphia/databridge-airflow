@@ -53,8 +53,9 @@ class BatchDatabridgeTask():
     def logger(self):
        if self._logger is None:
            logger = logging.getLogger(__name__)
-           sh = logging.StreamHandler()
-           formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+           logger.setLevel(logging.INFO)
+           sh = logging.StreamHandler(sys.stdout)
+           formatter = logging.Formatter('%(levelname)s - %(message)s')
            sh.setFormatter(formatter)
            logger.addHandler(sh)
            self._logger = logger
@@ -68,7 +69,6 @@ class BatchDatabridgeTask():
             self.logger.info('Successfully loaded to s3: {}'.format(self.s3_key))
        except Exception as e:
             self.logger.exception('Error loading to s3')
-            raise e
     def get_from_s3(self):
         self.logger.info('Fetching s3://{}/{}'.format(self.s3_bucket, self.s3_key))
         s3 = boto3.resource('s3')
@@ -77,10 +77,13 @@ class BatchDatabridgeTask():
             self.logger.info('s3://{}/{} successfully downloaded'.format(self.s3_bucket, self.s3_key))
         except ClientError as e:
             self.logger.exception('No s3 object found: s3://{}/{}'.format(self.s3_bucket, self.s3_key))
+
     def make_connection(self):
+        self.logger.info('Trying to connect to db_host: {}, db_port: {}, db_name: {}'.format(self.db_host, self.db_port, self.db_name))
         try:
             if self.db_type == 'oracle':
                 self.dsn = cx_Oracle.makedsn(self.db_host, self.db_port, self.db_name)
+                self.logger.info('Made dsn: {}'.format(self.dsn))
                 self.conn = cx_Oracle.connect(user=self.db_user, password=self.db_password, dsn=self.dsn)
             elif self.db_type == 'postgres':
                 self.conn = psycopg2.connect(dbname=self.db_name, user=self.db_user, password=self.db_password,
@@ -89,7 +92,6 @@ class BatchDatabridgeTask():
 
         except cx_Oracle.DatabaseError as e:
             self.logger.exception('Could not connect to database {}'.format(self.db_name))
-            raise e
     def extract(self):
         self.logger.info('Starting extract from {}: {}'.format(self.db_name, self.db_schema_table_name))
         try:
@@ -104,10 +106,8 @@ class BatchDatabridgeTask():
             os.remove(self.csv_path)
         except OSError as e:
             self.logger.exception('Error removing temporary file {} - {}'.format(e.filename, e.strerror))
-            raise e
         except Exception as e:
             self.logger.exception('Error extracting from {}: {}'.format(self.db_name, self.db_schema_table_name))
-            raise e
     def write(self):
         self.logger.info('Starting write to {}: {}'.format(self.db_name, self.db_schema_table_name))
         try:
@@ -122,10 +122,9 @@ class BatchDatabridgeTask():
             self.logger.info('Successfully wrote to {}: {}'.format(self.db_name, self.db_schema_table_name))
         except OSError as e: 
             self.logger.exception("Error removing temporary file: {} - {}".format(e.filename, e.strerror))
-            raise e
         except Exception as e:
             self.logger.exception('Error writing to {}: {}'.format(self.db_name, self.db_schema_table_name))
-            raise e
+
     def update_hash(self):
         self.logger.info('Starting update hash on {}: {}'.format(self.db_name, self.db_schema_table_name))
         try:
@@ -150,7 +149,6 @@ class BatchDatabridgeTask():
             self.logger.info('Sucessfully updated hash {}: {}'.format(self.db_name, self.db_schema_table_name))
         except Exception as e:
             self.logger.exception('Error updating hash on {}: {}'.format(self.db_name, self.db_schema_table_name))
-            raise e
 
     def update_history(self):
         self.logger.info('Starting update history on {}: {}'.format(self.db_name, self.db_schema_table_name))
@@ -213,7 +211,6 @@ class BatchDatabridgeTask():
             self.logger.info('Successfully updated history for {}:{}'.format(self.db_name, self.db_schema_table_name))
         except Exception as e:
             self.logger.exception('Error updating history for {}:{}'.format(self.db_name, self.db_schema_table_name))
-            raise e
 
     def run_task(self):
         return methodcaller(self.task_name)(self)
