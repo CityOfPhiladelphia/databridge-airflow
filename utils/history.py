@@ -27,7 +27,7 @@ def update_history_table(**kwargs):
             SELECT * FROM (
             SELECT DISTINCT ON ({hash_field}) *
             FROM   {table_schema}.{table_name}_history
-            ORDER  BY {hash_field}, etl_read_timestamp DESC NULLS LAST
+            ORDER  BY {hash_field}, etl_action_timestamp DESC NULLS LAST
             ) foo WHERE etl_action != 'delete'
         )
         ,
