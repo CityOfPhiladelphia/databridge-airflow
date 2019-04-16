@@ -16,7 +16,7 @@
 # See below for usage instructions.
 
 # Resolve hostname to fix OID generation error by cx_Oracle
-curl http://169.254.169.254/latest/meta-data/local-hostname | cut -d. -f1 | awk '{print $1" localhost"}' > /tmp/HOSTALIASES
+curl -s http://169.254.169.254/latest/meta-data/local-hostname | cut -d. -f1 | awk '{print $1" localhost"}' > /tmp/HOSTALIASES
 
 PATH="/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
 BASENAME="${0##*/}"

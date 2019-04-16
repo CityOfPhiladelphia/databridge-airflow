@@ -16,6 +16,7 @@ ENV LC_ALL  en_US.UTF-8
 ENV ORACLE_HOME=/usr/lib/oracle/12.1/client64
 ENV LD_LIBRARY_PATH=$ORACLE_HOME/lib
 ENV PATH=$ORACLE_HOME/bin:$PATH
+ENV HOSTALIASES=/tmp/HOSTALIASES
 
 COPY requirements.worker.txt /requirements.worker.txt
 
@@ -95,3 +96,4 @@ RUN chmod +x /fetch_and_run.sh
 USER worker
 ENTRYPOINT ["/fetch_and_run.sh"]
 #CMD ["/bin/bash"] 
+
