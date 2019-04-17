@@ -179,7 +179,8 @@ class TableGenerator():
 @click.option('--db_name')
 @click.option('--json_schema_file', default=None)
 def main(db_type, db_host, db_user, db_password, db_port, db_name, json_schema_file):
-    for json_schema_file in os.listdir('schemas'):
+    # Single
+    if json_schema_file:
         table_generator = TableGenerator(
             db_type=db_type, 
             db_host=db_host, 
@@ -187,8 +188,20 @@ def main(db_type, db_host, db_user, db_password, db_port, db_name, json_schema_f
             db_password=db_password, 
             db_port=db_port, 
             db_name=db_name,
-            json_schema_file=os.path.join('schemas', json_schema_file))
+            json_schema_file=json_schema_file)
         table_generator.execute()
+    # Batch
+    else:
+        for json_schema_file in os.listdir('schemas'):
+            table_generator = TableGenerator(
+                db_type=db_type, 
+                db_host=db_host, 
+                db_user=db_user, 
+                db_password=db_password, 
+                db_port=db_port, 
+                db_name=db_name,
+                json_schema_file=os.path.join('schemas', json_schema_file))
+            table_generator.execute()
 
 if __name__ == '__main__':
     main()
