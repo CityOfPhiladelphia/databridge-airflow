@@ -50,14 +50,14 @@ class TableGenerator():
     @property
     def db_table_schema(self):
         if self._db_table_schema is None:
-            db_table_schema = self.json_schema_file.split('_', 2)[1]
+            db_table_schema = self.json_schema_file.split('__')[0].split('_')[1]
             self._db_table_schema = db_table_schema
         return self._db_table_schema
 
     @property
     def db_table_name(self):
         if self._db_table_name is None:
-            db_table_name = self.json_schema_file.split('_', 2)[2].split('.')[0]
+            db_table_name = self.json_schema_file.split('__')[1].split('.')[0]
             self._db_table_name = self.table_prefix + '_' + db_table_name
         return self._db_table_name
 
@@ -131,21 +131,27 @@ class TableGenerator():
 
     def create_insert_trigger(self):
         self.logger.info('Creating insert trigger on - {}'.format(self.db_table_name))
-        stmt = '''CREATE TRIGGER insert_{} 
+        stmt = '''DROP TRIGGER IF EXISTS insert_{table_name}
+                      ON {schema_table_name};
+                  CREATE TRIGGER insert_{table_name} 
                       BEFORE INSERT
-                      ON {}
+                      ON {schema_table_name}
                       FOR EACH ROW
-                      EXECUTE PROCEDURE public.update_etl_write_timestamp();\n'''.format(self.db_table_name, self.db_schema_table_name)
+                      EXECUTE PROCEDURE public.update_etl_write_timestamp();\n''' \
+                .format(table_name=self.db_table_name, schema_table_name=self.db_schema_table_name)
         self.execute_sql(stmt)
         self.logger.info('Insert trigger created.')
 
     def create_update_trigger(self):
         self.logger.info('Creating update trigger on - {}'.format(self.db_table_name))
-        stmt = '''CREATE TRIGGER update_{} 
+        stmt = '''DROP TRIGGER IF EXISTS update_{table_name}
+                      ON {schema_table_name};
+                  CREATE TRIGGER update_{table_name} 
                       BEFORE UPDATE
-                      ON {}
+                      ON {schema_table_name}
                       FOR EACH ROW
-                      EXECUTE PROCEDURE public.update_etl_write_timestamp();\n'''.format(self.db_table_name, self.db_schema_table_name)
+                      EXECUTE PROCEDURE public.update_etl_write_timestamp();\n''' \
+                .format(table_name=self.db_table_name, schema_table_name=self.db_schema_table_name)
         self.execute_sql(stmt)
         self.logger.info('Update trigger created.')
 
