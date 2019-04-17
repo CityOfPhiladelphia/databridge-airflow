@@ -11,7 +11,7 @@ from airflow.models import Variable
 # ============================================================
 # Defaults - these arguments apply to all operators
 
-legal_cards_schema = Variable.get('schemas') + 'db_streets_legal_cards.json'
+legal_cards_schema = Variable.get('schemas') + 'gis_streets__legal_cards.json'
 
 default_args = {
     'owner': 'airflow',  # TODO: Look up what owner is

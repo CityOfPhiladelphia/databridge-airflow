@@ -11,8 +11,8 @@ from airflow.models import Variable
 # ============================================================
 # Defaults - these arguments apply to all operators
 
-police_ppd_complaints_schema = Variable.get('schemas') + 'db_police_ppd_complaints.json'
-police_ppd_complaint_disciplines_schema = Variable.get('schemas') + 'db_police_ppd_complaint_disciplines.json'
+police_ppd_complaints_schema = Variable.get('schemas') + 'gis_police__ppd_complaints.json'
+police_ppd_complaint_disciplines_schema = Variable.get('schemas') + 'gis_police__ppd_complaint_disciplines.json'
 
 
 default_args = {

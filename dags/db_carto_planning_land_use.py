@@ -11,7 +11,7 @@ from airflow.models import Variable
 # ============================================================
 # Defaults - these arguments apply to all operators
 
-planning_land_use_schema = Variable.get('schemas') + 'db_planning_land_use.json'
+planning_land_use_schema = Variable.get('schemas') + 'gis_planning__land_use.json'
 
 default_args = {
     'owner': 'airflow',  # TODO: Look up what owner is

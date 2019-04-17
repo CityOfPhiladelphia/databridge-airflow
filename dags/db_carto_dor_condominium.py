@@ -11,7 +11,7 @@ from airflow.models import Variable
 # ============================================================
 # Defaults - these arguments apply to all operators
 
-dor_condominium_schema = Variable.get('schemas') + 'db_dor_condominium.json'
+dor_condominium_schema = Variable.get('schemas') + 'gis_dor__condominium.json'
 
 default_args = {
     'owner': 'airflow',  # TODO: Look up what owner is

@@ -11,7 +11,7 @@ from airflow.models import Variable
 # ============================================================
 # Defaults - these arguments apply to all operators
 
-commerce_koz_parcels_schema = Variable.get('schemas') + 'db_commerce_koz_parcels.json'
+commerce_koz_parcels_schema = Variable.get('schemas') + 'gis_commerce__koz_parcels.json'
 
 default_args = {
     'owner': 'airflow',  # TODO: Look up what owner is

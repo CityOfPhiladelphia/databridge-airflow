@@ -11,7 +11,7 @@ from airflow.models import Variable
 # ============================================================
 # Defaults - these arguments apply to all operators
 
-empowerment_zones_schema = Variable.get('schemas') + 'db_commerce_empowerment_zones.json'
+empowerment_zones_schema = Variable.get('schemas') + 'gis_commerce__empowerment_zones.json'
 
 default_args = {
     'owner': 'airflow',  # TODO: Look up what owner is

@@ -11,7 +11,7 @@ from airflow.models import Variable
 # ============================================================
 # Defaults - these arguments apply to all operators
 
-ppr_hydration_stations_schema = Variable.get('schemas') + 'db_ppr_hydration_stations.json'
+ppr_hydration_stations_schema = Variable.get('schemas') + 'gis_ppr__hydration_stations.json'
 
 default_args = {
     'owner': 'airflow',  # TODO: Look up what owner is

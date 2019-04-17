@@ -11,7 +11,7 @@ from airflow.models import Variable
 # ============================================================
 # Defaults - these arguments apply to all operators
 
-li_clean_seal_schema = Variable.get('schemas') + 'db_li_clean_seal.json'
+li_clean_seal_schema = Variable.get('schemas') + 'gis_lni__li_clean_seal.json'
 
 default_args = {
     'owner': 'airflow',  # TODO: Look up what owner is
