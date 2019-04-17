@@ -2,7 +2,7 @@
 
 import sys
 import os
-import self.logger
+import logging
 import json
 from operator import methodcaller
 import re
@@ -12,7 +12,6 @@ import psycopg2
 import cx_Oracle
 import boto3
 import requests
-from botocore.exceptions import ClientError
 from carto.sql import SQLClient
 from carto.auth import APIKeyAuthClient
 
@@ -105,7 +104,7 @@ class BatchDatabridgeTask():
     @property
     def logger(self):
        if self._logger is None:
-           logger = self.logger.getLogger(__name__)
+           logger = logging.getLogger(__name__)
            logger.setLevel(self.logger.INFO)
            sh = self.logger.StreamHandler(sys.stdout)
            logger.addHandler(sh)
