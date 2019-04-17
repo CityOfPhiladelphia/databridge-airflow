@@ -2,15 +2,19 @@
 
 import sys
 import os
-import logging
+import self.logger
+import json
 from operator import methodcaller
-
+import re
 import petl as etl
 import geopetl
 import psycopg2
 import cx_Oracle
 import boto3
+import requests
 from botocore.exceptions import ClientError
+from carto.sql import SQLClient
+from carto.auth import APIKeyAuthClient
 
 
 class BatchDatabridgeTask():
@@ -23,13 +27,62 @@ class BatchDatabridgeTask():
         self.db_password = kwargs.get('db_password', '')
         self.db_name = kwargs.get('db_name', '')
         self.db_port = kwargs.get('db_port', '')
+        self.db_connection_string = kwargs.get('db_connection_string', '')
         self.db_table_schema = kwargs.get('db_table_schema', '').upper()
         self.db_table_name = kwargs.get('db_table_name', '').upper()
         self.db_timestamp=kwargs.get('db_timestamp', True)
         self.hash_field = kwargs.get('hash_field', 'etl_hash')
         self.s3_bucket = kwargs.get('s3_bucket', '')
-        self.conn = ''
+        self.conn = ''  # DB conn
+        self.sql = '' # Carto connn
         self._logger = None
+        self.CARTO_USR_BASE_URL = "https://{user}.carto.com/"
+        self.json_schema_file = kwargs.get('json_schema_file', '')
+        self.db_indexes_fields = kwargs.get('db_indexes_fields')
+        self.db_select_users = kwargs.get('db_select_users')
+        self.schema_fmt = ''
+        self.geom_field = ''
+        self.geom_srid = ''
+        self.num_rows_in_upload_file = None
+        self.temp_table_name = 't_' + self.db_table_name
+        self.mapping = {
+            'string': 'text',
+            'number': 'numeric',
+            'float': 'numeric',
+            'double precision': 'numeric',
+            'integer': 'integer',
+            'boolean': 'boolean',
+            'object': 'jsonb',
+            'array': 'jsonb',
+            'date': 'date',
+            'time': 'time',
+            'datetime': 'date',
+            'geom': 'geometry',
+            'geometry': 'geometry'
+        }
+        self.geom_type_mapping = {
+            'point': 'Point',
+            'line': 'Linestring',
+            'polygon': 'MultiPolygon',
+            'multipolygon': 'MultiPolygon',
+            'multilinestring': 'MultiLineString'
+        }
+
+    @property
+    def db_table_schema(self):
+        if self.db_table_schema is None:
+            db_table_schema = self.json_schema_file.split('__')[0].split('_')[1]
+            if db_table_schema[0].isdigit():
+                db_table_schema = '_' + db_table_schema
+            self.db_table_schema = db_table_schema
+        return self.db_table_schema
+
+    @property
+    def db_table_name(self):
+        if self.db_table_name is None:
+            db_table_name = self.json_schema_file.split('__')[1].split('.')[0]
+            self.db_table_name = self.table_prefix + '_' + db_table_name
+        return self.db_table_name
 
     @property
     def db_schema_table_name(self):
@@ -52,9 +105,9 @@ class BatchDatabridgeTask():
     @property
     def logger(self):
        if self._logger is None:
-           logger = logging.getLogger(__name__)
-           logger.setLevel(logging.INFO)
-           sh = logging.StreamHandler(sys.stdout)
+           logger = self.logger.getLogger(__name__)
+           logger.setLevel(self.logger.INFO)
+           sh = self.logger.StreamHandler(sys.stdout)
            logger.addHandler(sh)
            self._logger = logger
        return self._logger 
@@ -184,6 +237,217 @@ class BatchDatabridgeTask():
 
         cur.execute(update_history_stmt)
         self.logger.info('Successfully updated history for {}:{}'.format(self.db_name, self.db_schema_table_name))
+
+
+    def carto_make_connection(self):
+        carto_connection_string_regex = r'^carto://(.+):(.+)'
+        if not (self.account and self.password):
+            creds = re.match(carto_connection_string_regex, self.connection_string).groups()
+            self.account = creds[0]
+            self.password = creds[1]
+        self.logger.info("Making connection to Carto {} account...".format(self.account))
+        try:
+            auth_client = APIKeyAuthClient(api_key=self.password, base_url=self.CARTO_USR_BASE_URL.format(user=self.account))
+            self.sql = SQLClient(auth_client)
+        except Exception as e:
+            self.logger.error("failed making connection to Carto {} account...".format(self.account))
+            raise e
+
+    def carto_sql_call(self, stmt, log_response=False):
+        self.logger.info("Executing: {}".format(stmt))
+        response = self.sql.send(stmt)
+        if log_response:
+            self.logger.info(response)
+        return response
+
+    def carto_format_schema(self):
+        if not self.json_schema_file:
+            self.logger.error('json schema file is required...')
+            raise
+        with open(self.json_schema_file) as json_file:
+            schema = json.load(json_file).get('fields', '')
+            if not schema:
+                self.logger.error('json schema malformatted...')
+                raise
+            num_fields = len(schema)
+            for i, scheme in enumerate(schema):
+                scheme_type = self.mapping.get(scheme['type'].lower(), scheme['type'])
+                if scheme_type == 'geometry':
+                    scheme_srid = scheme.get('srid', '')
+                    scheme_geometry_type = self.geom_type_mapping.get(scheme.get('geometry_type', '').lower(), '')
+                    if scheme_srid and scheme_geometry_type:
+                        scheme_type = '''geometry ({}, {}) '''.format(scheme_geometry_type, scheme_srid)
+                    else:
+                        self.logger.error('srid and geometry_type must be provided with geometry field...')
+                        raise
+
+                self.schema_fmt += ' {} {}'.format(scheme['name'], scheme_type)
+                if i < num_fields - 1:
+                    self.schema_fmt += ','
+
+    def carto_create_indexes(self):
+        self.logger.info('{} - creating table indexes - {}'.format(table_name=self.temp_table_name,
+                                                               indexes_fields=self.db_indexes_fields))
+        stmt = ''
+        for indexes_field in self.db_indexes_fields:
+            stmt += 'CREATE INDEX {table}_{field} ON "{table}" ("{field}");\n'.format(table=self.temp_table_name,
+                                                                                      field=indexes_field)
+        self.carto_sql_call(stmt)
+
+    def carto_create_table(self):
+        self.format_schema()
+        stmt = ''' CREATE TABLE {table_name} ({schema})'''.format(table_name=self.temp_table_name,
+                                                                  schema=self.schema_fmt)
+        self.carto_sql_call(stmt)
+        check_table_sql = "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = '{}');"
+        response = self.carto_sql_call(check_table_sql.format(self.temp_table_name))
+        exists = response['rows'][0]['exists']
+
+        if not exists:
+            message = '{} - Could not create table'.format(self.temp_table_name)
+            self.logger.error(message)
+            raise Exception(message)
+
+        if self.db_indexes_fields:
+            self.logger.info("Indexing fields: {}".format(self.db_indexes_fields))
+            self.create_indexes()
+
+    def carto_get_geom_field(self):
+        with open(self.json_schema_file) as json_file:
+            schema = json.load(json_file).get('fields', '')
+            if not schema:
+                self.logger.error('json schema malformatted...')
+                raise
+            for scheme in schema:
+                scheme_type = self.mapping.get(scheme['type'].lower(), scheme['type'])
+                if scheme_type == 'geometry':
+                    self.geom_srid = scheme.get('srid', '')
+                    self.geom_field = scheme.get('name', '')
+
+    def carto_write(self):
+        self.get_from_s3()
+        self.logger.info("CSV PATH: ", self.csv_path)
+        rows = etl.fromcsv(self.csv_path, encoding='utf-8')
+        # print(etl.look(rows))
+        header = rows[0]
+        str_header = ''
+        num_fields = len(header)
+        self.num_rows_in_upload_file = rows.nrows()
+        for i, field in enumerate(header):
+            if i < num_fields - 1:
+                str_header += field + ', '
+            else:
+                str_header += field
+
+        # format geom field:
+        self.carto_get_geom_field()
+        if self.geom_field and self.geom_srid:
+            rows = rows.convert(self.geom_field,
+                                lambda c: 'SRID={srid};{geom}'.format(srid=self.geom_srid, geom=c) if c else '')
+            write_file = self.csv_path.replace('.csv', '_t.csv')
+            rows.tocsv(write_file)
+        else:
+            write_file = self.csv_path
+        self.logger.info("write_file: ", write_file)
+        q = "COPY {table_name} ({header}) FROM STDIN WITH (FORMAT csv, HEADER true)".format(
+            table_name=self.temp_table_name, header=str_header)
+        url = self.CARTO_USR_BASE_URL.format(user=self.account) + 'api/v2/sql/copyfrom'
+        with open(write_file, 'rb') as f:
+            r = requests.post(url, params={'api_key': self.password, 'q': q}, data=f, stream=True)
+
+            if r.status_code != 200:
+                self.logger.info("response: ", r.text)
+            else:
+                status = r.json()
+                self.logger.info("Success: %s rows imported" % status['total_rows'])
+
+    def carto_verify_count(self):
+        data = self.carto_sql_call('SELECT count(*) FROM "{}";'.format(self.temp_table_name))
+        num_rows_in_table = data['rows'][0]['count']
+        num_rows_inserted = num_rows_in_table  # for now until inserts/upserts are implemented
+        num_rows_expected = self.num_rows_in_upload_file
+        message = '{} - row count - expected: {} inserted: {} '.format(
+            self.temp_table_name,
+            num_rows_expected,
+            num_rows_inserted
+        )
+        self.logger.info(message)
+        if num_rows_in_table != num_rows_expected:
+            self.logger.info('Did not insert all rows, reverting...')
+            stmt = 'BEGIN;' + \
+                   'DROP TABLE if exists "{}" cascade;'.format(self.temp_table_name) + \
+                   'COMMIT;'
+            self.carto_sql_call(stmt)
+            exit(1)
+
+    def carto_generate_select_grants(self):
+        grants_sql = ''
+        if not self.db_select_users:
+            return grants_sql
+        for user in self.db_select_users:
+            self.logger.info('{} - Granting SELECT to {}'.format(self.db_table_name, user))
+            grants_sql += 'GRANT SELECT ON "{}" TO "{}";'.format(self.db_table_name, user)
+        self.logger.info(grants_sql)
+        return grants_sql
+
+    def carto_cartodbfytable(self):
+        self.logger.info('{} - cdb_cartodbfytable\'ing table'.format(self.temp_table_name))
+        self.carto_sql_call("select cdb_cartodbfytable('{}', '{}');".format(self.account, self.temp_table_name))
+
+    def carto_vacuum_analyze(self):
+        self.logger.info('{} - vacuum analyzing table'.format(self.temp_table_name))
+        self.carto_sql_call('VACUUM ANALYZE "{}";'.format(self.temp_table_name))
+
+    def carto_swap_table(self):
+        stmt = 'BEGIN;' + \
+               'ALTER TABLE "{}" RENAME TO "{}_old";'.format(self.db_table_name, self.db_table_name) + \
+               'ALTER TABLE "{}" RENAME TO "{}";'.format(self.temp_table_name, self.db_table_name) + \
+               'DROP TABLE "{}_old" cascade;'.format(self.db_table_name) + \
+               self.generate_select_grants() + \
+               'COMMIT;'
+        self.logger.info("Swapping tables...")
+        self.logger.info(stmt)
+        self.carto_sql_call(stmt)
+
+    def carto_cleanup(self):
+        print("Attempting to drop any temporary tables: {}".format(self.temp_table_name))
+        stmt = '''DROP TABLE if exists {} cascade'''.format(self.temp_table_name)
+        self.carto_sql_call(stmt)
+
+    def carto_update_table(self):
+        self.logger.info("Connecting to the Carto DB account {}".format(self.db_conn_id))
+        # Make Carto api sql connection:
+        self.carto_make_connection()
+        self.temp_table_name = 't_' + self.db_table_name
+        try:
+            # Create temp table:
+            self.logger.info("creating temp table...")
+            self.carto_create_table()
+            # Write rows to temp table:
+            self.logger.info("writing to temp table...")
+            self.carto_write()
+            # Verify row count:
+            self.logger.info("verifying row count...")
+            self.carto_verify_count()
+            # Cartodbfytable:
+            self.logger.info("cartodbfying table...")
+            self.carto_cartodbfytable()
+            # Create indexes:
+            if self.db_indexes_fields:
+                self.logger.info("creating indexes...{}".format(self.db_indexes_fields))
+                self.carto_create_indexes()
+            # Vacuum analyze:
+                self.logger.info("vacuum analyzing...")
+            self.carto_vacuum_analyze()
+            # Swap tables:
+            self.logger.info("swapping tables...")
+            self.carto_swap_table()
+            self.logger.info("Done!")
+        except Exception as e:
+            self.logger.error("workflow failed, reverting...")
+            self.carto_cleanup()
+            raise e
+
 
     def run_task(self):
         return methodcaller(self.task_name)(self)
