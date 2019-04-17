@@ -1,6 +1,8 @@
 import logging
 import sys
 import json
+from operator import methodcaller
+import os
 
 import click
 
@@ -50,8 +52,11 @@ class TableGenerator():
     @property
     def db_table_schema(self):
         if self._db_table_schema is None:
-            db_table_schema = self.json_schema_file.split('__')[0].split('_')[1]
+            db_table_schema = self.json_schema_file.split('__')[0].split('_', 1)[-1]
             self._db_table_schema = db_table_schema
+            # Prefix schemas starting with numbers with an _ to avoid errors
+            if db_table_schema[0].isdigit():
+                self._db_table_schema = '_' + self._db_table_schema
         return self._db_table_schema
 
     @property
@@ -77,7 +82,6 @@ class TableGenerator():
                 import psycopg2
                 self._db_conn = psycopg2.connect(dbname=self.db_name, user=self.db_user, password=self.db_password,
                                                 host=self.db_host, port=self.db_port)
-            self.logger.info('Connected to database: {}'.format(self.db_name))
         return self._db_conn
 
     @property
@@ -123,14 +127,12 @@ class TableGenerator():
            logger.addHandler(sh)
            self._logger = logger
        return self._logger 
-        
+
     def execute_sql(self, stmt):
-        self.logger.info('Executing sql statement: {}'.format(stmt))
         with self.conn.cursor() as cursor:
             cursor.execute(stmt)
 
     def create_insert_trigger(self):
-        self.logger.info('Creating insert trigger on - {}'.format(self.db_table_name))
         stmt = '''DROP TRIGGER IF EXISTS insert_{table_name}
                       ON {schema_table_name};
                   CREATE TRIGGER insert_{table_name} 
@@ -140,10 +142,8 @@ class TableGenerator():
                       EXECUTE PROCEDURE public.update_etl_write_timestamp();\n''' \
                 .format(table_name=self.db_table_name, schema_table_name=self.db_schema_table_name)
         self.execute_sql(stmt)
-        self.logger.info('Insert trigger created.')
 
     def create_update_trigger(self):
-        self.logger.info('Creating update trigger on - {}'.format(self.db_table_name))
         stmt = '''DROP TRIGGER IF EXISTS update_{table_name}
                       ON {schema_table_name};
                   CREATE TRIGGER update_{table_name} 
@@ -153,12 +153,10 @@ class TableGenerator():
                       EXECUTE PROCEDURE public.update_etl_write_timestamp();\n''' \
                 .format(table_name=self.db_table_name, schema_table_name=self.db_schema_table_name)
         self.execute_sql(stmt)
-        self.logger.info('Update trigger created.')
 
     def create_table(self):
-        self.logger.info('Attempting to create table: {}'.format(self.db_schema_table_name))
         stmt = 'CREATE TABLE IF NOT EXISTS {db_schema_table_name} ({schema})'.format(db_schema_table_name=self.db_schema_table_name, schema=self.schema_fmt)
-        self.execute_sql(stmt)
+        self.execute_sql(stmt)      
 
     def execute(self):
         try:
@@ -170,7 +168,7 @@ class TableGenerator():
             self.logger.info('Workflow failed, rolling back...')
             self.conn.rollback()
             raise e
-        logging.info('Table {} created successfully!'.format(self.db_schema_table_name))
+        logging.info('Table {} created successfully with triggers!'.format(self.db_schema_table_name))
 
 @click.command()
 @click.option('--db_type')
@@ -179,17 +177,18 @@ class TableGenerator():
 @click.option('--db_password')
 @click.option('--db_port')
 @click.option('--db_name')
-@click.option('--json_schema_file')
+@click.option('--json_schema_file', default=None)
 def main(db_type, db_host, db_user, db_password, db_port, db_name, json_schema_file):
-    table_generator = TableGenerator(
-        db_type, 
-        db_host, 
-        db_user, 
-        db_password, 
-        db_port, 
-        db_name,
-        json_schema_file)
-    table_generator.execute()
+    for json_schema_file in os.listdir('schemas'):
+        table_generator = TableGenerator(
+            db_type=db_type, 
+            db_host=db_host, 
+            db_user=db_user, 
+            db_password=db_password, 
+            db_port=db_port, 
+            db_name=db_name,
+            json_schema_file=os.path.join('schemas', json_schema_file))
+        table_generator.execute()
 
 if __name__ == '__main__':
     main()
