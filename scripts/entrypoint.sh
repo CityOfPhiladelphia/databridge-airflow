@@ -45,7 +45,7 @@ eval $(python3 /secrets_manager.py --name=airflow-fernet --key=fernet_key --env=
 wait_for_port "RabbitMQ" "$RABBITMQ_HOST" "$RABBITMQ_PORT"
 wait_for_port "Postgres" "$POSTGRES_HOST" "$POSTGRES_PORT"
 
-if [ $FIRST_TIME = true] ; then
+if [ $FIRST_TIME == true]; then
   # Set the schemas variable
   airflow variables --set schemas $AIRFLOW_HOME/schemas
 fi
