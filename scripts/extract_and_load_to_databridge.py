@@ -19,6 +19,7 @@ from carto.auth import APIKeyAuthClient
 class BatchDatabridgeTask():
 
     def __init__(self, task_name, **kwargs):
+        self._logger = None
         self.task_name = task_name
         self.db_type = kwargs.get('db_type', '')
         self.db_host = kwargs.get('db_host', '')
@@ -27,14 +28,17 @@ class BatchDatabridgeTask():
         self.db_name = kwargs.get('db_name', '')
         self.db_port = kwargs.get('db_port', '')
         self.db_connection_string = kwargs.get('db_connection_string', '')
-        self.db_table_schema = kwargs.get('db_table_schema', '').upper()
-        self.db_table_name = kwargs.get('db_table_name', '').upper()
+        self._db_table_schema = kwargs.get('db_table_schema', '').upper()
+        self._db_table_name = kwargs.get('db_table_name', '').upper()
+        self._temp_table_name = None
         self.db_timestamp=kwargs.get('db_timestamp', True)
         self.hash_field = kwargs.get('hash_field', 'etl_hash')
         self.s3_bucket = kwargs.get('s3_bucket', '')
         self.conn = ''  # DB conn
+        self.carto_account = kwargs.get('carto_account', '')
+        self.carto_key = kwargs.get('carto_key', '')
+        self.carto_connection_string = kwargs.get('carto_connection_string', '')
         self.sql = '' # Carto connn
-        self._logger = None
         self.CARTO_USR_BASE_URL = "https://{user}.carto.com/"
         self.json_schema_file = kwargs.get('json_schema_file', '')
         self.db_indexes_fields = kwargs.get('db_indexes_fields')
@@ -43,7 +47,6 @@ class BatchDatabridgeTask():
         self.geom_field = ''
         self.geom_srid = ''
         self.num_rows_in_upload_file = None
-        self.temp_table_name = 't_' + self.db_table_name
         self.mapping = {
             'string': 'text',
             'number': 'numeric',
@@ -69,27 +72,34 @@ class BatchDatabridgeTask():
 
     @property
     def db_table_schema(self):
-        if self.db_table_schema is None:
+        if not self._db_table_schema:
             db_table_schema = self.json_schema_file.split('__')[0].split('_')[1]
             if db_table_schema[0].isdigit():
                 db_table_schema = '_' + db_table_schema
-            self.db_table_schema = db_table_schema
-        return self.db_table_schema
+            self._db_table_schema = db_table_schema
+        return self._db_table_schema
 
     @property
     def db_table_name(self):
-        if self.db_table_name is None:
+        if not self._db_table_name:
             db_table_name = self.json_schema_file.split('__')[1].split('.')[0]
-            self.db_table_name = self.table_prefix + '_' + db_table_name
-        return self.db_table_name
+            self._db_table_name = db_table_name
+        return self._db_table_name
 
     @property
     def db_schema_table_name(self):
         return '{}.{}'.format(self.db_table_schema, self.db_table_name)
 
     @property
+    def temp_table_name(self):
+        if not self.db_table_name:
+            self.logger.error("Can't get table name, exiting...")
+            exit(1)
+        return 't_' + self.db_table_name
+
+    @property
     def s3_key(self):
-        return 'staging/{}/{}.csv'.format(self.db_table_schema, self.db_table_name)
+        return 'staging/{}/{}.csv'.format(self.db_table_schema.upper(), self.db_table_name.upper())
 
     @property
     def csv_path(self):
@@ -105,11 +115,11 @@ class BatchDatabridgeTask():
     def logger(self):
        if self._logger is None:
            logger = logging.getLogger(__name__)
-           logger.setLevel(self.logger.INFO)
-           sh = self.logger.StreamHandler(sys.stdout)
+           logger.setLevel(logging.INFO)
+           sh = logging.StreamHandler(sys.stdout)
            logger.addHandler(sh)
            self._logger = logger
-       return self._logger 
+       return self._logger
 
     def load_to_s3(self):
        self.logger.info('Starting load to s3: {}'.format(self.s3_key))
@@ -239,17 +249,18 @@ class BatchDatabridgeTask():
 
 
     def carto_make_connection(self):
+        print(286, self.db_table_name)
         carto_connection_string_regex = r'^carto://(.+):(.+)'
-        if not (self.account and self.password):
-            creds = re.match(carto_connection_string_regex, self.connection_string).groups()
-            self.account = creds[0]
-            self.password = creds[1]
-        self.logger.info("Making connection to Carto {} account...".format(self.account))
+        if not (self.carto_account and self.carto_key):
+            creds = re.match(carto_connection_string_regex, self.carto_connection_string).groups()
+            self.carto_account = creds[0]
+            self.carto_key = creds[1]
+        self.logger.info("Making connection to Carto {} account...".format(self.carto_account))
         try:
-            auth_client = APIKeyAuthClient(api_key=self.password, base_url=self.CARTO_USR_BASE_URL.format(user=self.account))
+            auth_client = APIKeyAuthClient(api_key=self.carto_key, base_url=self.CARTO_USR_BASE_URL.format(user=self.carto_account))
             self.sql = SQLClient(auth_client)
         except Exception as e:
-            self.logger.error("failed making connection to Carto {} account...".format(self.account))
+            self.logger.error("failed making connection to Carto {} account...".format(self.carto_account))
             raise e
 
     def carto_sql_call(self, stmt, log_response=False):
@@ -294,7 +305,7 @@ class BatchDatabridgeTask():
         self.carto_sql_call(stmt)
 
     def carto_create_table(self):
-        self.format_schema()
+        self.carto_format_schema()
         stmt = ''' CREATE TABLE {table_name} ({schema})'''.format(table_name=self.temp_table_name,
                                                                   schema=self.schema_fmt)
         self.carto_sql_call(stmt)
@@ -350,9 +361,9 @@ class BatchDatabridgeTask():
         self.logger.info("write_file: ", write_file)
         q = "COPY {table_name} ({header}) FROM STDIN WITH (FORMAT csv, HEADER true)".format(
             table_name=self.temp_table_name, header=str_header)
-        url = self.CARTO_USR_BASE_URL.format(user=self.account) + 'api/v2/sql/copyfrom'
+        url = self.CARTO_USR_BASE_URL.format(user=self.carto_account) + 'api/v2/sql/copyfrom'
         with open(write_file, 'rb') as f:
-            r = requests.post(url, params={'api_key': self.password, 'q': q}, data=f, stream=True)
+            r = requests.post(url, params={'api_key': self.carto_key, 'q': q}, data=f, stream=True)
 
             if r.status_code != 200:
                 self.logger.info("response: ", r.text)
@@ -391,7 +402,7 @@ class BatchDatabridgeTask():
 
     def carto_cartodbfytable(self):
         self.logger.info('{} - cdb_cartodbfytable\'ing table'.format(self.temp_table_name))
-        self.carto_sql_call("select cdb_cartodbfytable('{}', '{}');".format(self.account, self.temp_table_name))
+        self.carto_sql_call("select cdb_cartodbfytable('{}', '{}');".format(self.carto_account, self.temp_table_name))
 
     def carto_vacuum_analyze(self):
         self.logger.info('{} - vacuum analyzing table'.format(self.temp_table_name))
@@ -414,10 +425,9 @@ class BatchDatabridgeTask():
         self.carto_sql_call(stmt)
 
     def carto_update_table(self):
-        self.logger.info("Connecting to the Carto DB account {}".format(self.db_conn_id))
+        self.logger.info("Connecting to the Carto DB account...")
         # Make Carto api sql connection:
         self.carto_make_connection()
-        self.temp_table_name = 't_' + self.db_table_name
         try:
             # Create temp table:
             self.logger.info("creating temp table...")
