@@ -47,7 +47,7 @@ wait_for_port "Postgres" "$POSTGRES_HOST" "$POSTGRES_PORT"
 
 if [ $FIRST_TIME == true]; then
   # Set the schemas variable
-  airflow variables --set schemas $AIRFLOW_HOME/schemas
+  airflow variables --set schemas $AIRFLOW_HOME/schemas/
 fi
 
 case "$1" in
