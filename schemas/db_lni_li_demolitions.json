@@ -1,0 +1,135 @@
+{
+  "primaryKey": [
+    "objectid"
+  ],
+  "fields": [
+    {
+      "type": "numeric",
+      "constraints": {
+        "required": true
+      },
+      "name": "objectid"
+    },
+    {
+      "type": "text",
+      "name": "addresskey"
+    },
+    {
+      "type": "text",
+      "name": "opa_account_num"
+    },
+    {
+      "type": "text",
+      "name": "address"
+    },
+    {
+      "type": "text",
+      "name": "unit"
+    },
+    {
+      "type": "text",
+      "name": "zip"
+    },
+    {
+      "type": "text",
+      "name": "censustract"
+    },
+    {
+      "type": "text",
+      "name": "ownername"
+    },
+    {
+      "type": "text",
+      "name": "organization"
+    },
+    {
+      "type": "text",
+      "name": "caseorpermitnumber"
+    },
+    {
+      "type": "text",
+      "name": "record_type"
+    },
+    {
+      "type": "text",
+      "name": "typeofwork"
+    },
+    {
+      "type": "text",
+      "name": "city_demo"
+    },
+    {
+      "type": "date",
+      "format": "fmt:%Y-%m-%d %H:%M:%S",
+      "name": "start_date"
+    },
+    {
+      "type": "date",
+      "format": "fmt:%Y-%m-%d %H:%M:%S",
+      "name": "completed_date"
+    },
+    {
+      "type": "text",
+      "name": "permitstatus"
+    },
+    {
+      "type": "text",
+      "name": "status"
+    },
+    {
+      "type": "text",
+      "name": "applicantcapacity"
+    },
+    {
+      "type": "text",
+      "name": "primarycontact"
+    },
+    {
+      "type": "text",
+      "name": "contractorname"
+    },
+    {
+      "type": "text",
+      "name": "contractortype"
+    },
+    {
+      "type": "text",
+      "name": "contractoraddress1"
+    },
+    {
+      "type": "text",
+      "name": "contractoraddress2"
+    },
+    {
+      "type": "text",
+      "name": "contractorcity"
+    },
+    {
+      "type": "text",
+      "name": "contractorstate"
+    },
+    {
+      "type": "text",
+      "name": "contractorzip"
+    },
+    {
+      "type": "date",
+      "format": "fmt:%Y-%m-%d %H:%M:%S",
+      "name": "mostrecentinsp"
+    },
+    {
+      "type": "numeric",
+      "name": "geocode_x"
+    },
+    {
+      "type": "numeric",
+      "name": "geocode_y"
+    },
+    {
+      "type": "geometry",
+      "name": "shape",
+      "geometry_type": "point",
+      "srid": 2272
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "primaryKey": [
+    "parcelid"
+  ],
+  "fields": [
+    {
+      "name": "objectid",
+      "constraints": {
+        "required": true
+      },
+      "type": "numeric"
+    },
+    {
+      "name": "parcelid",
+      "type": "numeric"
+    },
+    {
+      "name": "tencode",
+      "type": "text"
+    },
+    {
+      "name": "address",
+      "type": "text"
+    },
+    {
+      "name": "owner1",
+      "type": "text"
+    },
+    {
+      "name": "owner2",
+      "type": "text"
+    },
+    {
+      "name": "bldg_code",
+      "type": "text"
+    },
+    {
+      "name": "bldg_desc",
+      "type": "text"
+    },
+    {
+      "name": "brt_id",
+      "type": "text"
+    },
+    {
+      "name": "num_brt",
+      "type": "numeric"
+    },
+    {
+      "name": "num_accounts",
+      "type": "numeric"
+    },
+    {
+      "name": "gross_area",
+      "type": "numeric"
+    },
+    {
+      "name": "shape",
+      "type": "geometry",
+      "geometry_type": "multipolygon",
+      "srid": 2272
+    }
+  ]
+}

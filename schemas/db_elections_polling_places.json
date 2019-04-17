@@ -1,0 +1,46 @@
+{
+  "fields": [
+    {
+      "name": "objectid",
+      "type": "numeric"
+    },
+    {
+      "name": "ward",
+      "type": "numeric"
+    },
+    {
+      "name": "division",
+      "type": "numeric"
+    },
+    {
+      "name": "precinct",
+      "type": "text"
+    },
+    {
+      "name": "placename",
+      "type": "text"
+    },
+    {
+      "name": "street_address",
+      "type": "text"
+    },
+    {
+      "name": "zip_code",
+      "type": "text"
+    },
+    {
+      "name": "accessibility_code",
+      "type": "text"
+    },
+    {
+      "name": "parking_code",
+      "type": "text"
+    },
+    {
+      "name": "shape",
+      "type": "geometry",
+      "geometry_type": "point",
+      "srid": 2272
+    }
+  ]
+}

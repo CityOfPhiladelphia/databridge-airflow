@@ -1,0 +1,54 @@
+{
+  "fields": [
+    {
+      "name": "id",
+      "type": "numeric"
+    },
+    {
+      "name": "pollingplace_id",
+      "type": "numeric"
+    },
+    {
+      "name": "ward",
+      "type": "numeric"
+    },
+    {
+      "name": "division",
+      "type": "numeric"
+    },
+    {
+      "name": "precinct",
+      "type": "numeric"
+    },
+    {
+      "name": "city_district",
+      "type": "numeric"
+    },
+    {
+      "name": "state_senate",
+      "type": "numeric"
+    },
+    {
+      "name": "state_house",
+      "type": "numeric"
+    },
+    {
+      "name": "federal_house",
+      "type": "numeric"
+    },
+    {
+      "name": "created",
+      "format": "fmt:%Y-%m-%d %H:%M:%S",
+      "type": "date"
+    },
+    {
+      "name": "updated",
+      "format": "fmt:%Y-%m-%d %H:%M:%S",
+      "type": "date"
+    },
+    {
+      "name": "ballot_file_id",
+      "type": "text"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "primaryKey": [
+    "objectid"
+  ],
+  "fields": [
+    {
+      "name": "objectid",
+      "constraints": {
+        "required": true
+      },
+      "type": "numeric"
+    },
+    {
+      "name": "calendar_year",
+      "constraints": {
+        "required": true
+      },
+      "type": "numeric"
+    },
+    {
+      "name": "quarter",
+      "constraints": {
+        "required": true
+      },
+      "type": "numeric"
+    },
+    {
+      "name": "last_name",
+      "constraints": {
+        "required": true
+      },
+      "type": "text"
+    },
+    {
+      "name": "first_name",
+      "constraints": {
+        "required": true
+      },
+      "type": "text"
+    },
+    {
+      "name": "title",
+      "type": "text"
+    },
+    {
+      "name": "department",
+      "constraints": {
+        "required": true
+      },
+      "type": "text"
+    },
+    {
+      "name": "annual_salary",
+      "constraints": {
+        "required": true
+      },
+      "type": "numeric"
+    },
+    {
+      "name": "ytd_overtime_gross",
+      "constraints": {
+        "required": true
+      },
+      "type": "numeric"
+    }
+  ]
+}

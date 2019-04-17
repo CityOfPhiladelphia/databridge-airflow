@@ -1,0 +1,115 @@
+{
+  "primaryKey": [
+    "objectid"
+  ],
+  "fields": [
+    {
+      "type": "numeric",
+      "constraints": {
+        "required": true
+      },
+      "name": "objectid"
+    },
+    {
+      "type": "text",
+      "name": "licensenum"
+    },
+    {
+      "type": "text",
+      "name": "revenuecode"
+    },
+    {
+      "type": "text",
+      "name": "licensetype"
+    },
+    {
+      "type": "date",
+      "format": "fmt:%Y-%m-%d %H:%M:%S",
+      "name": "initialissuedate"
+    },
+    {
+      "type": "date",
+      "format": "fmt:%Y-%m-%d %H:%M:%S",
+      "name": "mostrecentissuedate"
+    },
+    {
+      "type": "date",
+      "format": "fmt:%Y-%m-%d %H:%M:%S",
+      "name": "inactivedate"
+    },
+    {
+      "type": "text",
+      "name": "licensestatus"
+    },
+    {
+      "type": "text",
+      "name": "fulladdress"
+    },
+    {
+      "type": "text",
+      "name": "street_address"
+    },
+    {
+      "type": "text",
+      "name": "zip"
+    },
+    {
+      "type": "text",
+      "name": "eclipse_addressobjectid"
+    },
+    {
+      "type": "numeric",
+      "name": "numberofunits"
+    },
+    {
+      "type": "text",
+      "name": "opaaccount"
+    },
+    {
+      "type": "text",
+      "name": "censustract"
+    },
+    {
+      "type": "text",
+      "name": "councildistrict"
+    },
+    {
+      "type": "text",
+      "name": "legalfirstname"
+    },
+    {
+      "type": "text",
+      "name": "legallastname"
+    },
+    {
+      "type": "text",
+      "name": "legalname"
+    },
+    {
+      "type": "text",
+      "name": "legalentitytype"
+    },
+    {
+      "type": "text",
+      "name": "business_name"
+    },
+    {
+      "type": "text",
+      "name": "business_mailing_address"
+    },
+    {
+      "type": "numeric",
+      "name": "geocode_x"
+    },
+    {
+      "type": "numeric",
+      "name": "geocode_y"
+    },
+    {
+      "type": "geometry",
+      "name": "shape",
+      "geometry_type": "point",
+      "srid": 2272
+    }
+  ]
+}

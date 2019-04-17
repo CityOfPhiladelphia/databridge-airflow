@@ -1,0 +1,63 @@
+{
+  "primaryKeys": [
+    "objectid"
+  ],
+  "fields": [
+    {
+      "name": "objectid",
+      "constraints": {
+        "required": true
+      },
+      "type": "numeric"
+    },
+    {
+      "name": "overlay_name",
+      "constraints": {
+        "required": true
+      },
+      "type": "text"
+    },
+    {
+      "name": "overlay_symbol",
+      "type": "text"
+    },
+    {
+      "name": "type",
+      "type": "text"
+    },
+    {
+      "name": "code_section",
+      "constraints": {
+        "required": true
+      },
+      "type": "text"
+    },
+    {
+      "name": "code_section_link",
+      "type": "text"
+    },
+    {
+      "name": "sunset_date",
+      "format": "fmt:%Y-%m-%d %H:%M:%S",
+      "type": "date"
+    },
+    {
+      "name": "pending",
+      "type": "text"
+    },
+    {
+      "name": "pendingbill",
+      "type": "text"
+    },
+    {
+      "name": "pendingbillurl",
+      "type": "text"
+    },
+    {
+      "name": "shape",
+      "type": "geometry",
+      "geometry_type": "multipolygon",
+      "srid": 2272
+    }
+  ]
+}

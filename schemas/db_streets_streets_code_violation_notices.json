@@ -1,0 +1,85 @@
+{
+  "primaryKey": [
+    "objectid"
+  ],
+  "fields": [
+    {
+      "name": "objectid",
+      "constraints": {
+        "required": true
+      },
+      "type": "numeric"
+    },
+    {
+      "name": "ticket_number",
+      "type": "text"
+    },
+    {
+      "name": "property_based",
+      "type": "numeric"
+    },
+    {
+      "name": "violation_type",
+      "type": "numeric"
+    },
+    {
+      "name": "violation_code",
+      "type": "text"
+    },
+    {
+      "name": "violation_description",
+      "type": "text"
+    },
+    {
+      "name": "fine_amount",
+      "type": "numeric"
+    },
+    {
+      "name": "warning",
+      "type": "numeric"
+    },
+    {
+      "name": "voided",
+      "type": "numeric"
+    },
+    {
+      "name": "date_added",
+      "format": "fmt:%Y-%m-%d %H:%M:%S",
+      "type": "date"
+    },
+    {
+      "name": "issued",
+      "type": "numeric"
+    },
+    {
+      "name": "comments",
+      "type": "text"
+    },
+    {
+      "name": "evidence_found",
+      "type": "numeric"
+    },
+    {
+      "name": "st_name",
+      "type": "text"
+    },
+    {
+      "name": "l_hundred",
+      "type": "numeric"
+    },
+    {
+      "name": "r_hundred",
+      "type": "numeric"
+    },
+    {
+      "name": "seg_id",
+      "type": "numeric"
+    },
+    {
+      "name": "shape",
+      "type": "geometry",
+      "geometry_type": "point",
+      "srid": 2272
+    }
+  ]
+}

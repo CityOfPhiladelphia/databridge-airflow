@@ -1,0 +1,204 @@
+{
+  "primaryKey": [
+    "objectid"
+  ],
+  "fields": [
+    {
+      "name": "objectid",
+      "constraints": {
+        "required": true
+      },
+      "type": "numeric"
+    },
+    {
+      "name": "document_id",
+      "type": "numeric"
+    },
+    {
+      "name": "document_type",
+      "type": "text"
+    },
+    {
+      "name": "display_date",
+      "format": "fmt:%Y-%m-%d %H:%M:%S",
+      "type": "date"
+    },
+    {
+      "name": "street_address",
+      "type": "text"
+    },
+    {
+      "name": "zip_code",
+      "type": "text"
+    },
+    {
+      "name": "ward",
+      "type": "text"
+    },
+    {
+      "name": "grantors",
+      "type": "text"
+    },
+    {
+      "name": "grantees",
+      "type": "text"
+    },
+    {
+      "name": "cash_consideration",
+      "type": "numeric"
+    },
+    {
+      "name": "other_consideration",
+      "type": "numeric"
+    },
+    {
+      "name": "total_consideration",
+      "type": "numeric"
+    },
+    {
+      "name": "assessed_value",
+      "type": "numeric"
+    },
+    {
+      "name": "common_level_ratio",
+      "type": "numeric"
+    },
+    {
+      "name": "fair_market_value",
+      "type": "numeric"
+    },
+    {
+      "name": "state_tax_amount",
+      "type": "numeric"
+    },
+    {
+      "name": "state_tax_percent",
+      "type": "numeric"
+    },
+    {
+      "name": "local_tax_amount",
+      "type": "numeric"
+    },
+    {
+      "name": "local_tax_percent",
+      "type": "numeric"
+    },
+    {
+      "name": "adjusted_cash_consideration",
+      "type": "numeric"
+    },
+    {
+      "name": "adjusted_other_consideration",
+      "type": "numeric"
+    },
+    {
+      "name": "adjusted_total_consideration",
+      "type": "numeric"
+    },
+    {
+      "name": "adjusted_assessed_value",
+      "type": "numeric"
+    },
+    {
+      "name": "adjusted_fair_market_value",
+      "type": "numeric"
+    },
+    {
+      "name": "adjusted_state_tax_amount",
+      "type": "numeric"
+    },
+    {
+      "name": "adjusted_local_tax_amount",
+      "type": "numeric"
+    },
+    {
+      "name": "receipt_num",
+      "type": "text"
+    },
+    {
+      "name": "receipt_date",
+      "format": "fmt:%Y-%m-%d %H:%M:%S",
+      "type": "date"
+    },
+    {
+      "name": "recording_date",
+      "format": "fmt:%Y-%m-%d %H:%M:%S",
+      "type": "date"
+    },
+    {
+      "name": "document_date",
+      "format": "fmt:%Y-%m-%d %H:%M:%S",
+      "type": "date"
+    },
+    {
+      "name": "condo_name",
+      "type": "text"
+    },
+    {
+      "name": "unit_num",
+      "type": "text"
+    },
+    {
+      "name": "address_low",
+      "type": "numeric"
+    },
+    {
+      "name": "address_low_suffix",
+      "type": "text"
+    },
+    {
+      "name": "address_low_frac",
+      "type": "text"
+    },
+    {
+      "name": "address_high",
+      "type": "text"
+    },
+    {
+      "name": "street_predir",
+      "type": "text"
+    },
+    {
+      "name": "street_name",
+      "type": "text"
+    },
+    {
+      "name": "street_suffix",
+      "type": "text"
+    },
+    {
+      "name": "street_postdir",
+      "type": "text"
+    },
+    {
+      "name": "reg_map_id",
+      "type": "text"
+    },
+    {
+      "name": "matched_regmap",
+      "type": "text"
+    },
+    {
+      "name": "opa_account_num",
+      "type": "text"
+    },
+    {
+      "name": "legal_remarks",
+      "type": "text"
+    },
+    {
+      "name": "discrepancy",
+      "type": "text"
+    },
+    {
+      "name": "property_count",
+      "type": "numeric"
+    },
+    {
+      "name": "shape",
+      "type": "geometry",
+      "geometry_type": "point",
+      "srid": 2272
+    }
+  ]
+}

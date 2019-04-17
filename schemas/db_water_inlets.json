@@ -1,0 +1,76 @@
+{
+  "primaryKey": [
+    "objectid"
+  ],
+  "fields": [
+    {
+      "name": "objectid",
+      "constraints": {
+        "required": true
+      },
+      "type": "numeric"
+    },
+    {
+      "name": "system",
+      "type": "text"
+    },
+    {
+      "name": "monthday_installed",
+      "type": "text"
+    },
+    {
+      "name": "year_installed",
+      "type": "numeric"
+    },
+    {
+      "name": "owner",
+      "type": "text"
+    },
+    {
+      "name": "rotation",
+      "type": "numeric"
+    },
+    {
+      "name": "subtype",
+      "type": "numeric"
+    },
+    {
+      "name": "symbolgroup",
+      "type": "text"
+    },
+    {
+      "name": "x_coord",
+      "type": "numeric"
+    },
+    {
+      "name": "y_coord",
+      "type": "numeric"
+    },
+    {
+      "name": "inlettype",
+      "type": "text"
+    },
+    {
+      "name": "gps",
+      "type": "numeric"
+    },
+    {
+      "name": "operator",
+      "type": "text"
+    },
+    {
+      "name": "hydraulicid",
+      "type": "text"
+    },
+    {
+      "name": "facilityid",
+      "type": "text"
+    },
+    {
+      "name": "shape",
+      "type": "geometry",
+      "geometry_type": "point",
+      "srid": 2272
+    }
+  ]
+}

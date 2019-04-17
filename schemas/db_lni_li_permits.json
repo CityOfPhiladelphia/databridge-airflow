@@ -1,0 +1,135 @@
+{
+  "primaryKey": [
+    "objectid"
+  ],
+  "fields": [
+    {
+      "name": "objectid",
+      "constraints": {
+        "required": true
+      },
+      "type": "numeric"
+    },
+    {
+      "name": "addresskey",
+      "type": "text"
+    },
+    {
+      "type": "text",
+      "name": "opa_account_num"
+    },
+    {
+      "name": "address",
+      "type": "text"
+    },
+    {
+      "name": "unit",
+      "type": "text"
+    },
+    {
+      "name": "zip",
+      "type": "text"
+    },
+    {
+      "name": "censustract",
+      "type": "text"
+    },
+    {
+      "name": "ownername",
+      "type": "text"
+    },
+    {
+      "name": "organization",
+      "type": "text"
+    },
+    {
+      "name": "permitnumber",
+      "type": "text"
+    },
+    {
+      "name": "permittype",
+      "type": "text"
+    },
+    {
+      "name": "permitdescription",
+      "type": "text"
+    },
+    {
+      "name": "permit_type_name",
+      "type": "text"
+    },
+    {
+      "name": "typeofwork",
+      "type": "text"
+    },
+    {
+      "name": "descriptionofwork",
+      "type": "text"
+    },
+    {
+      "name": "permitissuedate",
+      "format": "fmt:%Y-%m-%d %H:%M:%S",
+      "type": "date"
+    },
+    {
+      "name": "status",
+      "type": "text"
+    },
+    {
+      "name": "moddttm",
+      "format": "fmt:%Y-%m-%d %H:%M:%S",
+      "type": "date"
+    },
+    {
+      "name": "applicantcapacity",
+      "type": "text"
+    },
+    {
+      "name": "contractorname",
+      "type": "text"
+    },
+    {
+      "name": "contractoraddress1",
+      "type": "text"
+    },
+    {
+      "name": "contractoraddress2",
+      "type": "text"
+    },
+    {
+      "name": "contractorcity",
+      "type": "text"
+    },
+    {
+      "name": "contractorstate",
+      "type": "text"
+    },
+    {
+      "name": "contractorzip",
+      "type": "text"
+    },
+    {
+      "name": "mostrecentinsp",
+      "format": "fmt:%Y-%m-%d %H:%M:%S",
+      "type": "date"
+    },
+    {
+      "name": "geocode_x",
+      "type": "numeric"
+    },
+    {
+      "name": "geocode_y",
+      "type": "numeric"
+    },
+    {
+      "name": "council_district",
+      "type": "text"
+    },
+    {
+      "name": "shape",
+      "type": "geometry",
+      "geometry_type": "point",
+      "srid": 2272
+    }
+  ]
+}

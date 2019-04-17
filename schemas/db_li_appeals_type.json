@@ -1,0 +1,26 @@
+{
+  "primaryKey": [
+    "objectid"
+  ],
+  "fields": [
+    {
+      "name": "objectid",
+      "constraints": {
+        "required": true
+      },
+      "type": "numeric"
+    },
+    {
+      "name": "appealkey",
+      "type": "numeric"
+    },
+    {
+      "name": "appealnumber",
+      "type": "text"
+    },
+    {
+      "name": "appealtype",
+      "type": "text"
+    }
+  ]
+}

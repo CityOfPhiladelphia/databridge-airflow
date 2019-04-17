@@ -1,0 +1,51 @@
+{
+  "primaryKey": [
+    "objectid"
+  ],
+  "fields": [
+    {
+      "type": "numeric",
+      "constraints": {
+        "required": true
+      },
+      "name": "objectid"
+    },
+    {
+      "type": "text",
+      "name": "licensenum"
+    },
+    {
+      "type": "text",
+      "name": "revenuecode"
+    },
+    {
+      "type": "text",
+      "name": "licensetype"
+    },
+    {
+      "type": "date",
+      "format": "fmt:%Y-%m-%d %H:%M:%S",
+      "name": "issuedate"
+    },
+    {
+      "type": "text",
+      "name": "licensestatus"
+    },
+    {
+      "type": "text",
+      "name": "legalfirstname"
+    },
+    {
+      "type": "text",
+      "name": "legallastname"
+    },
+    {
+      "type": "text",
+      "name": "companyname"
+    },
+    {
+      "type": "text",
+      "name": "legalentitytype"
+    }
+  ]
+}

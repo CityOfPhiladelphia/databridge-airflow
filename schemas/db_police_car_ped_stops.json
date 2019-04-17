@@ -1,0 +1,138 @@
+{
+  "primaryKey": [
+    "id"
+  ],
+  "fields": [
+    {
+      "name": "objectid",
+      "constraints": {
+        "required": true
+      },
+      "type": "numeric"
+    },
+    {
+      "name": "id",
+      "constraints": {
+        "required": true
+      },
+      "type": "numeric"
+    },
+    {
+      "name": "datetimeoccur",
+      "format": "fmt:%Y-%m-%d %H:%M:%S",
+      "type": "date"
+    },
+    {
+      "name": "weekday",
+      "type": "text"
+    },
+    {
+      "name": "location",
+      "type": "text"
+    },
+    {
+      "name": "districtoccur",
+      "type": "text"
+    },
+    {
+      "name": "psa",
+      "type": "text"
+    },
+    {
+      "name": "stopcode",
+      "constraints": {
+        "required": true
+      },
+      "type": "text"
+    },
+    {
+      "name": "stoptype",
+      "constraints": {
+        "required": true
+      },
+      "type": "text"
+    },
+    {
+      "name": "inside_or_outside",
+      "type": "text"
+    },
+    {
+      "name": "gender",
+      "type": "text"
+    },
+    {
+      "name": "race",
+      "constraints": {
+        "required": true
+      },
+      "type": "text"
+    },
+    {
+      "name": "age",
+      "type": "numeric"
+    },
+    {
+      "name": "individual_frisked",
+      "constraints": {
+        "required": true
+      },
+      "type": "numeric"
+    },
+    {
+      "name": "individual_searched",
+      "constraints": {
+        "required": true
+      },
+      "type": "numeric"
+    },
+    {
+      "name": "individual_arrested",
+      "constraints": {
+        "required": true
+      },
+      "type": "numeric"
+    },
+    {
+      "name": "individual_contraband",
+      "constraints": {
+        "required": true
+      },
+      "type": "numeric"
+    },
+    {
+      "name": "vehicle_frisked",
+      "constraints": {
+        "required": true
+      },
+      "type": "numeric"
+    },
+    {
+      "name": "vehicle_searched",
+      "constraints": {
+        "required": true
+      },
+      "type": "numeric"
+    },
+    {
+      "name": "vehicle_contraband",
+      "constraints": {
+        "required": true
+      },
+      "type": "numeric"
+    },
+    {
+      "name": "point_x",
+      "type": "numeric"
+    },
+    {
+      "name": "point_y",
+      "type": "numeric"
+    },
+    {
+      "name": "shape",
+      "type": "geometry",
+      "geometry_type": "point",
+      "srid": 2272
+    }
+  ]
+}

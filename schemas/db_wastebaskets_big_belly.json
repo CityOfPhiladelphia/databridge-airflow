@@ -1,0 +1,44 @@
+{
+  "primaryKey": [
+    "serialnum"
+  ],
+  "fields": [
+    {
+      "name": "objectid",
+      "constraints": {
+        "required": true
+      },
+      "type": "numeric"
+    },
+    {
+      "name": "serialnum",
+      "constraints": {
+        "required": true
+      },
+      "type": "text"
+    },
+    {
+      "name": "description",
+      "constraints": {
+        "required": true
+      },
+      "type": "text"
+    },
+    {
+      "name": "recycler",
+      "constraints": {
+        "required": true
+      },
+      "type": "text"
+    },
+    {
+      "name": "shape",
+      "constraints": {
+        "required": true
+      },
+      "type": "geometry",
+      "geometry_type": "point",
+      "srid": 2272
+    }
+  ]
+}
