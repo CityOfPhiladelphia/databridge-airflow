@@ -116,7 +116,8 @@ set_environment_variables() {
   #eval $(python3 /secrets_manager.py --name=hansen --key=dbname --env=HANSEN_EXTRA)
 
   # slack
-  eval $(python3 /secrets_manager.py --name=airflow-slack-dev --key=airflow-slack-dev --env=SLACK_EXTRA)
+  eval $(python3 /secrets_manager.py --name=airflow-slack-dev --key=password --env=SLACK_PASSWORD)
+  eval $(python3 /secrets_manager.py --name=airflow-slack-dev --key=connection_string --env=SLACK_EXTRA)
 }
 
 set_airflow_connections() {
@@ -130,7 +131,7 @@ set_airflow_connections() {
 	  --conn_extra $BRT_VIEWER_EXTRA
   airflow connections \
 	  --add --conn_id carto_phl \
-	  --conn_type carto \
+	  --conn_type HTTP \
 	  --conn_login $CARTO_PHL_LOGIN \
 	  --conn_password $CARTO_PHL_PASSWORD
   airflow connections \
@@ -158,7 +159,9 @@ set_airflow_connections() {
         #  --conn_port 1521
   airflow connections \
 	  --add --conn_id slack \
-	  --conn_type slack \
+	  --conn_type HTTP \
+	  --conn_host https://hooks.slack.com/services \
+	  --conn_password $SLACK_PASSWORD \
 	  --conn_extra $SLACK_EXTRA
 }    
 
