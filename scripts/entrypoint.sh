@@ -18,12 +18,16 @@ TRY_LOOP="20"
 
 AIRFLOW__CELERY__BROKER_URL="pyamqp://$RABBITMQ_USER:$RABBITMQ_PASSWORD@$RABBITMQ_HOST/$RABBITMQ_VHOST"
 
+# Set IP Address for log links
+IP_ADDRESS=$(curl http://169.254.169.254/latest/meta-data/local-ipv4)
+
 export \
   AIRFLOW__CELERY__BROKER_URL \
   AIRFLOW__CELERY__RESULT_BACKEND \
   AIRFLOW__CORE__EXECUTOR \
   AIRFLOW__CORE__FERNET_KEY \
   AIRFLOW__CORE__SQL_ALCHEMY_CONN \
+  IP_ADDRESS \
 
 wait_for_port() {
   local name="$1" host="$2" port="$3"
@@ -83,10 +87,6 @@ delete_default_airflow_connections() {
 }       
 
 set_environment_variables() {
-  # Set the fernet environment variable
-  eval $(python3 /secrets_manager.py --name=airflow-fernet --key=fernet_key --env=AIRFLOW__CORE__FERNET_KEY)
-  # Set environment variables for connections
-  
   # brt-viewer
   eval $(python3 /secrets_manager.py --name=brt-viewer --key=host --env=BRT_VIEWER_HOST)
   eval $(python3 /secrets_manager.py --name=brt-viewer --key=username --env=BRT_VIEWER_LOGIN)
@@ -164,6 +164,9 @@ set_airflow_connections() {
 
 wait_for_port "RabbitMQ" "$RABBITMQ_HOST" "$RABBITMQ_PORT"
 wait_for_port "Postgres" "$POSTGRES_HOST" "$POSTGRES_PORT"
+
+# Set the fernet environment variable
+eval $(python3 /secrets_manager.py --name=airflow-fernet --key=fernet_key --env=AIRFLOW__CORE__FERNET_KEY)
 
 case "$1" in
   webserver)
