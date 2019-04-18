@@ -28,8 +28,8 @@ class BatchDatabridgeTask():
         self.db_name = kwargs.get('db_name', '')
         self.db_port = kwargs.get('db_port', '')
         self.db_connection_string = kwargs.get('db_connection_string', '')
-        self._db_table_schema = kwargs.get('db_table_schema', '').upper()
-        self._db_table_name = kwargs.get('db_table_name', '').upper()
+        self._db_table_schema = kwargs.get('db_table_schema', '')
+        self._db_table_name = kwargs.get('db_table_name', '')
         self._temp_table_name = None
         self.db_timestamp=kwargs.get('db_timestamp', True)
         self.hash_field = kwargs.get('hash_field', 'etl_hash')
@@ -98,8 +98,14 @@ class BatchDatabridgeTask():
         return 't_' + self.db_table_name
 
     @property
-    def s3_key(self):
-        return 'staging/{}/{}.csv'.format(self.db_table_schema.upper(), self.db_table_name.upper())
+    def csv_s3_key(self):
+        if self.json_schema_file:
+            return 'staging/{}/{}.csv'.format(self.db_table_schema, self.db_table_name)
+        return 'staging/{}/{}.csv'.format(self.db_table_schema.split('_')[1], self.db_table_name)
+
+    @property
+    def json_schema_s3_key(self):
+        return 'schemas/{}'.format(self.json_schema_file)
 
     @property
     def csv_path(self):
@@ -112,6 +118,19 @@ class BatchDatabridgeTask():
         return csv_path
 
     @property
+    def json_schema_path(self):
+        # On windows, save to current directory
+        if os.name == 'nt':
+            if not os.path.exists('schemas'):
+                os.makedirs('schemas')
+            json_schema_path = 'schemas/{}'.format(self.json_schema_file)
+        else:
+            if not os.path.exists('/tmp/schemas'):
+                os.makedirs('/tmp/schemas')
+            json_schema_path = '/tmp/schemas/{}'.format(self.json_schema_file)
+        return json_schema_path
+
+    @property
     def logger(self):
        if self._logger is None:
            logger = logging.getLogger(__name__)
@@ -121,17 +140,23 @@ class BatchDatabridgeTask():
            self._logger = logger
        return self._logger
 
-    def load_to_s3(self):
-       self.logger.info('Starting load to s3: {}'.format(self.s3_key))
-       s3 = boto3.resource('s3') 
-       s3.Object(self.s3_bucket, self.s3_key).put(Body=open(self.csv_path, 'rb'))
-       self.logger.info('Successfully loaded to s3: {}'.format(self.s3_key))
+    def load_csv_to_s3(self):
+        self.logger.info('Starting load to s3: {}'.format(self.csv_s3_key))
+        s3 = boto3.resource('s3') 
+        s3.Object(self.s3_bucket, self.csv_s3_key).put(Body=open(self.csv_path, 'rb'))
+        self.logger.info('Successfully loaded to s3: {}'.format(self.csv_s3_key))
        
-    def get_from_s3(self):
-        self.logger.info('Fetching s3://{}/{}'.format(self.s3_bucket, self.s3_key))
+    def get_csv_from_s3(self):
+        self.logger.info('Fetching s3://{}/{}'.format(self.s3_bucket, self.csv_s3_key))
         s3 = boto3.resource('s3')
-        s3.Object(self.s3_bucket, self.s3_key).download_file(self.csv_path)
-        self.logger.info('s3://{}/{} successfully downloaded'.format(self.s3_bucket, self.s3_key))
+        s3.Object(self.s3_bucket, self.csv_s3_key).download_file(self.csv_path)
+        self.logger.info('s3://{}/{} successfully downloaded'.format(self.s3_bucket, self.csv_s3_key))
+
+    def get_json_schema_from_s3(self):
+        self.logger.info('Fetching json schema s3://{}/{}'.format(self.s3_bucket, self.json_schema_s3_key))
+        s3 = boto3.resource('s3')
+        s3.Object(self.s3_bucket, self.json_schema_s3_key).download_file(self.json_schema_path)
+        self.logger.info('s3://{}/{} successfully downloaded'.format(self.s3_bucket, self.json_schema_s3_key))
 
     def make_connection(self):
         self.logger.info('Trying to connect to db_host: {}, db_port: {}, db_name: {}'.format(self.db_host, self.db_port, self.db_name))
@@ -153,14 +178,14 @@ class BatchDatabridgeTask():
         elif self.db_type == 'postgres':
             etl.frompostgis(self.conn, self.db_schema_table_name) \
                .tocsv(self.csv_path, encoding='latin-1')
-        self.load_to_s3()
+        self.load_csv_to_s3()
         os.remove(self.csv_path)
         self.logger.info('Successfully extracted from {}: {}'.format(self.db_name, self.db_schema_table_name))
 
     def write(self):
         self.logger.info('Starting write to {}: {}'.format(self.db_name, self.db_schema_table_name))
         self.make_connection()
-        self.get_from_s3()
+        self.get_csv_from_s3()
 
         if self.db_type == 'postgres':
             rows = etl.fromcsv(self.csv_path, encoding='latin-1')
@@ -274,7 +299,7 @@ class BatchDatabridgeTask():
         if not self.json_schema_file:
             self.logger.error('json schema file is required...')
             raise
-        with open(self.json_schema_file) as json_file:
+        with open(self.json_schema_path) as json_file:
             schema = json.load(json_file).get('fields', '')
             if not schema:
                 self.logger.error('json schema malformatted...')
@@ -323,7 +348,7 @@ class BatchDatabridgeTask():
             self.create_indexes()
 
     def carto_get_geom_field(self):
-        with open(self.json_schema_file) as json_file:
+        with open(self.json_schema_path) as json_file:
             schema = json.load(json_file).get('fields', '')
             if not schema:
                 self.logger.error('json schema malformatted...')
@@ -335,7 +360,7 @@ class BatchDatabridgeTask():
                     self.geom_field = scheme.get('name', '')
 
     def carto_write(self):
-        self.get_from_s3()
+        self.get_csv_from_s3()
         self.logger.info('CSV PATH:{}'.format(self.csv_path))
         rows = etl.fromcsv(self.csv_path, encoding='utf-8') \
                   .cutout('etl_read_timestamp')
@@ -426,6 +451,7 @@ class BatchDatabridgeTask():
         self.carto_sql_call(stmt)
 
     def carto_update_table(self):
+        self.get_json_schema_from_s3()
         self.logger.info("Connecting to the Carto DB account...")
         # Make Carto api sql connection:
         self.carto_make_connection()
