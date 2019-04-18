@@ -336,8 +336,9 @@ class BatchDatabridgeTask():
 
     def carto_write(self):
         self.get_from_s3()
-        self.logger.info("CSV PATH: ", self.csv_path)
-        rows = etl.fromcsv(self.csv_path, encoding='utf-8')
+        self.logger.info('CSV PATH:{}'.format(self.csv_path))
+        rows = etl.fromcsv(self.csv_path, encoding='utf-8') \
+                  .cutout('etl_read_timestamp')
         # print(etl.look(rows))
         header = rows[0]
         str_header = ''
@@ -358,7 +359,7 @@ class BatchDatabridgeTask():
             rows.tocsv(write_file)
         else:
             write_file = self.csv_path
-        self.logger.info("write_file: ", write_file)
+        self.logger.info('Write_file:{}'.format(write_file))
         q = "COPY {table_name} ({header}) FROM STDIN WITH (FORMAT csv, HEADER true)".format(
             table_name=self.temp_table_name, header=str_header)
         url = self.CARTO_USR_BASE_URL.format(user=self.carto_account) + 'api/v2/sql/copyfrom'
@@ -366,10 +367,10 @@ class BatchDatabridgeTask():
             r = requests.post(url, params={'api_key': self.carto_key, 'q': q}, data=f, stream=True)
 
             if r.status_code != 200:
-                self.logger.info("response: ", r.text)
+                self.logger.info('Response: {}'.format(r.text))
             else:
                 status = r.json()
-                self.logger.info("Success: %s rows imported" % status['total_rows'])
+                self.logger.info('Success: {} rows imported'.format(status['total_rows']))
 
     def carto_verify_count(self):
         data = self.carto_sql_call('SELECT count(*) FROM "{}";'.format(self.temp_table_name))
@@ -413,7 +414,7 @@ class BatchDatabridgeTask():
                'ALTER TABLE "{}" RENAME TO "{}_old";'.format(self.db_table_name, self.db_table_name) + \
                'ALTER TABLE "{}" RENAME TO "{}";'.format(self.temp_table_name, self.db_table_name) + \
                'DROP TABLE "{}_old" cascade;'.format(self.db_table_name) + \
-               self.generate_select_grants() + \
+               self.carto_generate_select_grants() + \
                'COMMIT;'
         self.logger.info("Swapping tables...")
         self.logger.info(stmt)
