@@ -174,7 +174,7 @@ eval $(python3 /secrets_manager.py --name=airflow-fernet --key=fernet_key --env=
 case "$1" in
   webserver)
     airflow initdb
-    if [ -z "$FIRST_TIME" ]; then
+    if [ -n "$FIRST_TIME" ]; then
       delete_default_airflow_connections
       set_environment_variables
       # Set the schemas variable
