@@ -20,6 +20,7 @@ def databridge_carto_dag_factory(
     retries=0):
 
     db_conn = BaseHook.get_connection('databridge')
+    db2_conn = BaseHook.get_connection('databridge2')
     carto_conn = BaseHook.get_connection('carto_phl')
 
     dag_id = '{}__{}'.format(table_schema.split('_')[1], table_name)
@@ -71,12 +72,12 @@ def databridge_carto_dag_factory(
                 'command': [
                     'python3 /extract_and_load_to_databridge.py',
                     'write',
-                    'db_type={}'.format(db_conn.conn_type),
-                    'db_host={}'.format(db_conn.host),
-                    'db_user={}'.format(db_conn.login),
-                    'db_password={}'.format(db_conn.password),
-                    'db_name={}'.format(db_conn.extra),
-                    'db_port={}'.format(db_conn.port),
+                    'db_type={}'.format(db2_conn.conn_type),
+                    'db_host={}'.format(db2_conn.host),
+                    'db_user={}'.format(db2_conn.login),
+                    'db_password={}'.format(db2_conn.password),
+                    'db_name={}'.format(db2_conn.extra),
+                    'db_port={}'.format(db2_conn.port),
                     'db_table_schema={}'.format(table_schema),
                     'db_table_name={}'.format(table_name),
                     's3_bucket=citygeo-airflow-databridge2',
