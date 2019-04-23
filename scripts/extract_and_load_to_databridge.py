@@ -107,6 +107,9 @@ class BatchDatabridgeTask():
     @property
     def csv_s3_key(self):
         if self.json_schema_file or self.db_name == 'databridge_raw':
+            # _311
+            if self.db_table_schema[0] == '_':
+                return 'staging/{}/{}.csv'.format(self.db_table_schema.split('_'1)[1], self.db_table_name)
             return 'staging/{}/{}.csv'.format(self.db_table_schema, self.db_table_name)
         # _311
         if self.db_table_schema[0] == '_':
