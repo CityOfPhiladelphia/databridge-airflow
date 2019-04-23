@@ -1,3 +1,4 @@
+# Last Updated: 4/23/2019
 from datetime import datetime, timedelta
 import os
 import json
@@ -5,7 +6,6 @@ import json
 from airflow import DAG
 from airflow.contrib.operators.awsbatch_operator import AWSBatchOperator
 from airflow.hooks.base_hook import BaseHook
-from airflow.models import Variable
 
 from slack_notify_plugin import SlackNotificationOperator
 
@@ -27,7 +27,6 @@ def databridge_carto_dag_factory(
 
     default_args = {
         'owner': 'airflow',
-        'on_success_callback': SlackNotificationOperator.success,
         'on_failure_callback': SlackNotificationOperator.failed,
         'retries': retries
     }
@@ -61,30 +60,32 @@ def databridge_carto_dag_factory(
                 ],
             },
             task_id='db_to_s3_{}_{}'.format(table_schema, table_name),
+            retries=3,
         )
 
-        s3_to_databridge2 = AWSBatchOperator(
-            job_name='s3_to_databridge2_{}_{}'.format(table_schema, table_name),
-            job_definition='test_extract_and_load_to_databridge',
-            job_queue='databridge-airflow',
-            region_name='us-east-1',
-            overrides={
-                'command': [
-                    'python3 /extract_and_load_to_databridge.py',
-                    'write',
-                    'db_type={}'.format(db2_conn.conn_type),
-                    'db_host={}'.format(db2_conn.host),
-                    'db_user={}'.format(db2_conn.login),
-                    'db_password={}'.format(db2_conn.password),
-                    'db_name={}'.format(db2_conn.extra),
-                    'db_port={}'.format(db2_conn.port),
-                    'db_table_schema={}'.format(table_schema),
-                    'db_table_name={}'.format(table_name),
-                    's3_bucket=citygeo-airflow-databridge2',
-                ],
-            },
-            task_id='s3_to_databridge2_{}_{}'.format(table_schema, table_name),
-        )
+        #s3_to_databridge2 = AWSBatchOperator(
+        #    job_name='s3_to_databridge2_{}_{}'.format(table_schema, table_name),
+        #    job_definition='test_extract_and_load_to_databridge',
+        #    job_queue='databridge-airflow',
+        #    region_name='us-east-1',
+        #    overrides={
+        #        'command': [
+        #            'python3 /extract_and_load_to_databridge.py',
+        #            'write',
+        #            'db_type={}'.format(db2_conn.conn_type),
+        #            'db_host={}'.format(db2_conn.host),
+        #            'db_user={}'.format(db2_conn.login),
+        #            'db_password={}'.format(db2_conn.password),
+        #            'db_name={}'.format(db2_conn.extra),
+        #            'db_port={}'.format(db2_conn.port),
+        #            'db_table_schema={}'.format(table_schema),
+        #            'db_table_name={}'.format(table_name),
+        #            's3_bucket=citygeo-airflow-databridge2',
+        #        ],
+        #    },
+        #    task_id='s3_to_databridge2_{}_{}'.format(table_schema, table_name),
+        #    retries=3,
+        #)
 
         if carto:
             s3_to_carto = AWSBatchOperator(
@@ -108,10 +109,13 @@ def databridge_carto_dag_factory(
                     ],
                 },
                 task_id='s3_to_carto_{}_{}'.format(table_schema, table_name),
+                retries=3,
             )
-            databridge_to_s3 >> [s3_to_databridge2, s3_to_carto]
+        #    databridge_to_s3 >> [s3_to_databridge2, s3_to_carto]
+            databridge_to_s3 >> s3_to_carto
         else:
-            databridge_to_s3 >> s3_to_databridge2
+        #    databridge_to_s3 >> s3_to_databridge2
+            databridge_to_s3
 
         globals()[dag_id] = dag # Airflow looks at the module global vars for DAG type variables
 
@@ -119,6 +123,13 @@ for json_schema_file in os.listdir('schemas'):
     schema_name = json_schema_file.split('__')[0]
     table_name = json_schema_file.split('__')[1].split('.')[0]
     with open(os.path.join('schemas', json_schema_file)) as f:
-        json_data = json.loads(f.read())
+        try:
+            json_data = json.loads(f.read())
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error('Failed to load {}'.format(json_schema_file))
+            raise e
         carto = json_data.get('carto_table_name', True)
-    databridge_carto_dag_factory(schema_name, table_name, carto)
+        schedule_interval = json_data.get('scheduleInterval', None)
+    databridge_carto_dag_factory(schema_name, table_name, carto, schedule_interval)
