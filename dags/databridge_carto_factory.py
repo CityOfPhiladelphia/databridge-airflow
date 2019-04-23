@@ -1,4 +1,4 @@
-# Last Updated: 4/23/2019
+# Date Last Updated: 4/23/2019
 from datetime import datetime, timedelta
 import os
 import json
@@ -60,7 +60,6 @@ def databridge_carto_dag_factory(
                 ],
             },
             task_id='db_to_s3_{}_{}'.format(table_schema, table_name),
-            retries=3,
         )
 
         #s3_to_databridge2 = AWSBatchOperator(
@@ -109,7 +108,6 @@ def databridge_carto_dag_factory(
                     ],
                 },
                 task_id='s3_to_carto_{}_{}'.format(table_schema, table_name),
-                retries=3,
             )
         #    databridge_to_s3 >> [s3_to_databridge2, s3_to_carto]
             databridge_to_s3 >> s3_to_carto

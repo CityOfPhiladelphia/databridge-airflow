@@ -95,6 +95,9 @@ class BatchDatabridgeTask():
 
     @property
     def databridge_raw_schema_table_name(self):
+        # _311
+        if self.db_table_schema[0].isdigit():
+            return '_{}.databridge_{}'.format(self.db_table_schema, self.db_table_name)
         return '{}.databridge_{}'.format(self.db_table_schema, self.db_table_name)
 
     @property
@@ -109,7 +112,7 @@ class BatchDatabridgeTask():
         if self.json_schema_file or self.db_name == 'databridge_raw':
             # _311
             if self.db_table_schema[0] == '_':
-                return 'staging/{}/{}.csv'.format(self.db_table_schema.split('_'1)[1], self.db_table_name)
+                return 'staging/{}/{}.csv'.format(self.db_table_schema.split('_')[1], self.db_table_name)
             return 'staging/{}/{}.csv'.format(self.db_table_schema, self.db_table_name)
         # _311
         if self.db_table_schema[0] == '_':
