@@ -72,5 +72,6 @@
       "geometry_type": "point",
       "srid": 2272
     }
-  ]
+  ],
+  "scheduleInterval": "0 12 * * 0"
 }

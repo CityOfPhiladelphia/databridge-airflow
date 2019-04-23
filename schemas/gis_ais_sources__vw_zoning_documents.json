@@ -28,5 +28,7 @@
       "type": "numeric",
       "name": "app_doc_id"
     }
-  ]
+  ],
+  "carto_table_name": "ais_zoning_documents",
+  "scheduleInterval": "0 8 * * *"
 }

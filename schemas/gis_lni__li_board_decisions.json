@@ -31,5 +31,6 @@
       "format": "fmt:%Y-%m-%d %H:%M:%S",
       "name": "decisiondate"
     }
-  ]
+  ],
+  "scheduleInterval": "0 8 * * *"
 }

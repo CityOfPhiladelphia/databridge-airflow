@@ -317,5 +317,6 @@
       },
       "type": "numeric"
     }
-  ]
+  ],
+  "scheduleInterval": "0 6 * * *"
 }

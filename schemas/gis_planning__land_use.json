@@ -47,8 +47,7 @@
       "name": "shape",
       "geometry_type": "multipolygon",
       "srid": 2272
-
-
     }
-  ]
+  ],
+  "scheduleInterval": "0 7 1 * *"
 }

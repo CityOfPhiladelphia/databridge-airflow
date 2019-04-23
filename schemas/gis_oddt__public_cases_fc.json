@@ -85,5 +85,6 @@
   ],
   "missingValues": [
     ""
-  ]
+  ],
+  "scheduleInterval": "15 6 * * *"
 }

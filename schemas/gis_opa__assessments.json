@@ -28,5 +28,6 @@
       "name": "exempt_building",
       "type": "numeric"
     }
-  ]
+  ],
+  "scheduleInterval": "0 6 * * *"
 }

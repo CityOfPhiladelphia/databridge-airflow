@@ -22,5 +22,6 @@
       "name": "appealtype",
       "type": "text"
     }
-  ]
+  ],
+  "scheduleInterval": "0 8 * * *"
 }

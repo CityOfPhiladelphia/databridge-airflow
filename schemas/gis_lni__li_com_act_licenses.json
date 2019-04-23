@@ -47,5 +47,6 @@
       "type": "text",
       "name": "legalentitytype"
     }
-  ]
+  ],
+  "scheduleInterval": "0 8 * * *"
 }

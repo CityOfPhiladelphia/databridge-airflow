@@ -344,7 +344,8 @@ class BatchDatabridgeTask():
     def carto_create_table(self):
         self.logger.info('Creating temp Carto table...')
         self.carto_format_schema()
-        stmt = ''' CREATE TABLE {table_name} ({schema})'''.format(table_name=self.temp_table_name,
+        stmt = '''DROP TABLE IF EXISTS {table_name}; 
+                  CREATE TABLE {table_name} ({schema});'''.format(table_name=self.temp_table_name,
                                                                   schema=self.schema_fmt)
         self.carto_sql_call(stmt)
         check_table_sql = "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = '{}');"

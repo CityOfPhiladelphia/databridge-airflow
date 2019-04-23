@@ -60,5 +60,6 @@
       "geometry_type": "multipolygon",
       "srid": 2272
     }
-  ]
+  ],
+  "scheduleInterval": "0 10 * * 0"
 }

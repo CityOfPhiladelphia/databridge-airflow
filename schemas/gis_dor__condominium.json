@@ -48,5 +48,6 @@
       "name": "status",
       "type": "number"
     }
-  ]
+  ],
+  "scheduleInterval": "0 15 * * 6"
 }

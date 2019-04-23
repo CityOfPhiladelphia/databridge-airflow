@@ -200,5 +200,6 @@
       "geometry_type": "point",
       "srid": 2272
     }
-  ]
+  ],
+  "carto_table_name": false
 }
