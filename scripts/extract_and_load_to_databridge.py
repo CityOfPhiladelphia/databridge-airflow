@@ -376,7 +376,7 @@ class BatchDatabridgeTask():
 
     def carto_write(self):
         self.get_csv_from_s3()
-        rows = etl.fromcsv(self.csv_path, encoding='utf-8') \
+        rows = etl.fromcsv(self.csv_path, encoding='latin-1') \
                   .cutout('etl_read_timestamp')
         header = rows[0]
         str_header = ''
@@ -394,10 +394,8 @@ class BatchDatabridgeTask():
         if self.geom_field and self.geom_srid:
             rows = rows.convert(self.geom_field,
                                 lambda c: 'SRID={srid};{geom}'.format(srid=self.geom_srid, geom=c) if c else '')
-            write_file = self.csv_path.replace('.csv', '_t.csv')
-            rows.tocsv(write_file)
-        else:
-            write_file = self.csv_path
+        write_file = self.csv_path.replace('.csv', '_t.csv')
+        rows.tocsv(write_file)
         q = "COPY {table_name} ({header}) FROM STDIN WITH (FORMAT csv, HEADER true)".format(
             table_name=self.temp_table_name, header=str_header)
         url = self.CARTO_USR_BASE_URL.format(user=self.carto_account) + 'api/v2/sql/copyfrom'
