@@ -85,32 +85,31 @@ def databridge_carto_dag_factory(
         task_id='s3_to_databridge2_{}_{}'.format(table_schema, table_name),
         dag=dag,
     )
-    
-    s3_to_carto = AWSBatchOperator(
-        job_name='s3_to_carto_{}_{}'.format(table_schema, table_name),
-        job_definition='test_extract_and_load_to_databridge',
-        job_queue='databridge-airflow',
-        region_name='us-east-1',
-        overrides={
-            'command': [
-                "python3 /extract_and_load_to_databridge.py",
-                "carto_update_table",
-                "carto_connection_string={}".format(carto_conn.password),
-                "s3_bucket=citygeo-airflow-databridge2",
-                "json_schema_file={}__{}.json".format(table_schema, table_name),
-            ],
-            'environment': [
-                {
-                    'name': 'TEST',
-                    'value': TEST,
-                },
-            ],
-        },
-        task_id='s3_to_carto_{}_{}'.format(table_schema, table_name),
-        dag=dag,
-    ) 
 
     if carto:
+        s3_to_carto = AWSBatchOperator(
+            job_name='s3_to_carto_{}_{}'.format(table_schema, table_name),
+            job_definition='test_extract_and_load_to_databridge',
+            job_queue='databridge-airflow',
+            region_name='us-east-1',
+            overrides={
+                'command': [
+                    "python3 /extract_and_load_to_databridge.py",
+                    "carto_update_table",
+                    "carto_connection_string={}".format(carto_conn.password),
+                    "s3_bucket=citygeo-airflow-databridge2",
+                    "json_schema_file={}__{}.json".format(table_schema, table_name),
+                ],
+                'environment': [
+                    {
+                        'name': 'TEST',
+                        'value': TEST,
+                    },
+                ],
+            },
+            task_id='s3_to_carto_{}_{}'.format(table_schema, table_name),
+            dag=dag,
+        )
         databridge_to_s3 >> [s3_to_databridge2, s3_to_carto]
     else:
         databridge_to_s3 >> s3_to_databridge2
