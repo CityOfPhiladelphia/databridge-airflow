@@ -155,7 +155,11 @@ class TableGenerator():
         self.execute_sql(stmt)
 
     def create_table(self):
-        stmt = 'CREATE TABLE IF NOT EXISTS {db_schema_table_name} ({schema})'.format(db_schema_table_name=self.db_schema_table_name, schema=self.schema_fmt)
+        stmt = '''DROP TABLE IF EXISTS {db_schema_table_name};
+                  CREATE TABLE {db_schema_table_name} 
+                  ({schema}, 
+                  etl_read_timestamp timestamp with time zone,
+                  etl_write_timestamp timestamp with time zone);'''.format(db_schema_table_name=self.db_schema_table_name, schema=self.schema_fmt)
         self.execute_sql(stmt)      
 
     def execute(self):

@@ -6,6 +6,7 @@ import logging
 import json
 from operator import methodcaller
 import re
+
 import petl as etl
 import geopetl
 import psycopg2
@@ -15,6 +16,8 @@ import requests
 from carto.sql import SQLClient
 from carto.auth import APIKeyAuthClient
 
+
+TEST = os.environ.get('TEST', False)
 
 class BatchDatabridgeTask():
 
@@ -28,8 +31,8 @@ class BatchDatabridgeTask():
         self.db_name = kwargs.get('db_name', '')
         self.db_port = kwargs.get('db_port', '')
         self.db_connection_string = kwargs.get('db_connection_string', '')
-        self._db_table_schema = kwargs.get('db_table_schema', '').upper()
-        self._db_table_name = kwargs.get('db_table_name', '').upper()
+        self._db_table_schema = kwargs.get('db_table_schema', '')
+        self._db_table_name = kwargs.get('db_table_name', '')
         self._temp_table_name = None
         self.db_timestamp=kwargs.get('db_timestamp', True)
         self.hash_field = kwargs.get('hash_field', 'etl_hash')
@@ -98,8 +101,14 @@ class BatchDatabridgeTask():
         return 't_' + self.db_table_name
 
     @property
-    def s3_key(self):
-        return 'staging/{}/{}.csv'.format(self.db_table_schema.upper(), self.db_table_name.upper())
+    def csv_s3_key(self):
+        if self.json_schema_file:
+            return 'staging/{}/{}.csv'.format(self.db_table_schema, self.db_table_name)
+        return 'staging/{}/{}.csv'.format(self.db_table_schema.split('_')[1], self.db_table_name)
+
+    @property
+    def json_schema_s3_key(self):
+        return 'schemas/{}'.format(self.json_schema_file)
 
     @property
     def csv_path(self):
@@ -112,6 +121,19 @@ class BatchDatabridgeTask():
         return csv_path
 
     @property
+    def json_schema_path(self):
+        # On windows, save to current directory
+        if os.name == 'nt':
+            if not os.path.exists('schemas'):
+                os.makedirs('schemas')
+            json_schema_path = 'schemas/{}'.format(self.json_schema_file)
+        else:
+            if not os.path.exists('/tmp/schemas'):
+                os.makedirs('/tmp/schemas')
+            json_schema_path = '/tmp/schemas/{}'.format(self.json_schema_file)
+        return json_schema_path
+
+    @property
     def logger(self):
        if self._logger is None:
            logger = logging.getLogger(__name__)
@@ -121,17 +143,23 @@ class BatchDatabridgeTask():
            self._logger = logger
        return self._logger
 
-    def load_to_s3(self):
-       self.logger.info('Starting load to s3: {}'.format(self.s3_key))
-       s3 = boto3.resource('s3') 
-       s3.Object(self.s3_bucket, self.s3_key).put(Body=open(self.csv_path, 'rb'))
-       self.logger.info('Successfully loaded to s3: {}'.format(self.s3_key))
+    def load_csv_to_s3(self):
+        self.logger.info('Starting load to s3: {}'.format(self.csv_s3_key))
+        s3 = boto3.resource('s3') 
+        s3.Object(self.s3_bucket, self.csv_s3_key).put(Body=open(self.csv_path, 'rb'))
+        self.logger.info('Successfully loaded to s3: {}'.format(self.csv_s3_key))
        
-    def get_from_s3(self):
-        self.logger.info('Fetching s3://{}/{}'.format(self.s3_bucket, self.s3_key))
+    def get_csv_from_s3(self):
+        self.logger.info('Fetching csv s3://{}/{}'.format(self.s3_bucket, self.csv_s3_key))
         s3 = boto3.resource('s3')
-        s3.Object(self.s3_bucket, self.s3_key).download_file(self.csv_path)
-        self.logger.info('s3://{}/{} successfully downloaded'.format(self.s3_bucket, self.s3_key))
+        s3.Object(self.s3_bucket, self.csv_s3_key).download_file(self.csv_path)
+        self.logger.info('CSV successfully downloaded.\n'.format(self.s3_bucket, self.csv_s3_key))
+
+    def get_json_schema_from_s3(self):
+        self.logger.info('Fetching json schema: s3://{}/{}'.format(self.s3_bucket, self.json_schema_s3_key))
+        s3 = boto3.resource('s3')
+        s3.Object(self.s3_bucket, self.json_schema_s3_key).download_file(self.json_schema_path)
+        self.logger.info('Json schema successfully downloaded.\n'.format(self.s3_bucket, self.json_schema_s3_key))
 
     def make_connection(self):
         self.logger.info('Trying to connect to db_host: {}, db_port: {}, db_name: {}'.format(self.db_host, self.db_port, self.db_name))
@@ -153,14 +181,14 @@ class BatchDatabridgeTask():
         elif self.db_type == 'postgres':
             etl.frompostgis(self.conn, self.db_schema_table_name) \
                .tocsv(self.csv_path, encoding='latin-1')
-        self.load_to_s3()
+        self.load_csv_to_s3()
         os.remove(self.csv_path)
         self.logger.info('Successfully extracted from {}: {}'.format(self.db_name, self.db_schema_table_name))
 
     def write(self):
         self.logger.info('Starting write to {}: {}'.format(self.db_name, self.db_schema_table_name))
         self.make_connection()
-        self.get_from_s3()
+        self.get_csv_from_s3()
 
         if self.db_type == 'postgres':
             rows = etl.fromcsv(self.csv_path, encoding='latin-1')
@@ -247,24 +275,23 @@ class BatchDatabridgeTask():
         cur.execute(update_history_stmt)
         self.logger.info('Successfully updated history for {}:{}'.format(self.db_name, self.db_schema_table_name))
 
-
     def carto_make_connection(self):
-        print(286, self.db_table_name)
         carto_connection_string_regex = r'^carto://(.+):(.+)'
         if not (self.carto_account and self.carto_key):
             creds = re.match(carto_connection_string_regex, self.carto_connection_string).groups()
             self.carto_account = creds[0]
             self.carto_key = creds[1]
-        self.logger.info("Making connection to Carto {} account...".format(self.carto_account))
+        self.logger.info('Making connection to Carto {} account...'.format(self.carto_account))
         try:
             auth_client = APIKeyAuthClient(api_key=self.carto_key, base_url=self.CARTO_USR_BASE_URL.format(user=self.carto_account))
             self.sql = SQLClient(auth_client)
+            self.logger.info('Connected to Carto.\n')
         except Exception as e:
-            self.logger.error("failed making connection to Carto {} account...".format(self.carto_account))
+            self.logger.error('Failed making connection to Carto {} account...'.format(self.carto_account))
             raise e
 
     def carto_sql_call(self, stmt, log_response=False):
-        self.logger.info("Executing: {}".format(stmt))
+        self.logger.info('Executing: {}'.format(stmt))
         response = self.sql.send(stmt)
         if log_response:
             self.logger.info(response)
@@ -272,12 +299,12 @@ class BatchDatabridgeTask():
 
     def carto_format_schema(self):
         if not self.json_schema_file:
-            self.logger.error('json schema file is required...')
+            self.logger.error('Json schema file is required...')
             raise
-        with open(self.json_schema_file) as json_file:
+        with open(self.json_schema_path) as json_file:
             schema = json.load(json_file).get('fields', '')
             if not schema:
-                self.logger.error('json schema malformatted...')
+                self.logger.error('Json schema malformatted...')
                 raise
             num_fields = len(schema)
             for i, scheme in enumerate(schema):
@@ -296,15 +323,17 @@ class BatchDatabridgeTask():
                     self.schema_fmt += ','
 
     def carto_create_indexes(self):
-        self.logger.info('{} - creating table indexes - {}'.format(table_name=self.temp_table_name,
-                                                               indexes_fields=self.db_indexes_fields))
+        self.logger.info('Creating indexes on {}: {}'.format(table_name=self.temp_table_name,
+                                                             indexes_fields=self.db_indexes_fields))
         stmt = ''
         for indexes_field in self.db_indexes_fields:
             stmt += 'CREATE INDEX {table}_{field} ON "{table}" ("{field}");\n'.format(table=self.temp_table_name,
                                                                                       field=indexes_field)
         self.carto_sql_call(stmt)
+        self.logger.info('Indexes created successfully.\n')
 
     def carto_create_table(self):
+        self.logger.info('Creating temp Carto table...')
         self.carto_format_schema()
         stmt = ''' CREATE TABLE {table_name} ({schema})'''.format(table_name=self.temp_table_name,
                                                                   schema=self.schema_fmt)
@@ -322,8 +351,10 @@ class BatchDatabridgeTask():
             self.logger.info("Indexing fields: {}".format(self.db_indexes_fields))
             self.create_indexes()
 
+        self.logger.info('Temp table created successfully.\n')
+
     def carto_get_geom_field(self):
-        with open(self.json_schema_file) as json_file:
+        with open(self.json_schema_path) as json_file:
             schema = json.load(json_file).get('fields', '')
             if not schema:
                 self.logger.error('json schema malformatted...')
@@ -335,10 +366,9 @@ class BatchDatabridgeTask():
                     self.geom_field = scheme.get('name', '')
 
     def carto_write(self):
-        self.get_from_s3()
-        self.logger.info("CSV PATH: ", self.csv_path)
-        rows = etl.fromcsv(self.csv_path, encoding='utf-8')
-        # print(etl.look(rows))
+        self.get_csv_from_s3()
+        rows = etl.fromcsv(self.csv_path, encoding='utf-8') \
+                  .cutout('etl_read_timestamp')
         header = rows[0]
         str_header = ''
         num_fields = len(header)
@@ -349,6 +379,7 @@ class BatchDatabridgeTask():
             else:
                 str_header += field
 
+        self.logger.info('Writing to temp table...')
         # format geom field:
         self.carto_get_geom_field()
         if self.geom_field and self.geom_srid:
@@ -358,7 +389,6 @@ class BatchDatabridgeTask():
             rows.tocsv(write_file)
         else:
             write_file = self.csv_path
-        self.logger.info("write_file: ", write_file)
         q = "COPY {table_name} ({header}) FROM STDIN WITH (FORMAT csv, HEADER true)".format(
             table_name=self.temp_table_name, header=str_header)
         url = self.CARTO_USR_BASE_URL.format(user=self.carto_account) + 'api/v2/sql/copyfrom'
@@ -366,29 +396,33 @@ class BatchDatabridgeTask():
             r = requests.post(url, params={'api_key': self.carto_key, 'q': q}, data=f, stream=True)
 
             if r.status_code != 200:
-                self.logger.info("response: ", r.text)
+                self.logger.error('Carto Write Error Response: {}'.format(r.text))
+                self.logger.error('Exiting...')
+                exit(1)
             else:
                 status = r.json()
-                self.logger.info("Success: %s rows imported" % status['total_rows'])
+                self.logger.info('Carto Write Successful: {} rows imported.\n'.format(status['total_rows']))
 
     def carto_verify_count(self):
+        self.logger.info('Verifying Carto row count...')
         data = self.carto_sql_call('SELECT count(*) FROM "{}";'.format(self.temp_table_name))
         num_rows_in_table = data['rows'][0]['count']
         num_rows_inserted = num_rows_in_table  # for now until inserts/upserts are implemented
         num_rows_expected = self.num_rows_in_upload_file
-        message = '{} - row count - expected: {} inserted: {} '.format(
+        message = '{} - expected rows: {} inserted rows: {}.'.format(
             self.temp_table_name,
             num_rows_expected,
             num_rows_inserted
         )
         self.logger.info(message)
         if num_rows_in_table != num_rows_expected:
-            self.logger.info('Did not insert all rows, reverting...')
+            self.logger.error('Did not insert all rows, reverting...')
             stmt = 'BEGIN;' + \
                    'DROP TABLE if exists "{}" cascade;'.format(self.temp_table_name) + \
                    'COMMIT;'
             self.carto_sql_call(stmt)
             exit(1)
+        self.logger.info('Row count verified.\n')
 
     def carto_generate_select_grants(self):
         grants_sql = ''
@@ -401,62 +435,54 @@ class BatchDatabridgeTask():
         return grants_sql
 
     def carto_cartodbfytable(self):
-        self.logger.info('{} - cdb_cartodbfytable\'ing table'.format(self.temp_table_name))
+        self.logger.info('Cartodbfytable\'ing table: {}'.format(self.temp_table_name))
         self.carto_sql_call("select cdb_cartodbfytable('{}', '{}');".format(self.carto_account, self.temp_table_name))
+        self.logger.info('Successfully Cartodbyfty\'d table.\n')
 
     def carto_vacuum_analyze(self):
-        self.logger.info('{} - vacuum analyzing table'.format(self.temp_table_name))
+        self.logger.info('Vacuum analyzing table: {}'.format(self.temp_table_name))
         self.carto_sql_call('VACUUM ANALYZE "{}";'.format(self.temp_table_name))
+        self.logger.info('Vacuum analyze complete.\n')
 
     def carto_swap_table(self):
         stmt = 'BEGIN;' + \
                'ALTER TABLE "{}" RENAME TO "{}_old";'.format(self.db_table_name, self.db_table_name) + \
                'ALTER TABLE "{}" RENAME TO "{}";'.format(self.temp_table_name, self.db_table_name) + \
                'DROP TABLE "{}_old" cascade;'.format(self.db_table_name) + \
-               self.generate_select_grants() + \
+               self.carto_generate_select_grants() + \
                'COMMIT;'
-        self.logger.info("Swapping tables...")
+        self.logger.info('Swapping temporary and production tables...')
         self.logger.info(stmt)
         self.carto_sql_call(stmt)
 
     def carto_cleanup(self):
-        print("Attempting to drop any temporary tables: {}".format(self.temp_table_name))
+        self.logger.info('Attempting to drop any temporary tables: {}'.format(self.temp_table_name))
         stmt = '''DROP TABLE if exists {} cascade'''.format(self.temp_table_name)
         self.carto_sql_call(stmt)
+        self.logger.info('Temporary tables dropped successfully.\n')
 
     def carto_update_table(self):
-        self.logger.info("Connecting to the Carto DB account...")
-        # Make Carto api sql connection:
-        self.carto_make_connection()
+        if TEST:
+            self.logger.info('THIS IS A TEST RUN, PRODUCTION TABLES WILL NOT BE AFFECTED!\n')
+        self.get_json_schema_from_s3()
         try:
-            # Create temp table:
-            self.logger.info("creating temp table...")
+            self.carto_make_connection()
             self.carto_create_table()
-            # Write rows to temp table:
-            self.logger.info("writing to temp table...")
             self.carto_write()
-            # Verify row count:
-            self.logger.info("verifying row count...")
             self.carto_verify_count()
-            # Cartodbfytable:
-            self.logger.info("cartodbfying table...")
             self.carto_cartodbfytable()
-            # Create indexes:
             if self.db_indexes_fields:
-                self.logger.info("creating indexes...{}".format(self.db_indexes_fields))
                 self.carto_create_indexes()
-            # Vacuum analyze:
-                self.logger.info("vacuum analyzing...")
             self.carto_vacuum_analyze()
-            # Swap tables:
-            self.logger.info("swapping tables...")
-            self.carto_swap_table()
-            self.logger.info("Done!")
+            if TEST:
+                self.carto_cleanup()
+            else:
+                self.carto_swap_table()
+            self.logger.info('Done!')
         except Exception as e:
-            self.logger.error("workflow failed, reverting...")
+            self.logger.error('Workflow failed, reverting...')
             self.carto_cleanup()
             raise e
-
 
     def run_task(self):
         return methodcaller(self.task_name)(self)
