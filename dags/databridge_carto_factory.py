@@ -51,7 +51,7 @@ def databridge_carto_dag_factory(
                 "db_host={}".format(db_conn.host), 
                 "db_user={}".format(db_conn.login), 
                 "db_password={}".format(db_conn.password), 
-                "db_name={}".format(db_conn.extra['db_name']), 
+                "db_name={}".format(db_conn.extra), 
                 "db_port={}".format(db_conn.port), 
                 "db_table_schema={}".format(table_schema), 
                 "db_table_name={}".format(table_name), 
@@ -75,7 +75,7 @@ def databridge_carto_dag_factory(
                 "db_host={}".format(db_conn.host),
                 "db_user={}".format(db_conn.login),
                 "db_password={}".format(db_conn.password),
-                "db_name={}".format(db_conn.extra['db_name']),
+                "db_name={}".format(db_conn.extra),
                 "db_port={}".format(db_conn.port),
                 "db_table_schema={}".format(table_schema),
                 "db_table_name={}".format(table_name),
@@ -120,7 +120,7 @@ def databridge_carto_dag_factory(
 for json_schema_file in os.listdir('schemas'):
     schema_name = json_schema_file.split('__')[0]
     table_name = json_schema_file.split('__')[1].split('.')[0]
-    with open(Variable.get('schemas') + json_schema_file) as f:
+    with open(os.path.join('schemas', json_schema_file)) as f:
         json_data = json.loads(f.read())
         carto = json_data.get('carto_table_name', True)
     databridge_carto_dag_factory(schema_name, table_name, carto)

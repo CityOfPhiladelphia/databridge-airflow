@@ -92,7 +92,6 @@ set_environment_variables() {
   eval $(python3 /secrets_manager.py --name=brt-viewer --key=username --env=BRT_VIEWER_LOGIN)
   eval $(python3 /secrets_manager.py --name=brt-viewer --key=password --env=BRT_VIEWER_PASSWORD)
   eval $(python3 /secrets_manager.py --name=brt-viewer --key=dbname --env=BRT_VIEWER_DB_NAME)
-  BRT_VIEWER_EXTRA='{"db_name": "'"$BRT_VIEWER_DB_NAME"'"}'
 
   # carto_phl
   eval $(python3 /secrets_manager.py --name=carto-prod --key=username --env=CARTO_PHL_LOGIN)
@@ -103,14 +102,12 @@ set_environment_variables() {
   eval $(python3 /secrets_manager.py --name=databridge --key=username --env=DATABRIDGE_LOGIN)
   eval $(python3 /secrets_manager.py --name=databridge --key=password --env=DATABRIDGE_PASSWORD)
   eval $(python3 /secrets_manager.py --name=databridge --key=dbname --env=DATABRIDGE_DB_NAME)
-  DATABRIDGE_EXTRA='{"db_name": "'"$DATABRIDGE_DB_NAME"'"}'
 
   # databridge2
   eval $(python3 /secrets_manager.py --name=databridge-raw --key=host --env=DATABRIDGE2_HOST)
   eval $(python3 /secrets_manager.py --name=databridge-raw --key=username --env=DATABRIDGE2_LOGIN)
   eval $(python3 /secrets_manager.py --name=databridge-raw --key=password --env=DATABRIDGE2_PASSWORD)
   eval $(python3 /secrets_manager.py --name=databridge-raw --key=dbname --env=DATABRIDGE2_DB_NAME)
-  DATABRIDGE2_EXTRA='{"db_name": "'"$DATABRIDGE2_DB_NAME"'"}'
 
   # hansen
   #eval $(python3 /secrets_manager.py --name=hansen --key=host --env=HANSEN_HOST)
@@ -121,7 +118,6 @@ set_environment_variables() {
   # slack
   eval $(python3 /secrets_manager.py --name=airflow-slack-dev --key=password --env=SLACK_PASSWORD)
   eval $(python3 /secrets_manager.py --name=airflow-slack-dev --key=connection_string --env=SLACK_CONN_STRING)
-  SLACK_EXTRA='{"connection_string": "'"$SLACK_CONN_STRING"'"}'
 }
 
 set_airflow_connections() {
@@ -132,7 +128,7 @@ set_airflow_connections() {
 	  --conn_login $BRT_VIEWER_LOGIN \
 	  --conn_password $BRT_VIEWER_PASSWORD \
 	  --conn_port 1521 \
-	  --conn_extra "$BRT_VIEWER_EXTRA"
+	  --conn_extra $BRT_VIEWER_DB_NAME
   airflow connections \
 	  --add --conn_id carto_phl \
 	  --conn_type HTTP \
@@ -145,7 +141,7 @@ set_airflow_connections() {
           --conn_login $DATABRIDGE_LOGIN \
           --conn_password $DATABRIDGE_PASSWORD \
           --conn_port 1521 \
-	  --conn_extra "$DATABRIDGE_EXTRA"
+	  --conn_extra $DATABRIDGE_DB_NAME
   airflow connections \
           --add --conn_id "databridge2" \
           --conn_type postgres \
@@ -153,7 +149,7 @@ set_airflow_connections() {
           --conn_login $DATABRIDGE2_LOGIN \
           --conn_password $DATABRIDGE2_PASSWORD \
           --conn_port 5432 \
-	  --conn_extra "$DATABRIDGE2_EXTRA"
+	  --conn_extra $DATABRIDGE2_DB_NAME
   #airflow connections \
          # --add --conn_id hansen \
         #  --conn_type oracle \
@@ -165,8 +161,7 @@ set_airflow_connections() {
 	  --add --conn_id slack \
 	  --conn_type HTTP \
 	  --conn_host https://hooks.slack.com/services \
-	  --conn_password $SLACK_PASSWORD \
-	  --conn_extra "$SLACK_EXTRA"
+	  --conn_password $SLACK_PASSWORD
 }    
 
 wait_for_port "RabbitMQ" "$RABBITMQ_HOST" "$RABBITMQ_PORT"
@@ -177,7 +172,6 @@ eval $(python3 /secrets_manager.py --name=airflow-fernet --key=fernet_key --env=
 
 case "$1" in
   webserver)
-    airflow initdb
     if [ -n "$SEED_DB" ]; then
       airflow initdb
       delete_default_airflow_connections
