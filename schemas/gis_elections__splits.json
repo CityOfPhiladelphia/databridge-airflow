@@ -37,16 +37,6 @@
       "type": "numeric"
     },
     {
-      "name": "created",
-      "format": "fmt:%Y-%m-%d %H:%M:%S",
-      "type": "date"
-    },
-    {
-      "name": "updated",
-      "format": "fmt:%Y-%m-%d %H:%M:%S",
-      "type": "date"
-    },
-    {
       "name": "ballot_file_id",
       "type": "text"
     }
