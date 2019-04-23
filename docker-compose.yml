@@ -31,6 +31,7 @@ services:
             - rabbitmq
         environment:
             - LOAD_EX=n
+            - SEED_DB 
         volumes:
             - ./dags:/usr/local/airflow/dags
             - ./plugins:/usr/local/airflow/plugins

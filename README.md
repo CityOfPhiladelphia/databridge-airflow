@@ -21,4 +21,4 @@ Airflow instance for ETL's involving Databridge
 - Install docker and git on an EC2 instance and clone this repo
 - Make sure your EC2 instance has security groups to access S3, DataBridge's RDS, and AWS Secrets Manager
 - Launch Airflow, RabbitMQ, and Postgres all using docker compose `docker-compose up`
-    - To set all of the database connections up, simply passing the FIRST_TIME environment variable to docker-compose `FIRST_TIME=true docker-compose up`
+    - To set all of the database connections up, simply passing the SEED_DB environment variable to docker-compose `SEED_DB=true docker-compose up`
