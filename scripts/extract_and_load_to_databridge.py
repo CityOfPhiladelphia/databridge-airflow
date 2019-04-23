@@ -94,6 +94,10 @@ class BatchDatabridgeTask():
         return '{}.{}'.format(self.db_table_schema, self.db_table_name)
 
     @property
+    def databridge_raw_schema_table_name(self):
+        return '{}.databridge_{}'.format(self.db_table_schema, self.db_table_name)
+
+    @property
     def temp_table_name(self):
         if not self.db_table_name:
             self.logger.error("Can't get table name, exiting...")
@@ -102,8 +106,11 @@ class BatchDatabridgeTask():
 
     @property
     def csv_s3_key(self):
-        if self.json_schema_file:
+        if self.json_schema_file or self.db_name == 'databridge_raw':
             return 'staging/{}/{}.csv'.format(self.db_table_schema, self.db_table_name)
+        # _311
+        if self.db_table_schema[0] == '_':
+            return 'staging/{}/{}.csv'.format(self.db_schema.split('_', 1)[1].split('_')[1], self.db_table_name)
         return 'staging/{}/{}.csv'.format(self.db_table_schema.split('_')[1], self.db_table_name)
 
     @property
@@ -186,13 +193,15 @@ class BatchDatabridgeTask():
         self.logger.info('Successfully extracted from {}: {}'.format(self.db_name, self.db_schema_table_name))
 
     def write(self):
-        self.logger.info('Starting write to {}: {}'.format(self.db_name, self.db_schema_table_name))
+        self.logger.info('Starting write to {}: {}'.format(self.db_name, self.databridge_raw_schema_table_name))
         self.make_connection()
         self.get_csv_from_s3()
 
         if self.db_type == 'postgres':
             rows = etl.fromcsv(self.csv_path, encoding='latin-1')
-            rows.topostgis(self.conn, self.db_schema_table_name)
+            rows.topostgis(self.conn, self.databridge_raw_schema_table_name)
+
+        self.logger.info('Successfully wrote to {}: {}'.format(self.db_name, self.databridge_raw_schema_table_name))
 
     def update_hash(self):
         self.logger.info('Starting update hash on {}: {}'.format(self.db_name, self.db_schema_table_name))
