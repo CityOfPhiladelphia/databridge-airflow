@@ -1,5 +1,5 @@
-# Date Last Updated: 4/23/2019
-from datetime import datetime, timedelta
+# Date Last Updated: 4/24/2019
+from datetime import datetime
 import os
 import json
 
@@ -27,13 +27,13 @@ def databridge_carto_dag_factory(
 
     default_args = {
         'owner': 'airflow',
+        'start_date': datetime(2019, 4, 20, 0, 0, 0),
         'on_failure_callback': SlackNotificationOperator.failed,
         'retries': retries
     }
     
     with DAG(
         dag_id=dag_id, 
-        start_date=datetime.now() - timedelta(days=1),
         schedule_interval=schedule_interval,
         default_args=default_args,
         max_active_runs=1,
@@ -99,12 +99,6 @@ def databridge_carto_dag_factory(
                         'carto_connection_string={}'.format(carto_conn.password),
                         's3_bucket=citygeo-airflow-databridge2',
                         'json_schema_file={}__{}.json'.format(table_schema, table_name),
-                    ],
-                    'environment': [
-                        {
-                            'name': 'TEST',
-                            'value': TEST,
-                        },
                     ],
                 },
                 task_id='s3_to_carto_{}_{}'.format(table_schema, table_name),
