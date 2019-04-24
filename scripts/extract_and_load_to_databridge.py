@@ -1,5 +1,6 @@
 #!/usr/bin/env python3.5
 
+import csv
 import sys
 import os
 import logging
@@ -17,6 +18,8 @@ from carto.sql import SQLClient
 from carto.auth import APIKeyAuthClient
 
 
+# Suppress error thrown by petl on large fields https://stackoverflow.com/questions/15063936/csv-error-field-larger-than-field-limit-131072
+csv.field_size_limit(sys.maxsize)
 TEST = os.environ.get('TEST', False)
 
 class BatchDatabridgeTask():
