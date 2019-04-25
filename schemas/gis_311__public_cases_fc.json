@@ -22,7 +22,7 @@
       "type": "geometry",
       "name": "shape",
       "geometry_type": "point",
-      "srid": 2272
+      "srid": 4326
     },
     {
       "type": "text",

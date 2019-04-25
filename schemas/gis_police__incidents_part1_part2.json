@@ -69,7 +69,7 @@
       "name": "shape",
       "type": "geometry",
       "geometry_type": "point",
-      "srid": 2272
+      "srid": 4326
     }
   ],
   "scheduleInterval": "0 7 * * *"
