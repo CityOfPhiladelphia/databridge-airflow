@@ -99,14 +99,10 @@ COPY requirements.server.txt /requirements.server.txt
 COPY requirements.worker.txt /requirements.worker.txt
 
 RUN pip3 install -r requirements.server.txt
-# Remove this when we get batch working
-RUN pip3 install -r requirements.worker.txt
 
 COPY config/airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
 COPY dags ${AIRFLOW_HOME}/dags
 COPY plugins ${AIRFLOW_HOME}/plugins
-COPY schemas ${AIRFLOW_HOME}/schemas
-COPY utils ${AIRFLOW_INSTALL}/utils
 
 RUN chown -R airflow: ${AIRFLOW_HOME} \
     && chmod +x /entrypoint.sh \
