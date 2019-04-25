@@ -35,7 +35,6 @@ services:
         volumes:
             - ./dags:/usr/local/airflow/dags
             - ./plugins:/usr/local/airflow/plugins
-            - ./schemas:/usr/local/airflow/schemas
         ports:
             - "8080:8080"
         command: webserver
@@ -57,7 +56,6 @@ services:
         volumes:
             - ./dags:/usr/local/airflow/dags
             - ./plugins:/usr/local/airflow/plugins
-            - ./schemas:/usr/local/airflow/schemas
         environment:
             - LOAD_EX=n
         command: scheduler
@@ -70,5 +68,4 @@ services:
         volumes:
             - ./dags:/usr/local/airflow/dags
             - ./plugins:/usr/local/airflow/plugins
-            - ./schemas:/usr/local/airflow/schemas
         command: worker
