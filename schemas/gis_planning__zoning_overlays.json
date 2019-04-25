@@ -56,7 +56,7 @@
     {
       "name": "shape",
       "type": "geometry",
-      "geometry_type": "geography",
+      "geometry_type": "geometry",
       "srid": 2272
     }
   ],

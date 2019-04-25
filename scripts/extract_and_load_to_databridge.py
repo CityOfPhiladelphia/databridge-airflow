@@ -73,7 +73,8 @@ class BatchDatabridgeTask():
             'line': 'Linestring',
             'polygon': 'MultiPolygon',
             'multipolygon': 'MultiPolygon',
-            'multilinestring': 'MultiLineString'
+            'multilinestring': 'MultiLineString',
+            'geometry': 'Geometry',
         }
 
     @property
