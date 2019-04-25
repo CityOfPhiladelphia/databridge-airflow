@@ -41,7 +41,7 @@
     {
       "name": "shape",
       "type": "geometry",
-      "geometry_type": "multipolygon",
+      "geometry_type": "geometry",
       "srid": 2272
     }
   ],
