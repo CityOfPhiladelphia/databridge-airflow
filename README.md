@@ -30,13 +30,3 @@ docker-compose up -d
 ```bash
 SEED_DB=true docker-compose up
 ```
-
-## Creating a new standard DAG
-- Create a JSON schema file and put it in the *schemas* directory
-    - This includes 
-        - All fields and their datatypes
-        - A primary key
-        - A schedule interval for Airflow
-        - A key-value pair of *"carto_table_name": false* if the dataset should **not** be uploaded to Carto (optional)
-- Copy the JSON schema file to S3 so the AWS Batch worker can pick it up
-- Airflow should automatically detect the presence of this schema and generate the new dag. If this doesn't happen, restart the webserver.
