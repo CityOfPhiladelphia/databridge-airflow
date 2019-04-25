@@ -40,6 +40,5 @@
       "name": "ballot_file_id",
       "type": "text"
     }
-  ],
-  "scheduleInterval": "0 5 * * *"
+  ]
 }

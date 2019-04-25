@@ -43,6 +43,5 @@
       "type": "text",
       "name": "courtproviso"
     }
-  ],
-  "scheduleInterval": "0 8 * * *"
+  ]
 }

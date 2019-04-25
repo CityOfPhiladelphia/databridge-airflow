@@ -38,7 +38,5 @@
       "geometry_type": "point",
       "srid": 2272
     }
-  ],
-  "carto_table_name": "ppr_hydration_stations",
-  "scheduleInterval": "0 5 * * *"
+  ]
 }

@@ -44,6 +44,5 @@
       "geometry_type": "geometry",
       "srid": 2272
     }
-  ],
-  "scheduleInterval": "0 5 * * *"
+  ]
 }

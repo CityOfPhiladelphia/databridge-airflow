@@ -95,6 +95,5 @@
       "srid": 2272
 
     }
-  ],
-  "scheduleInterval": "0 8 * * *"
+  ]
 }

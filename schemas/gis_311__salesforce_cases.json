@@ -94,6 +94,5 @@
       "geometry_type": "point",
       "srid": 4326
     }
-  ],
-  "scheduleInterval": "15 6 * * *"
+  ]
 }

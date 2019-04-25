@@ -67,6 +67,5 @@
       "name": "licensetypeobjectid",
       "type": "numeric"
     }
-  ],
-  "scheduleInterval": "0 8 * * *"
+  ]
 }
