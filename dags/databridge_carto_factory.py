@@ -8,9 +8,12 @@ from airflow.contrib.operators.awsbatch_operator import AWSBatchOperator
 from airflow.hooks.base_hook import BaseHook
 
 from slack_notify_plugin import SlackNotificationOperator
+from databridge_operators import (
+    DataBridgeToS3Operator,
+    S3ToDataBridge2Operator,
+    S3ToCartoOperator,
+)
 
-
-TEST = 'True'
 
 def databridge_carto_dag_factory(
     table_schema,
@@ -18,10 +21,6 @@ def databridge_carto_dag_factory(
     upload_to_carto,
     schedule_interval,
     retries=0):
-
-    db_conn = BaseHook.get_connection('databridge')
-    db2_conn = BaseHook.get_connection('databridge2')
-    carto_conn = BaseHook.get_connection('carto_phl')
 
     dag_id = '{}__{}'.format(table_schema.split('_')[1], table_name)
 
@@ -39,75 +38,20 @@ def databridge_carto_dag_factory(
         max_active_runs=1,
     ) as dag:
 
-        databridge_to_s3 = AWSBatchOperator(
-            job_name='db_to_s3_{}_{}'.format(table_schema, table_name),
-            job_definition='test_extract_and_load_to_databridge',
-            job_queue='databridge-airflow',
-            region_name='us-east-1',
-            overrides={
-                'command': [
-                    'python3 /extract_and_load_to_databridge.py', 
-                    'extract', 
-                    'db_type={}'.format(db_conn.conn_type), 
-                    'db_host={}'.format(db_conn.host), 
-                    'db_user={}'.format(db_conn.login), 
-                    'db_password={}'.format(db_conn.password), 
-                    'db_name={}'.format(db_conn.extra), 
-                    'db_port={}'.format(db_conn.port), 
-                    'db_table_schema={}'.format(table_schema), 
-                    'db_table_name={}'.format(table_name), 
-                    's3_bucket=citygeo-airflow-databridge2',
-                ],
-            },
-            task_id='db_to_s3_{}_{}'.format(table_schema, table_name),
-        )
+        databridge_to_s3 = DataBridgeToS3Operator(
+                table_schema=table_schema, 
+                table_name=table_name)
+        s3_to_databridge2 = S3ToDataBridge2Operator(
+                table_schema=table_schema, 
+                table_name=table_name)
 
-        s3_to_databridge2 = AWSBatchOperator(
-            job_name='s3_to_databridge2_{}_{}'.format(table_schema, table_name),
-            job_definition='test_extract_and_load_to_databridge',
-            job_queue='databridge-airflow',
-            region_name='us-east-1',
-            overrides={
-                'command': [
-                    'python3 /extract_and_load_to_databridge.py',
-                    'write',
-                    'db_type={}'.format(db2_conn.conn_type),
-                    'db_host={}'.format(db2_conn.host),
-                    'db_user={}'.format(db2_conn.login),
-                    'db_password={}'.format(db2_conn.password),
-                    'db_name={}'.format(db2_conn.extra),
-                    'db_port={}'.format(db2_conn.port),
-                    'db_table_schema={}'.format(table_schema),
-                    'db_table_name={}'.format(table_name),
-                    's3_bucket=citygeo-airflow-databridge2',
-                ],
-            },
-            task_id='s3_to_databridge2_{}_{}'.format(table_schema, table_name),
-            retries=3,
-        )
+        databridge_to_s3 >> s3_to_databridge2
 
-        if upload_to_carto:
-            s3_to_carto = AWSBatchOperator(
-                job_name='s3_to_carto_{}_{}'.format(table_schema, table_name),
-                job_definition='test_extract_and_load_to_databridge',
-                job_queue='databridge-airflow',
-                region_name='us-east-1',
-                overrides={
-                    'command': [
-                        'python3 /extract_and_load_to_databridge.py',
-                        'carto_update_table',
-                        'carto_connection_string={}'.format(carto_conn.password),
-                        's3_bucket=citygeo-airflow-databridge2',
-                        'yaml_file={}__{}.json'.format(table_schema, table_name),
-                    ],
-                },
-                task_id='s3_to_carto_{}_{}'.format(table_schema, table_name),
-            )
-        #    databridge_to_s3 >> [s3_to_databridge2, s3_to_carto]
-            databridge_to_s3 >> s3_to_carto
-        else:
-        #    databridge_to_s3 >> s3_to_databridge2
-            databridge_to_s3
+#        if upload_to_carto:
+#            s3_to_carto = S3ToCartoOperator(
+#                    table_schema=table_schema, 
+#                    table_name=table_name)
+#            s3_to_databridge2 >> s3_to_carto
 
         globals()[dag_id] = dag # Airflow looks at the module global vars for DAG type variables
 
