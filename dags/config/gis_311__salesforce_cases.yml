@@ -1,4 +1,6 @@
 schedule_interval: 15 6 * * *
 upload_to_carto: true
 upload_to_ago: 
-carto_permissions:
+carto_users:
+  - tileuser
+  - cartodb_user_5219a680-1104-4b8d-bf75-f02f304849e1
