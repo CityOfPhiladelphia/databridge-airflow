@@ -1,7 +1,7 @@
 # Date Last Updated: 4/24/2019
 from datetime import datetime
 import os
-import json
+import yaml
 
 from airflow import DAG
 from airflow.contrib.operators.awsbatch_operator import AWSBatchOperator
@@ -15,8 +15,8 @@ TEST = 'True'
 def databridge_carto_dag_factory(
     table_schema,
     table_name,
-    carto=True,
-    schedule_interval=None,
+    upload_to_carto,
+    schedule_interval,
     retries=0):
 
     db_conn = BaseHook.get_connection('databridge')
@@ -62,31 +62,31 @@ def databridge_carto_dag_factory(
             task_id='db_to_s3_{}_{}'.format(table_schema, table_name),
         )
 
-        #s3_to_databridge2 = AWSBatchOperator(
-        #    job_name='s3_to_databridge2_{}_{}'.format(table_schema, table_name),
-        #    job_definition='test_extract_and_load_to_databridge',
-        #    job_queue='databridge-airflow',
-        #    region_name='us-east-1',
-        #    overrides={
-        #        'command': [
-        #            'python3 /extract_and_load_to_databridge.py',
-        #            'write',
-        #            'db_type={}'.format(db2_conn.conn_type),
-        #            'db_host={}'.format(db2_conn.host),
-        #            'db_user={}'.format(db2_conn.login),
-        #            'db_password={}'.format(db2_conn.password),
-        #            'db_name={}'.format(db2_conn.extra),
-        #            'db_port={}'.format(db2_conn.port),
-        #            'db_table_schema={}'.format(table_schema),
-        #            'db_table_name={}'.format(table_name),
-        #            's3_bucket=citygeo-airflow-databridge2',
-        #        ],
-        #    },
-        #    task_id='s3_to_databridge2_{}_{}'.format(table_schema, table_name),
-        #    retries=3,
-        #)
+        s3_to_databridge2 = AWSBatchOperator(
+            job_name='s3_to_databridge2_{}_{}'.format(table_schema, table_name),
+            job_definition='test_extract_and_load_to_databridge',
+            job_queue='databridge-airflow',
+            region_name='us-east-1',
+            overrides={
+                'command': [
+                    'python3 /extract_and_load_to_databridge.py',
+                    'write',
+                    'db_type={}'.format(db2_conn.conn_type),
+                    'db_host={}'.format(db2_conn.host),
+                    'db_user={}'.format(db2_conn.login),
+                    'db_password={}'.format(db2_conn.password),
+                    'db_name={}'.format(db2_conn.extra),
+                    'db_port={}'.format(db2_conn.port),
+                    'db_table_schema={}'.format(table_schema),
+                    'db_table_name={}'.format(table_name),
+                    's3_bucket=citygeo-airflow-databridge2',
+                ],
+            },
+            task_id='s3_to_databridge2_{}_{}'.format(table_schema, table_name),
+            retries=3,
+        )
 
-        if carto:
+        if upload_to_carto:
             s3_to_carto = AWSBatchOperator(
                 job_name='s3_to_carto_{}_{}'.format(table_schema, table_name),
                 job_definition='test_extract_and_load_to_databridge',
@@ -98,7 +98,7 @@ def databridge_carto_dag_factory(
                         'carto_update_table',
                         'carto_connection_string={}'.format(carto_conn.password),
                         's3_bucket=citygeo-airflow-databridge2',
-                        'json_schema_file={}__{}.json'.format(table_schema, table_name),
+                        'yaml_file={}__{}.json'.format(table_schema, table_name),
                     ],
                 },
                 task_id='s3_to_carto_{}_{}'.format(table_schema, table_name),
@@ -111,17 +111,17 @@ def databridge_carto_dag_factory(
 
         globals()[dag_id] = dag # Airflow looks at the module global vars for DAG type variables
 
-for json_schema_file in os.listdir('schemas'):
-    schema_name = json_schema_file.split('__')[0]
-    table_name = json_schema_file.split('__')[1].split('.')[0]
-    with open(os.path.join('schemas', json_schema_file)) as f:
+for yaml_file in os.listdir('dags/dag_config'):
+    schema_name = yaml_file.split('__')[0]
+    table_name = yaml_file.split('__')[1].split('.')[0]
+    with open(os.path.join('dags/dag_config', yaml_file)) as f:
         try:
-            json_data = json.loads(f.read())
+            yaml_data = yaml.safe_load(f.read())
         except Exception as e:
             import logging
             logger = logging.getLogger(__name__)
-            logger.error('Failed to load {}'.format(json_schema_file))
+            logger.error('Failed to load {}'.format(yaml_file))
             raise e
-        carto = json_data.get('carto_table_name', True)
-        schedule_interval = json_data.get('scheduleInterval', None)
-    databridge_carto_dag_factory(schema_name, table_name, carto, schedule_interval)
+        upload_to_carto = yaml_data.get('upload_to_carto')
+        schedule_interval = yaml_data.get('schedule_interval')
+    databridge_carto_dag_factory(schema_name, table_name, upload_to_carto, schedule_interval)
