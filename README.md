@@ -30,3 +30,27 @@ docker-compose up -d
 ```bash
 SEED_DB=true docker-compose up
 ```
+
+## Run an ETL locally
+- Build the Docker image:
+```bash
+docker build -t airflow-worker -f Dockerfile.worker .
+```
+- Launch a bash shell inside the Docker container (requires overridding the entrypoint)
+```bash
+docker run -it airflow-worker --entrypoint /bin/bash airflow-worker
+```
+- Run your ETL command
+```bash
+python3 /extract_and_load_to_databridge.py \ 
+       write \
+       db_type=postgres \
+       db_host=$DB_HOST \
+       db_user=$DB_USER \
+       db_password=$DB_PASSWORD \
+       db_name=$DB_NAME \
+       db_port=5432 \
+       db_table_schema=lni \
+       db_table_name=li_imm_dang \
+       s3_bucket=$S3_BUCKET
+```
