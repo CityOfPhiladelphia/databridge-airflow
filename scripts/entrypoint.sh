@@ -116,8 +116,13 @@ set_environment_variables() {
   #eval $(python3 /secrets_manager.py --name=hansen --key=dbname --env=HANSEN_EXTRA)
 
   # slack
-  eval $(python3 /secrets_manager.py --name=airflow-slack-dev --key=password --env=SLACK_PASSWORD)
-  eval $(python3 /secrets_manager.py --name=airflow-slack-dev --key=connection_string --env=SLACK_CONN_STRING)
+  if [ -n "$PROD" ]; then
+      eval $(python3 /secrets_manager.py --name=airflow-slack-prod --key=password --env=SLACK_PASSWORD)
+      eval $(python3 /secrets_manager.py --name=airflow-slack-prod --key=connection_string --env=SLACK_CONN_STRING)
+  else
+      eval $(python3 /secrets_manager.py --name=airflow-slack-dev --key=password --env=SLACK_PASSWORD)
+      eval $(python3 /secrets_manager.py --name=airflow-slack-dev --key=connection_string --env=SLACK_CONN_STRING)
+  fi
 }
 
 set_airflow_connections() {
