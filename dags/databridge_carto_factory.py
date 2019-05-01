@@ -4,7 +4,6 @@ import os
 import yaml
 
 from airflow import DAG
-from airflow.contrib.operators.awsbatch_operator import AWSBatchOperator
 from airflow.hooks.base_hook import BaseHook
 
 from slack_notify_plugin import SlackNotificationOperator
@@ -20,6 +19,7 @@ def databridge_carto_dag_factory(
     table_name,
     upload_to_carto,
     schedule_interval,
+    select_users,
     retries=0):
 
     dag_id = '{}__{}'.format(table_schema.split('_')[1], table_name)
@@ -41,17 +41,20 @@ def databridge_carto_dag_factory(
         databridge_to_s3 = DataBridgeToS3Operator(
                 table_schema=table_schema, 
                 table_name=table_name)
+
         s3_to_databridge2 = S3ToDataBridge2Operator(
                 table_schema=table_schema, 
                 table_name=table_name)
 
         databridge_to_s3 >> s3_to_databridge2
 
-#        if upload_to_carto:
-#            s3_to_carto = S3ToCartoOperator(
-#                    table_schema=table_schema, 
-#                    table_name=table_name)
-#            s3_to_databridge2 >> s3_to_carto
+        if upload_to_carto:
+            s3_to_carto = S3ToCartoOperator(
+                    table_schema=table_schema, 
+                    table_name=table_name,
+                    select_users=select_users)
+
+            databridge_to_s3 >> s3_to_carto
 
         globals()[dag_id] = dag # Airflow looks at the module global vars for DAG type variables
 
@@ -68,4 +71,5 @@ for yaml_file in os.listdir('dags/dag_config'):
             raise e
         upload_to_carto = yaml_data.get('upload_to_carto')
         schedule_interval = yaml_data.get('schedule_interval')
-    databridge_carto_dag_factory(schema_name, table_name, upload_to_carto, schedule_interval)
+        select_users = ','.join(yaml_data.get('carto_users'))
+    databridge_carto_dag_factory(schema_name, table_name, upload_to_carto, schedule_interval, select_users) 
