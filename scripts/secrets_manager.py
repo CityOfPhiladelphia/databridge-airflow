@@ -40,7 +40,7 @@ def get_secret(name, region):
     return secret 
 
 def build_bash_cmd(env, value):
-    bash_cmd = 'export {}={}'.format(env, value)
+    bash_cmd = 'export {}="{}"'.format(env, value)
     return bash_cmd
 
 @click.command()
