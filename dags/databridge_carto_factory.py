@@ -1,5 +1,5 @@
 # Date Last Updated: 4/24/2019
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import yaml
 
@@ -26,7 +26,7 @@ def databridge_carto_dag_factory(
 
     default_args = {
         'owner': 'airflow',
-        'start_date': datetime(2019, 4, 20, 0, 0, 0),
+        'start_date': datetime(2019, 5, 1, 0, 0, 0) - timedelta(hours=8),
         'on_failure_callback': SlackNotificationOperator.failed,
         'retries': retries
     }
