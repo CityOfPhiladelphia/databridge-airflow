@@ -140,7 +140,7 @@ class S3ToCartoOperator(AWSBatchOperator):
                     '--csv_s3_key=staging/{}/{}.csv'.format(
                         table_schema.split('_')[1],
                         table_name),
-                    "--select_users='{}'".format(select_users),
+                    "--select_users={}".format(select_users),
                 ],
             },
             task_id='s3_to_carto_{}_{}'.format(table_schema, table_name),
