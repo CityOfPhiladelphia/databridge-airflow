@@ -2,5 +2,5 @@ schedule_interval: false # manually triggered
 upload_to_carto: false
 upload_to_ago:
 carto_users:
-  - public
+  - publicuser
   - tileuser
