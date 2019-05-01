@@ -2,5 +2,5 @@ schedule_interval: 0 7 * * *
 upload_to_carto: true
 upload_to_ago: 
 carto_users:
-  - publicuser
+  - public
   - tileuser
