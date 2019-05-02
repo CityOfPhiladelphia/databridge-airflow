@@ -89,7 +89,7 @@ class S3ToDataBridge2Operator(AWSBatchOperator):
                     'databridge_etl_tools',
                     'load',
                     '--table_name=databridge_{}'.format(table_name),
-                    '--table_schema={}'.format(table_schema.split('_')[1]),
+                    '--table_schema={}'.format(table_schema.split('_', 1)[1]),
                     '--connection_string={}'.format(db2_connection_string),
                     '--s3_bucket=citygeo-airflow-databridge2',
                     '--json_schema_s3_key=schemas/{}__{}.json'.format(
