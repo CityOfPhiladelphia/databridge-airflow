@@ -123,6 +123,10 @@ set_environment_variables() {
       eval $(python3 /secrets_manager.py --name=airflow-slack-dev --key=password --env=SLACK_PASSWORD)
       eval $(python3 /secrets_manager.py --name=airflow-slack-dev --key=connection_string --env=SLACK_CONN_STRING)
   fi
+
+  # airflow logins
+  eval $(python3 /secrets_manager.py --name=airflow-passwords --key=admin --env=ADMIN_USER_PASSWORD)
+  eval $(python3 /secrets_manager.py --name=airflow-passwords --key=viewer --env=VIEWER_USER_PASSWORD)
 }
 
 set_airflow_connections() {
@@ -169,6 +173,11 @@ set_airflow_connections() {
 	  --conn_password $SLACK_PASSWORD
 }    
 
+add_users() {
+  eval $(python3 /users.py --username=admin --email=maps@phila.gov --password=$ADMIN_USER_PASSWORD)
+  eval $(python3 /users.py --username=viewer --email=maps@phila.gov --password=$VIEWER_USER_PASSWORD)
+}
+
 wait_for_port "RabbitMQ" "$RABBITMQ_HOST" "$RABBITMQ_PORT"
 wait_for_port "Postgres" "$POSTGRES_HOST" "$POSTGRES_PORT"
 
@@ -184,6 +193,7 @@ case "$1" in
       # Set the schemas variable
       airflow variables --set schemas $AIRFLOW_HOME/schemas/
       set_airflow_connections
+      add_users
     fi
     exec airflow webserver
     ;;
