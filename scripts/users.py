@@ -12,7 +12,7 @@ def main():
 @click.argument('username')
 @click.argument('email')
 @click.argument('password')
-def add_user(username, email, password):
+def adduser(username, email, password):
     user = PasswordUser(models.User())
     user.username = username
     user.email = email

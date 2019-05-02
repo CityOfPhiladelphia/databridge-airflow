@@ -174,8 +174,8 @@ set_airflow_connections() {
 }    
 
 add_users() {
-  eval $(python3 /users.py --username=admin --email=maps@phila.gov --password=$ADMIN_USER_PASSWORD)
-  eval $(python3 /users.py --username=viewer --email=maps@phila.gov --password=$VIEWER_USER_PASSWORD)
+  python3 /users.py adduser admin maps@phila.gov $ADMIN_USER_PASSWORD
+  python3 /users.py adduser viewer maps@phila.gov $VIEWER_USER_PASSWORD
 }
 
 wait_for_port "RabbitMQ" "$RABBITMQ_HOST" "$RABBITMQ_PORT"
