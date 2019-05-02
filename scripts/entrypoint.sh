@@ -174,7 +174,7 @@ set_airflow_connections() {
 }    
 
 add_users() {
-  python3 /users.py adduser admin maps@phila.gov $ADMIN_USER_PASSWORD
+  python3 /users.py adduser admin maps@phila.gov $ADMIN_USER_PASSWORD --superuser
   python3 /users.py adduser viewer maps@phila.gov $VIEWER_USER_PASSWORD
 }
 

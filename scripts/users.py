@@ -12,11 +12,14 @@ def main():
 @click.argument('username')
 @click.argument('email')
 @click.argument('password')
-def adduser(username, email, password):
+@click.option('--superuser/--no-superuser', default=False)
+def adduser(username, email, password, superuser):
     user = PasswordUser(models.User())
     user.username = username
     user.email = email
     user.password = password
+    if superuser:
+        user.superuser = True
     session = settings.Session()
     session.add(user)
     session.commit()
