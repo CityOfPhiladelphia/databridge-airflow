@@ -14,26 +14,6 @@ from databridge_operators import (
 )
 
 
-def integer_to_word(integer: int) -> str:
-    '''Converts integers to words, ie. 311 -> threeoneone '''
-    INT_WORD_MAP = {
-        '1': 'one',
-        '2': 'two',
-        '3': 'three',
-        '4': 'four',
-        '5': 'five',
-        '6': 'six',
-        '7': 'seven',
-        '8': 'eight',
-        '9': 'nine',
-    }
-    integer_as_string = str(integer)
-    result = ''
-    for letter in integer_as_string:
-        spelled_out_integer = INT_WORD_MAP.get(letter)
-        result += spelled_out_integer
-    return result
-
 def databridge_carto_dag_factory(
     table_schema,
     table_name,
@@ -51,11 +31,6 @@ def databridge_carto_dag_factory(
         'retries': retries
     }
 
-    if table_schema.isdigit():
-        databridge2_table_schema = integer_to_word(table_schema)
-    else:
-        databridge2_table_schema = table_schema
-    
     with DAG(
         dag_id=dag_id, 
         schedule_interval=schedule_interval,
@@ -68,7 +43,7 @@ def databridge_carto_dag_factory(
                 table_name=table_name)
 
         s3_to_databridge2 = S3ToDataBridge2Operator(
-                table_schema=databridge2_table_schema, 
+                table_schema=table_schema, 
                 table_name=table_name)
 
         databridge_to_s3 >> s3_to_databridge2

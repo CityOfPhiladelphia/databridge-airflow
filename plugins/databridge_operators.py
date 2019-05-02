@@ -79,6 +79,7 @@ class S3ToDataBridge2Operator(AWSBatchOperator):
         table_schema,
         table_name,
         *args, **kwargs):
+        self.table_schema = table_schema
         super(S3ToDataBridge2Operator, self).__init__(
             job_name='s3_to_databridge2_{}_{}'.format(table_schema, table_name),
             job_definition='extract_and_load_to_databridge',
@@ -89,7 +90,7 @@ class S3ToDataBridge2Operator(AWSBatchOperator):
                     'databridge_etl_tools',
                     'load',
                     '--table_name=databridge_{}'.format(table_name),
-                    '--table_schema={}'.format(table_schema.split('_', 1)[1]),
+                    '--table_schema={}'.format(self.databridge2_table_schema),
                     '--connection_string={}'.format(db2_connection_string),
                     '--s3_bucket=citygeo-airflow-databridge2',
                     '--json_schema_s3_key=schemas/{}__{}.json'.format(
@@ -102,6 +103,37 @@ class S3ToDataBridge2Operator(AWSBatchOperator):
             },
             task_id='s3_to_databridge2_{}_{}'.format(table_schema, table_name),
             *args, **kwargs)
+
+    @property
+    def databridge2_table_schema(self):
+        # Remove 'gis_' from the schema
+        table_schema = self.table_schema.split('_', 1)[1]
+        if table_schema.isdigit():
+            databridge2_table_schema = self.integer_to_word(table_schema)
+        else:
+            databridge2_table_schema = table_schema
+        return databridge2_table_schema
+
+    @staticmethod
+    def integer_to_word(integer: int) -> str:
+        '''Converts integers to words, ie. 311 -> threeoneone '''
+        INT_WORD_MAP = {
+            '1': 'one',
+            '2': 'two',
+            '3': 'three',
+            '4': 'four',
+            '5': 'five',
+            '6': 'six',
+            '7': 'seven',
+            '8': 'eight',
+            '9': 'nine',
+        }
+        integer_as_string = str(integer)
+        result = ''
+        for letter in integer_as_string:
+            spelled_out_integer = INT_WORD_MAP.get(letter)
+            result += spelled_out_integer
+        return result
 
 class S3ToCartoOperator(AWSBatchOperator):
     """
