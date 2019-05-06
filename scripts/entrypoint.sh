@@ -11,8 +11,7 @@ TRY_LOOP="20"
 : "${POSTGRES_HOST:="postgres"}"
 : "${POSTGRES_PORT:="5432"}"
 : "${POSTGRES_USER:="airflow"}"
-# Fetch the Airflow Database Password from AWS Secrets manager and set its environment variable
-eval $(python3 /secrets_manager.py --name=airlfow-passwords --key=database --env=POSTGRES_PASSWORD)
+: "${POSTGRES_PASSWORD:="airflow"}"
 : "${POSTGRES_DB:="airflow"}"
 
 : "${AIRFLOW__CORE__EXECUTOR:=${EXECUTOR:-Celery}Executor}"
