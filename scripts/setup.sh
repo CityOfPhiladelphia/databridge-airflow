@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Update your machine
 sudo apt-get update -yqq
 
