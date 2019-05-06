@@ -1,0 +1,13 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /home/ubuntu/databridge-airflow
+permissions:
+  - object: /
+    pattern: '**'
+    owner: ubuntu
+hooks:
+  AfterInstall:
+    - location: scripts/deploy.sh
+      runas: ubuntu

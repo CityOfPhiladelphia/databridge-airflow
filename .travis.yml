@@ -1,0 +1,15 @@
+language: python
+sudo: required
+python:
+  - '3.6'
+
+deploy:
+  - provider: codedeploy
+    revision_type: github
+    access_key_id: $AWS_ACCESS_KEY_ID
+    secret_access_key: $AWS_SECRET_ACCESS_KEY
+    application: airflow-test
+    deployment_group: airflow-test
+    region: us-east-1
+    on:
+      branch: master
