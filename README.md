@@ -14,8 +14,10 @@ Airflow instance for ETL's involving Databridge
 - Airflow stores encrypted database credentials and other metadata in a Postgres database
 - All secrets (database credentials, slack API keys, carto API keys) are stored in AWS Secrets Manager. These are fetched from AWS Secrets Manager when Airflow is launched.
 
-## Installation
-- Create an EC2 instance with access to S3, Batch, and AWS Secrets Manager
+## AWS AMI Installation
+- Create an EC2 instance from our `airflow` AMI with access to S3, Batch, and AWS Secrets Manager
+
+## Manual Installation on Ubuntu
 - Update your machine
 ```bash
 sudo apt-get update -yqq
@@ -43,6 +45,20 @@ sudo apt-get update -yqq
 ```bash
 sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
     && sudo chmod +x /usr/local/bin/docker-compose
+```
+- [Install AWS Code Deploy](https://docs.aws.amazon.com/codedeploy/latest/userguide/codedeploy-agent-operations-install-ubuntu.html)
+```bash
+sudo apt-get install ruby
+wget https://aws-codedeploy-us-east-1.s3.amazonaws.com/latest/install
+chmod +x ./install
+sudo ./install auto
+rm ./install
+
+# Check the status
+sudo service codedeploy-agent status
+
+# If you see a message like error: No AWS CodeDeploy agent running, manually start the agent
+sudo service codedeploy-agent start
 ```
 - Clone this repo and enter its directory
 ```bash
