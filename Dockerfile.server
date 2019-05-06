@@ -100,7 +100,6 @@ RUN set -ex \
 
 COPY scripts/entrypoint.sh /entrypoint.sh
 COPY scripts/secrets_manager.py /secrets_manager.py
-COPY scripts/users.py /users.py
 
 COPY config/airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
 COPY dags ${AIRFLOW_HOME}/dags
@@ -108,8 +107,7 @@ COPY plugins ${AIRFLOW_HOME}/plugins
 
 RUN chown -R airflow: ${AIRFLOW_HOME} \
     && chmod +x /entrypoint.sh \
-    && chmod +x /secrets_manager.py \
-    && chmod +x /users.py
+    && chmod +x /secrets_manager.py
 
 EXPOSE 8080
 
