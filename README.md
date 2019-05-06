@@ -32,7 +32,7 @@ sudo apt-get update -yqq
     && sudo add-apt-repository \
         "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
         $(lsb_release -cs) \
-        stable"
+        stable" \
     && sudo apt-get install -yqq --no-install-recommends \
         git-core \
         docker-ce \
