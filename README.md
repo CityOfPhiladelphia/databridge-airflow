@@ -17,54 +17,13 @@ Airflow instance for ETL's involving Databridge
 ## AWS AMI Installation
 - Create an EC2 instance from our `airflow` AMI with access to S3, Batch, and AWS Secrets Manager
 
-## Manual Installation on Ubuntu
-- Update your machine
+## Manual Installation on Ubuntu (no AMI)
+** Just use the AMI **
 ```bash
-sudo apt-get update -yqq
+./scripts/setup.sh
 ```
-- [Install Docker](https://docs.docker.com/install/linux/docker-ce/ubuntu/) and [git](https://www.liquidweb.com/kb/install-git-ubuntu-16-04-lts/)
-```bash
- sudo apt-get install -yqq --no-install-recommends \
-        apt-transport-https \
-        ca-certificates \
-        curl \
-        gnupg-agent \
-        software-properties-common \
-    && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - \
-    && sudo add-apt-repository \
-        "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-        $(lsb_release -cs) \
-        stable" \
-    && sudo apt-get install -yqq --no-install-recommends \
-        git-core \
-        docker-ce \
-        docker-ce-cli \
-        containerd.io
-```
-- [Install docker-compose](https://docs.docker.com/compose/install/)
-```bash
-sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
-    && sudo chmod +x /usr/local/bin/docker-compose
-```
-- [Install AWS Code Deploy](https://docs.aws.amazon.com/codedeploy/latest/userguide/codedeploy-agent-operations-install-ubuntu.html)
-```bash
-sudo apt-get install ruby
-wget https://aws-codedeploy-us-east-1.s3.amazonaws.com/latest/install
-chmod +x ./install
-sudo ./install auto
-rm ./install
 
-# Check the status
-sudo service codedeploy-agent status
-
-# If you see a message like error: No AWS CodeDeploy agent running, manually start the agent
-sudo service codedeploy-agent start
-```
-- Clone this repo and enter its directory
-```bash
-git clone https://github.com/CityOfPhiladelphia/databridge-airflow
-cd databridge-airflow
-```
+## Configuration
 - Fetch Airflow's database password from AWS Secrets Manager or Lastpass, make up a secure password for RABBITMQ and put them both in a .env file like below:
 ```bash
 POSTGRES_PASSWORD=postgrespassword
