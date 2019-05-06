@@ -46,6 +46,8 @@ services:
         restart: always
         depends_on:
             - webserver
+        environment:
+            - POSTGRES_PASSWORD
         ports:
             - "5555:5555"
         command: flower
@@ -60,6 +62,7 @@ services:
             - ./plugins:/usr/local/airflow/plugins
         environment:
             - LOAD_EX=n
+            - POSTGRES_PASSWORD
         command: scheduler
 
     worker:
@@ -67,6 +70,8 @@ services:
         restart: always
         depends_on:
             - webserver
+        environment:
+            - POSTGRES_PASSWORD
         volumes:
             - ./dags:/usr/local/airflow/dags
             - ./plugins:/usr/local/airflow/plugins
