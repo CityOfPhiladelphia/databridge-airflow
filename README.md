@@ -14,26 +14,64 @@ Airflow instance for ETL's involving Databridge
 - Airflow stores encrypted database credentials and other metadata in a Postgres database
 - All secrets (database credentials, slack API keys, carto API keys) are stored in AWS Secrets Manager. These are fetched from AWS Secrets Manager when Airflow is launched.
 
-## Setup
-- Install docker, docker-compose and git on an EC2 instance and clone this repo
-- Make sure your EC2 instance has security groups to access S3, DataBridge's RDS, Batch, and AWS Secrets Manager
-- Fetch Airflow's database password from AWS Secrets Manager or Lastpass
-- Launch Airflow, RabbitMQ, and Postgres all using docker compose:
+## Installation
+- Create an EC2 instance with access to S3, Batch, and AWS Secrets Manager
+- Update your machine
 ```bash
-# Make sure to pass in the POSTGRES_PASSWORD
-POSTGRES_PASSWORD=postgrespassword docker-compose up
+sudo apt-get update -yqq
+```
+- [Install Docker](https://docs.docker.com/install/linux/docker-ce/ubuntu/) and [git](https://www.liquidweb.com/kb/install-git-ubuntu-16-04-lts/)
+```bash
+ sudo apt-get install -yqq --no-install-recommends \
+        apt-transport-https \
+        ca-certificates \
+        curl \
+        gnupg-agent \
+        software-properties-common \
+    && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - \
+    && sudo add-apt-repository \
+        "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+        $(lsb_release -cs) \
+        stable"
+    && sudo apt-get install -yqq --no-install-recommends \
+        git-core \
+        docker-ce \
+        docker-ce-cli \
+        containerd.io
+```
+- [Install docker-compose](https://docs.docker.com/compose/install/)
+```bash
+sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
+    && sudo chmod +x /usr/local/bin/docker-compose
+```
+- Clone this repo and enter its directory
+```bash
+git clone https://github.com/CityOfPhiladelphia/databridge-airflow
+cd databridge-airflow
+```
+- Fetch Airflow's database password from AWS Secrets Manager or Lastpass, make up a secure password for RABBITMQ and put them both in a .env file like below:
+```bash
+POSTGRES_PASSWORD=postgrespassword
+RABBITMQ_DEFAULT_PASS=rabbitmqpassword
 ```
 
-To run Airflow in the background use:
-```bash
-POSTGRES_PASSWORD=postgrespassword docker-compose up -d
-```
 - To set all of the database connections up, simply passing the SEED_DB environment variable to docker-compose. Airflow's entrypoint will pick up this environment variable, fetch all database secrets from AWS Secrets Manager, and load them into Airflow's local Postgres Database: 
 ```bash
-SEED_DB=true POSTGRES_PASSWORD=postgrespassword docker-compose up
+SEED_DB=true docker-compose up
+```
+## Development
+- Launch Airflow, RabbitMQ, and Postgres all using docker compose:
+```bash
+docker-compose up
 ```
 
-- If you're launching a production environment, pass the PROD environment variable to use the appropriate slack channelf for alerts:
+To run Airflow in the background use *detached mode*:
 ```bash
-PROD=true SEED_DB=true POSTGRES_PASSWORD=postgrespassword docker-compose up
+docker-compose up -d
+```
+
+## Production
+- If you're launching a production environment, pass the PROD environment variable to use the appropriate slack channel for alerts:
+```bash
+PROD=true SEED_DB=true docker-compose up -d
 ```
