@@ -1,3 +1,5 @@
+language: generic
+
 deploy:
   - provider: codedeploy
     revision_type: github
