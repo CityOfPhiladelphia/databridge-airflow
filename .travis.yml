@@ -1,8 +1,3 @@
-language: python
-sudo: required
-python:
-  - '3.6'
-
 deploy:
   - provider: codedeploy
     revision_type: github
