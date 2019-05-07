@@ -5,8 +5,8 @@ set -e
 # Enter the application's directory
 cd /home/ubuntu/databridge-airflow
 
-mkdir pgdata
 # Copy the latest database backup
+mkdir pgdata
 aws s3 cp s3://citygeo-airflow-databridge2/pgdata pgdata --recursive
 
 # Rebuild and restart the server
