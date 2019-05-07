@@ -6,4 +6,6 @@ set -e
 cd /home/ubuntu/databridge-airflow
 
 # Dump to s3
-aws s3 cp pgdata/ s3://citygeo-airflow-databridge2/pgdata --recursive
+if [ -d "pgdata" ]; then
+    aws s3 cp pgdata/ s3://citygeo-airflow-databridge2/pgdata --recursive
+fi
