@@ -15,12 +15,14 @@ TRY_LOOP="20"
 
 : "${AIRFLOW__CORE__EXECUTOR:=${EXECUTOR:-Celery}Executor}"
 
+# Fetch Airflow's password from AWS Secrets Manager and set its env var
+eval $(python3 /secrets_manager.py --name=airflow-passwords --key=database --env=POSTGRES_PASSWORD)
+# Set IP Address for log links
+IP_ADDRESS=$(curl http://169.254.169.254/latest/meta-data/local-ipv4)
+
 AIRFLOW__CELERY__BROKER_URL="pyamqp://$RABBITMQ_USER:$RABBITMQ_PASSWORD@$RABBITMQ_HOST/$RABBITMQ_VHOST"
 AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql+psycopg2://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB"
 AIRFLOW__CELERY__RESULT_BACKEND="db+postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB"
-
-# Set IP Address for log links
-IP_ADDRESS=$(curl http://169.254.169.254/latest/meta-data/local-ipv4)
 
 export \
   AIRFLOW__CELERY__BROKER_URL \

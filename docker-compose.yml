@@ -13,7 +13,6 @@ services:
         restart: always
         environment:
             - POSTGRES_USER=airflow
-            - POSTGRES_PASSWORD
             - POSTGRES_DB=airflow
             # persist data on the local filesystem.
             - PGDATA=/var/lib/postgresql/data/pgdata
@@ -33,7 +32,6 @@ services:
             - LOAD_EX=n
             - PROD
             - SEED_DB 
-            - POSTGRES_PASSWORD
         volumes:
             - ./dags:/usr/local/airflow/dags
             - ./plugins:/usr/local/airflow/plugins
@@ -46,8 +44,6 @@ services:
         restart: always
         depends_on:
             - webserver
-        environment:
-            - POSTGRES_PASSWORD
         ports:
             - "5555:5555"
         command: flower
@@ -62,7 +58,6 @@ services:
             - ./plugins:/usr/local/airflow/plugins
         environment:
             - LOAD_EX=n
-            - POSTGRES_PASSWORD
         command: scheduler
 
     worker:
@@ -70,8 +65,6 @@ services:
         restart: always
         depends_on:
             - webserver
-        environment:
-            - POSTGRES_PASSWORD
         volumes:
             - ./dags:/usr/local/airflow/dags
             - ./plugins:/usr/local/airflow/plugins

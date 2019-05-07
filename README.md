@@ -24,12 +24,6 @@ Airflow instance for ETL's involving Databridge
 ```
 
 ## Configuration
-- Fetch Airflow's database password from AWS Secrets Manager or Lastpass, make up a secure password for RABBITMQ and put them both in a .env file in this project's directory like below:
-```bash
-POSTGRES_PASSWORD=postgrespassword
-RABBITMQ_DEFAULT_PASS=rabbitmqpassword
-```
-
 - To set all of the database connections up, simply passing the SEED_DB environment variable to docker-compose. Airflow's entrypoint will pick up this environment variable, fetch all database secrets from AWS Secrets Manager, and load them into Airflow's local Postgres Database: 
 ```bash
 SEED_DB=true docker-compose up
