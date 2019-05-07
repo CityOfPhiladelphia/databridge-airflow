@@ -24,7 +24,7 @@ Airflow instance for ETL's involving Databridge
 ```
 
 ## Configuration
-- Fetch Airflow's database password from AWS Secrets Manager or Lastpass, make up a secure password for RABBITMQ and put them both in a .env file like below:
+- Fetch Airflow's database password from AWS Secrets Manager or Lastpass, make up a secure password for RABBITMQ and put them both in a .env file in this project's directory like below:
 ```bash
 POSTGRES_PASSWORD=postgrespassword
 RABBITMQ_DEFAULT_PASS=rabbitmqpassword
