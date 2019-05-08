@@ -11,12 +11,19 @@ TRY_LOOP="20"
 : "${POSTGRES_HOST:="postgres"}"
 : "${POSTGRES_PORT:="5432"}"
 : "${POSTGRES_USER:="airflow"}"
+: "${POSTGRES_PASSWORD:="airflow"}"
 : "${POSTGRES_DB:="airflow"}"
 
 : "${AIRFLOW__CORE__EXECUTOR:=${EXECUTOR:-Celery}Executor}"
 
-# Fetch Airflow's password from AWS Secrets Manager and set its env var
-eval $(python3 /secrets_manager.py --name=airflow-passwords --key=database --env=POSTGRES_PASSWORD)
+if [ -n "$PROD" ]; then
+  # Fetch Airflow's database credentials from AWS Secrets Manager and set its env vars
+  eval $(python3 /secrets_manager.py --name=airflow-database --key=host --env=POSTGRES_HOST)
+  eval $(python3 /secrets_manager.py --name=airflow-database --key=password --env=POSTGRES_PASSWORD)
+  # Set the fernet environment variable
+  eval $(python3 /secrets_manager.py --name=airflow-fernet --key=fernet_key --env=AIRFLOW__CORE__FERNET_KEY)
+fi
+
 # Set IP Address for log links
 IP_ADDRESS=$(curl http://169.254.169.254/latest/meta-data/local-ipv4)
 
@@ -184,9 +191,6 @@ add_users() {
 wait_for_port "RabbitMQ" "$RABBITMQ_HOST" "$RABBITMQ_PORT"
 wait_for_port "Postgres" "$POSTGRES_HOST" "$POSTGRES_PORT"
 
-# Set the fernet environment variable
-eval $(python3 /secrets_manager.py --name=airflow-fernet --key=fernet_key --env=AIRFLOW__CORE__FERNET_KEY)
-
 case "$1" in
   webserver)
     if [ -n "$SEED_DB" ]; then
@@ -201,8 +205,6 @@ case "$1" in
     exec airflow webserver
     ;;
   worker)
-    # Uncomment this when batch is working
-    # pip3 install -r requirements.worker.txt
     # Give the webserver time to run initdb.
     sleep 10
     exec airflow "$@"

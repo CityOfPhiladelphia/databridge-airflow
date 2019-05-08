@@ -1,0 +1,75 @@
+version: '3'
+services:
+    rabbitmq:
+        image: rabbitmq:3.7.13
+        restart: always
+        environment:
+            - RABBITMQ_DEFAULT_USER=airflow
+            - RABBITMQ_DEFAULT_PASS=airflow
+            - RABBITMQ_DEFAULT_VHOST=airflow
+
+    postgres:
+        image: postgres:9.6
+        restart: always
+        environment:
+            - POSTGRES_USER=airflow
+            - POSTGRES_PASSWORD=airflow
+            - POSTGRES_DB=airflow
+            # persist data on the local filesystem.
+            - PGDATA=/var/lib/postgresql/data/pgdata
+        volumes:
+            - ./pgdata:/var/lib/postgresql/data/pgdata
+
+    webserver:
+        build:
+            context: .
+            dockerfile: Dockerfile.server
+        image: airflow
+        restart: always
+        depends_on:
+            - postgres
+            - rabbitmq
+        environment:
+            - LOAD_EX=n
+            - AIRFLOW__CORE__FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+            - SEED_DB 
+        volumes:
+            - ./dags:/usr/local/airflow/dags
+            - ./plugins:/usr/local/airflow/plugins
+        ports:
+            - "8080:8080"
+        command: webserver
+
+    flower:
+        image: airflow
+        restart: always
+        depends_on:
+            - webserver
+        ports:
+            - "5555:5555"
+        command: flower
+
+    scheduler:
+        image: airflow
+        restart: always
+        depends_on:
+            - webserver
+        volumes:
+            - ./dags:/usr/local/airflow/dags
+            - ./plugins:/usr/local/airflow/plugins
+        environment:
+            - LOAD_EX=n
+            - AIRFLOW__CORE__FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+        command: scheduler
+
+    worker:
+        image: airflow
+        restart: always
+        depends_on:
+            - webserver
+        volumes:
+            - ./dags:/usr/local/airflow/dags
+            - ./plugins:/usr/local/airflow/plugins
+        environment:
+            - AIRFLOW__CORE__FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+        command: worker
