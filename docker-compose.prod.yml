@@ -8,17 +8,6 @@ services:
             - RABBITMQ_DEFAULT_PASS=airflow
             - RABBITMQ_DEFAULT_VHOST=airflow
 
-    postgres:
-        image: postgres:9.6
-        restart: always
-        environment:
-            - POSTGRES_USER=airflow
-            - POSTGRES_DB=airflow
-            # persist data on the local filesystem.
-            - PGDATA=/var/lib/postgresql/data/pgdata
-        volumes:
-            - ./pgdata:/var/lib/postgresql/data/pgdata
-
     webserver:
         build:
             context: .
@@ -26,7 +15,6 @@ services:
         image: airflow
         restart: always
         depends_on:
-            - postgres
             - rabbitmq
         environment:
             - LOAD_EX=n
@@ -44,6 +32,8 @@ services:
         restart: always
         depends_on:
             - webserver
+        environment:
+            - PROD=true
         ports:
             - "5555:5555"
         command: flower
@@ -58,6 +48,7 @@ services:
             - ./plugins:/usr/local/airflow/plugins
         environment:
             - LOAD_EX=n
+            - PROD=true
         command: scheduler
 
     worker:
@@ -65,6 +56,8 @@ services:
         restart: always
         depends_on:
             - webserver
+        environment:
+            - PROD=true
         volumes:
             - ./dags:/usr/local/airflow/dags
             - ./plugins:/usr/local/airflow/plugins

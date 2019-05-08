@@ -32,7 +32,7 @@ services:
         environment:
             - LOAD_EX=n
             - AIRFLOW__CORE__FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
-            - SEED_DB 
+            - SEED_DB
         volumes:
             - ./dags:/usr/local/airflow/dags
             - ./plugins:/usr/local/airflow/plugins

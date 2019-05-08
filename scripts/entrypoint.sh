@@ -131,10 +131,6 @@ set_environment_variables() {
   else
       eval $(python3 /secrets_manager.py --name=airflow-slack-dev --key=password --env=SLACK_PASSWORD)
   fi
-
-  # airflow logins
-  eval $(python3 /secrets_manager.py --name=airflow-passwords --key=admin --env=ADMIN_USER_PASSWORD)
-  eval $(python3 /secrets_manager.py --name=airflow-passwords --key=viewer --env=VIEWER_USER_PASSWORD)
 }
 
 set_airflow_connections() {
@@ -182,6 +178,8 @@ set_airflow_connections() {
 }    
 
 add_users() {
+  eval $(python3 /secrets_manager.py --name=airflow-passwords --key=admin --env=ADMIN_USER_PASSWORD)
+  eval $(python3 /secrets_manager.py --name=airflow-passwords --key=viewer --env=VIEWER_USER_PASSWORD)
   airflow create_user --role Admin --username admin --firstname admin --lastname admin --email maps@phila.gov --password $ADMIN_USER_PASSWORD
   airflow create_user --role Viewer --username viewer --firstname viewer --lastname viewer --email alex.waldman@phila.gov --password $VIEWER_USER_PASSWORD
 }
@@ -195,8 +193,6 @@ case "$1" in
       airflow initdb
       delete_default_airflow_connections
       set_environment_variables
-      # Set the schemas variable
-      airflow variables --set schemas $AIRFLOW_HOME/schemas/
       set_airflow_connections
       add_users
     fi
