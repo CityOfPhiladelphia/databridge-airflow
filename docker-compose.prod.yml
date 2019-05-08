@@ -30,7 +30,7 @@ services:
             - rabbitmq
         environment:
             - LOAD_EX=n
-            - PROD
+            - PROD=true
             - SEED_DB 
         volumes:
             - ./dags:/usr/local/airflow/dags
