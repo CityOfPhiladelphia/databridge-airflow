@@ -104,7 +104,6 @@ COPY scripts/worker_entrypoint.sh /worker_entrypoint.sh
 
 RUN chmod +x /worker_entrypoint.sh
 
-#ENTRYPOINT ["/fetch_and_run.sh"]
 # Cache bust
 ENV updated-adds-on 5-1-2019_5
 RUN pip3 install git+https://github.com/CityOfPhiladelphia/databridge-etl-tools#egg=databridge_etl_tools
