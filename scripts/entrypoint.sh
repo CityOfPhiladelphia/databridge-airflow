@@ -16,7 +16,7 @@ TRY_LOOP="20"
 
 : "${AIRFLOW__CORE__EXECUTOR:=${EXECUTOR:-Celery}Executor}"
 
-if [ -n "$PROD" ]; then
+if [ "$ENVIRONMENT" = "prod" ]; then
   # Fetch Airflow's database credentials from AWS Secrets Manager and set its env vars
   eval $(python3 /secrets_manager.py --name=airflow-database --key=host --env=POSTGRES_HOST)
   eval $(python3 /secrets_manager.py --name=airflow-database --key=password --env=POSTGRES_PASSWORD)
@@ -126,7 +126,7 @@ set_environment_variables() {
   #eval $(python3 /secrets_manager.py --name=hansen --key=dbname --env=HANSEN_EXTRA)
 
   # slack
-  if [ -n "$PROD" ]; then
+  if [ "$ENVIRONMENT" = "prod" ]; then
       eval $(python3 /secrets_manager.py --name=airflow-slack-prod --key=password --env=SLACK_PASSWORD)
   else
       eval $(python3 /secrets_manager.py --name=airflow-slack-dev --key=password --env=SLACK_PASSWORD)

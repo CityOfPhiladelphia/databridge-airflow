@@ -1,10 +1,12 @@
+import os
+
 from airflow.hooks.base_hook import BaseHook
 from airflow.contrib.operators.awsbatch_operator import AWSBatchOperator
 from airflow.utils.decorators import apply_defaults
 
 import cx_Oracle
 
-
+ENVIRONMENT = os.environ['ENVIRONMENT']
 db_conn = BaseHook.get_connection('databridge')
 db_connection_string = '{}/{}@{}'.format(
         db_conn.login,
@@ -42,8 +44,8 @@ class DataBridgeToS3Operator(AWSBatchOperator):
         *args, **kwargs):
         super(DataBridgeToS3Operator, self).__init__(
             job_name='db_to_s3_{}_{}'.format(table_schema, table_name),
-            job_definition='extract_and_load_to_databridge',
-            job_queue='databridge-airflow2',
+            job_definition='carto-db2-airflow-{}'.format(ENVIRONMENT),
+            job_queue='airflow-{}'.format(ENVIRONMENT),
             region_name='us-east-1',
             overrides={
                 'command': [
@@ -82,8 +84,8 @@ class S3ToDataBridge2Operator(AWSBatchOperator):
         self.table_schema = table_schema
         super(S3ToDataBridge2Operator, self).__init__(
             job_name='s3_to_databridge2_{}_{}'.format(table_schema, table_name),
-            job_definition='extract_and_load_to_databridge',
-            job_queue='databridge-airflow2',
+            job_definition='carto-db2-airflow-{}'.format(ENVIRONMENT),
+            job_queue='airflow-{}'.format(ENVIRONMENT),
             region_name='us-east-1',
             overrides={
                 'command': [
@@ -162,8 +164,8 @@ class S3ToCartoOperator(AWSBatchOperator):
         self.table_schema = table_schema
         super(S3ToCartoOperator, self).__init__(
             job_name='s3_to_carto_{}_{}'.format(table_schema, table_name),
-            job_definition='extract_and_load_to_databridge',
-            job_queue='databridge-airflow2',
+            job_definition='carto-db2-airflow-{}'.format(ENVIRONMENT),
+            job_queue='airflow-{}'.format(ENVIRONMENT),
             region_name='us-east-1',
             overrides={
                 'command': [

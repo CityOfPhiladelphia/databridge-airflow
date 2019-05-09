@@ -18,8 +18,8 @@ services:
             - rabbitmq
         environment:
             - LOAD_EX=n
-            - PROD=true
             - SEED_DB 
+            - ENVIRONMENT=prod
         volumes:
             - ./dags:/usr/local/airflow/dags
             - ./plugins:/usr/local/airflow/plugins
@@ -33,7 +33,7 @@ services:
         depends_on:
             - webserver
         environment:
-            - PROD=true
+            - ENVIRONMENT=prod
         ports:
             - "5555:5555"
         command: flower
@@ -48,7 +48,7 @@ services:
             - ./plugins:/usr/local/airflow/plugins
         environment:
             - LOAD_EX=n
-            - PROD=true
+            - ENVIRONMENT=prod
         command: scheduler
 
     worker:
@@ -57,7 +57,7 @@ services:
         depends_on:
             - webserver
         environment:
-            - PROD=true
+            - ENVIRONMENT=prod
         volumes:
             - ./dags:/usr/local/airflow/dags
             - ./plugins:/usr/local/airflow/plugins

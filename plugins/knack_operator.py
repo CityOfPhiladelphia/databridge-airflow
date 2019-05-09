@@ -1,8 +1,11 @@
+import os
+
 from airflow.hooks.base_hook import BaseHook
 from airflow.contrib.operators.awsbatch_operator import AWSBatchOperator
 from airflow.utils.decorators import apply_defaults
 
 
+ENVIRONMENT = os.environ['ENVIRONMENT']
 knack_conn = BaseHook.get_connection('knack')
 
 class KnackToS3Operator(AWSBatchOperator):
@@ -28,8 +31,8 @@ class KnackToS3Operator(AWSBatchOperator):
         *args, **kwargs):
         super(KnackToS3Operator, self).__init__(
             job_name='knack_to_s3_{}'.format(table_name),
-            job_definition='extract_knack',
-            job_queue='extract_knack',
+            job_definition='knack-airflow-{}'.format(ENVIRONMENT),
+            job_queue='airflow-{}'.format(ENVIRONMENT),
             region_name='us-east-1',
             overrides={
                 'command': [
@@ -37,7 +40,7 @@ class KnackToS3Operator(AWSBatchOperator):
                     'extract-records',
                     knack_conn.login,
                     knack_conn.password,
-                    object_id,
+                    str(object_id),
                     '--s3_bucket=citygeo-airflow-databridge2',
                     '--s3_key=staging/{}/{}.csv'.format(
                         table_schema,
