@@ -8,9 +8,7 @@ from airflow.hooks.base_hook import BaseHook
 
 from slack_notify_plugin import SlackNotificationOperator
 from knack_operator import KnackToS3Operator
-from databridge_operators import (
-    S3ToCartoOperator,
-)
+from carto_operator import S3ToCartoOperator
 
 
 def knack_dag_factory(

@@ -10,8 +10,8 @@ from slack_notify_plugin import SlackNotificationOperator
 from databridge_operators import (
     DataBridgeToS3Operator,
     S3ToDataBridge2Operator,
-    S3ToCartoOperator,
 )
+from carto_operator import S3ToCartoOperator
 
 
 def databridge_carto_dag_factory(
