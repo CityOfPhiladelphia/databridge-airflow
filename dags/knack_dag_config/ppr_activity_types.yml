@@ -1,0 +1,7 @@
+schedule_interval: 0 8 * * 2-6
+upload_to_carto: true
+upload_to_ago: 
+carto_users:
+  - publicuser
+  - tileuser
+knack_object_id: 6

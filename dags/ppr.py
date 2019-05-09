@@ -1,4 +1,4 @@
-# Date Last Updated: 4/24/2019
+# Date Last Updated: 5/9/2019
 from datetime import datetime, timedelta
 import os
 import yaml
@@ -7,14 +7,15 @@ from airflow import DAG
 from airflow.hooks.base_hook import BaseHook
 
 from slack_notify_plugin import SlackNotificationOperator
+from knack_operator import KnackToS3Operator
 from databridge_operators import (
-    DataBridgeToS3Operator,
     S3ToDataBridge2Operator,
     S3ToCartoOperator,
 )
 
 
-def databridge_carto_dag_factory(
+def knack_dag_factory(
+    object_id,
     table_schema,
     table_name,
     upload_to_carto,
@@ -22,11 +23,11 @@ def databridge_carto_dag_factory(
     select_users,
     retries=0):
 
-    dag_id = '{}__{}'.format(table_schema.split('_')[1], table_name)
+    dag_id = table_name
 
     default_args = {
         'owner': 'airflow',
-        'start_date': datetime(2019, 5, 1, 0, 0, 0) - timedelta(hours=8),
+        'start_date': datetime(2019, 5, 10, 0, 0, 0) - timedelta(hours=8),
         'on_failure_callback': SlackNotificationOperator.failed,
         'retries': retries
     }
@@ -38,7 +39,8 @@ def databridge_carto_dag_factory(
         max_active_runs=1,
     ) as dag:
 
-        databridge_to_s3 = DataBridgeToS3Operator(
+        knack_to_s3 = KnackToS3Operator(
+                object_id=object_id,
                 table_schema=table_schema, 
                 table_name=table_name)
 
@@ -46,7 +48,7 @@ def databridge_carto_dag_factory(
                 table_schema=table_schema, 
                 table_name=table_name)
 
-        databridge_to_s3 >> s3_to_databridge2
+        knack_to_s3 >> s3_to_databridge2
 
         if upload_to_carto:
             s3_to_carto = S3ToCartoOperator(
@@ -54,14 +56,14 @@ def databridge_carto_dag_factory(
                     table_name=table_name,
                     select_users=select_users)
 
-            databridge_to_s3 >> s3_to_carto
+            knack_to_s3 >> s3_to_carto
 
         globals()[dag_id] = dag # Airflow looks at the module global vars for DAG type variables
 
-for yaml_file in os.listdir('dags/carto_dag_config'):
+for yaml_file in os.listdir('dags/knack_dag_config'):
     schema_name = yaml_file.split('__')[0]
     table_name = yaml_file.split('__')[1].split('.')[0]
-    with open(os.path.join('dags/carto_dag_config', yaml_file)) as f:
+    with open(os.path.join('dags/knack_dag_config', yaml_file)) as f:
         try:
             yaml_data = yaml.safe_load(f.read())
         except Exception as e:
@@ -69,7 +71,8 @@ for yaml_file in os.listdir('dags/carto_dag_config'):
             logger = logging.getLogger(__name__)
             logger.error('Failed to load {}'.format(yaml_file))
             raise e
+        object_id = yaml_data.get('knack_object_id')
         upload_to_carto = yaml_data.get('upload_to_carto')
         schedule_interval = yaml_data.get('schedule_interval')
         select_users = ','.join(yaml_data.get('carto_users'))
-    databridge_carto_dag_factory(schema_name, table_name, upload_to_carto, schedule_interval, select_users) 
+    databridge_carto_dag_factory(object_id, schema_name, table_name, upload_to_carto, schedule_interval, select_users) 
