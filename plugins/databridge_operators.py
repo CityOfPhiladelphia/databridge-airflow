@@ -159,6 +159,7 @@ class S3ToCartoOperator(AWSBatchOperator):
         table_name,
         select_users,
         *args, **kwargs):
+        self.table_schema = table_schema
         super(S3ToCartoOperator, self).__init__(
             job_name='s3_to_carto_{}_{}'.format(table_schema, table_name),
             job_definition='extract_and_load_to_databridge',
