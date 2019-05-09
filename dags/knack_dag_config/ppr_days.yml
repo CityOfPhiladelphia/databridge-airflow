@@ -5,4 +5,4 @@ carto_users:
   - publicuser
   - tileuser
 knack_object_id: 25
-staging_folder: ppr
+table_schema: ppr

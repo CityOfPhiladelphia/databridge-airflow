@@ -97,7 +97,7 @@ class S3ToDataBridge2Operator(AWSBatchOperator):
                         table_schema,
                         table_name),
                     '--csv_s3_key=staging/{}/{}.csv'.format(
-                        table_schema.split('_')[1],
+                        self.databridge2_table_schema,
                         table_name),
                 ],
             },
@@ -106,8 +106,11 @@ class S3ToDataBridge2Operator(AWSBatchOperator):
 
     @property
     def databridge2_table_schema(self):
-        # Remove 'gis_' from the schema
-        table_schema = self.table_schema.split('_', 1)[1]
+        if '_' in self.table_schema:
+            # Remove 'gis_' from the schema
+            table_schema = self.table_schema.split('_', 1)[1]
+        else:
+            table_schema = self.table_schema
         if table_schema.isdigit():
             databridge2_table_schema = self.integer_to_word(table_schema)
         else:

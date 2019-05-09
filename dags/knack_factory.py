@@ -16,8 +16,8 @@ from databridge_operators import (
 
 def knack_dag_factory(
     object_id,
-    table_schema,
     table_name,
+    table_schema,
     upload_to_carto,
     schedule_interval,
     select_users,
@@ -61,8 +61,7 @@ def knack_dag_factory(
         globals()[dag_id] = dag # Airflow looks at the module global vars for DAG type variables
 
 for yaml_file in os.listdir('dags/knack_dag_config'):
-    schema_name = yaml_file.split('__')[0]
-    table_name = yaml_file.split('__')[1].split('.')[0]
+    table_name = yaml_file.split('.')[0]
     with open(os.path.join('dags/knack_dag_config', yaml_file)) as f:
         try:
             yaml_data = yaml.safe_load(f.read())
@@ -72,7 +71,8 @@ for yaml_file in os.listdir('dags/knack_dag_config'):
             logger.error('Failed to load {}'.format(yaml_file))
             raise e
         object_id = yaml_data.get('knack_object_id')
+        table_schema = yaml_data.get('table_schema')
         upload_to_carto = yaml_data.get('upload_to_carto')
         schedule_interval = yaml_data.get('schedule_interval')
         select_users = ','.join(yaml_data.get('carto_users'))
-    databridge_carto_dag_factory(object_id, schema_name, table_name, upload_to_carto, schedule_interval, select_users) 
+    knack_dag_factory(object_id, table_name, table_schema, upload_to_carto, schedule_interval, select_users) 

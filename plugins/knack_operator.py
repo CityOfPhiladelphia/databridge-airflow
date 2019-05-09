@@ -23,11 +23,11 @@ class KnackToS3Operator(AWSBatchOperator):
     def __init__(
         self,
         object_id,
-        table_schema,
         table_name,
+        table_schema,
         *args, **kwargs):
         super(KnackToS3Operator, self).__init__(
-            job_name='knack_to_s3_{}_{}'.format(table_schema, table_name),
+            job_name='knack_to_s3_{}'.format(table_name),
             job_definition='extract_knack',
             job_queue='extract_knack',
             region_name='us-east-1',
