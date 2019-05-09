@@ -9,7 +9,6 @@ from airflow.hooks.base_hook import BaseHook
 from slack_notify_plugin import SlackNotificationOperator
 from knack_operator import KnackToS3Operator
 from databridge_operators import (
-    S3ToDataBridge2Operator,
     S3ToCartoOperator,
 )
 
@@ -44,11 +43,7 @@ def knack_dag_factory(
                 table_schema=table_schema, 
                 table_name=table_name)
 
-        s3_to_databridge2 = S3ToDataBridge2Operator(
-                table_schema=table_schema, 
-                table_name=table_name)
-
-        knack_to_s3 >> s3_to_databridge2
+        knack_to_s3
 
         if upload_to_carto:
             s3_to_carto = S3ToCartoOperator(
