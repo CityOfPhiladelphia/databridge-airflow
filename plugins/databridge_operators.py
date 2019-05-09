@@ -173,10 +173,23 @@ class S3ToCartoOperator(AWSBatchOperator):
                     '--s3_bucket=citygeo-airflow-databridge2',
                     '--json_schema_s3_key=schemas/{}__{}.json'.format(table_schema, table_name),
                     '--csv_s3_key=staging/{}/{}.csv'.format(
-                        table_schema.split('_')[1],
+                        self.carto_table_schema,
                         table_name),
                     "--select_users={}".format(select_users),
                 ],
             },
             task_id='s3_to_carto_{}_{}'.format(table_schema, table_name),
             *args, **kwargs)
+
+    @property
+    def carto_table_schema(self):
+        if '_' in self.table_schema:
+            # Remove 'gis_' from the schema
+            table_schema = self.table_schema.split('_', 1)[1]
+        else:
+            table_schema = self.table_schema
+        if table_schema.isdigit():
+            carto_table_schema = self.integer_to_word(table_schema)
+        else:
+            carto_table_schema = table_schema
+        return carto_table_schema
