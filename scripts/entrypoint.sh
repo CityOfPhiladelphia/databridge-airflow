@@ -131,6 +131,10 @@ set_environment_variables() {
   else
       eval $(python3 /secrets_manager.py --name=airflow-slack-dev --key=password --env=SLACK_PASSWORD)
   fi
+
+  # knack
+  eval $(python3 /secrets_manager.py --name=knack-ppr --key=application_id --env=KNACK_APPLICATION_ID)
+  eval $(python3 /secrets_manager.py --name=knack-ppr --key=api_key --env=KNACK_API_KEY)
 }
 
 set_airflow_connections() {
@@ -175,6 +179,11 @@ set_airflow_connections() {
 	  --conn_type HTTP \
 	  --conn_host https://hooks.slack.com/services \
 	  --conn_password $SLACK_PASSWORD
+  airflow connections \
+	  --add --conn_id knack \
+	  --conn_type HTTP \
+	  --conn_login $KNACK_APPLICATION_ID \
+  	  --conn_password $KNACK_API_KEY
 }    
 
 add_users() {
