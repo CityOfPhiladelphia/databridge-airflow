@@ -189,8 +189,4 @@ class S3ToCartoOperator(AWSBatchOperator):
             table_schema = self.table_schema.split('_', 1)[1]
         else:
             table_schema = self.table_schema
-        if table_schema.isdigit():
-            carto_table_schema = self.integer_to_word(table_schema)
-        else:
-            carto_table_schema = table_schema
         return carto_table_schema
