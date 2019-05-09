@@ -189,4 +189,4 @@ class S3ToCartoOperator(AWSBatchOperator):
             table_schema = self.table_schema.split('_', 1)[1]
         else:
             table_schema = self.table_schema
-        return carto_table_schema
+        return table_schema
