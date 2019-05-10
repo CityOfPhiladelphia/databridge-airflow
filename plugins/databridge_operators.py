@@ -39,7 +39,7 @@ class DataBridgeToS3Operator(PartialAWSBatchOperator):
     @property
     def _command(self):
         command = [
-            'databridge_etl_tools', 
+            'databridge_etl_tools',
             'extract',
             '--table_name={}'.format(self.table_name),
             '--table_schema=gis_{}'.format(self.table_schema),
@@ -102,13 +102,14 @@ class S3ToDataBridge2Operator(PartialAWSBatchOperator):
     @property
     def _command(self):
         command = [
-            'databridge_etl_tools', 
-            'extract', 
+            'databridge_etl_tools',
+            'load',
             '--table_name={}'.format(self.table_name),
             '--table_schema={}'.format(self.table_schema),
             '--connection_string={}'.format(self.connection_string),
             '--s3_bucket={}'.format(self.S3_BUCKET),
-            '--s3_key={}'.format(self.csv_s3_key),
+            '--json_schema_s3_key={}'.format(self.json_schema_s3_key),
+            '--csv_s3_key={}'.format(self.csv_s3_key),
         ]
         return command
 
