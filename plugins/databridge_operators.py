@@ -108,7 +108,7 @@ class S3ToDataBridge2Operator(PartialAWSBatchOperator):
             '--table_schema={}'.format(self.table_schema),
             '--connection_string={}'.format(self.connection_string),
             '--s3_bucket={}'.format(self.S3_BUCKET),
-            '--s3_key={}'.format(self._s3_key),
+            '--s3_key={}'.format(self.csv_s3_key),
         ]
         return command
 
