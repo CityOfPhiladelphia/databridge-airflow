@@ -42,7 +42,7 @@ class DataBridgeToS3Operator(PartialAWSBatchOperator):
             'databridge_etl_tools', 
             'extract',
             '--table_name={}'.format(self.table_name),
-            '--table_schema={}'.format(self.table_schema),
+            '--table_schema=gis_{}'.format(self.table_schema),
             '--connection_string={}'.format(self.connection_string),
             '--s3_bucket={}'.format(self.S3_BUCKET),
             '--s3_key={}'.format(self.csv_s3_key),
