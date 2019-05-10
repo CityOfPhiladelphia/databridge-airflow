@@ -105,7 +105,7 @@ class S3ToDataBridge2Operator(PartialAWSBatchOperator):
             'databridge_etl_tools',
             'load',
             '--table_name={}'.format(self.table_name),
-            '--table_schema={}'.format(self.table_schema),
+            '--table_schema={}'.format(self.database_prefixed_table_name),
             '--connection_string={}'.format(self.connection_string),
             '--s3_bucket={}'.format(self.S3_BUCKET),
             '--json_schema_s3_key={}'.format(self.json_schema_s3_key),

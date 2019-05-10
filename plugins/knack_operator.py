@@ -28,7 +28,7 @@ class KnackToS3Operator(PartialAWSBatchOperator):
     @property
     def _command(self):
         command = [
-            'extract-knack', 
+            'extract-knack',
             'extract-records',
             self.connection.login,
             self.connection.password,
