@@ -47,6 +47,7 @@ services:
         depends_on:
             - webserver
         environment:
+            - AIRFLOW__CORE__FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
             - ENVIRONMENT=test
         ports:
             - "5555:5555"
