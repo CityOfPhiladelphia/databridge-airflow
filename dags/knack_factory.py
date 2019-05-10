@@ -55,7 +55,7 @@ def knack_dag_factory(
         globals()[dag_id] = dag # Airflow looks at the module global vars for DAG type variables
 
 for department in os.listdir(os.path.join('dags', 'knack_dag_config')):
-    for table_config_file in os.listdir(department):
+    for table_config_file in os.listdir(os.path.join('dags', 'knack_dag_config', department)):
         # Drop the file extension
         table_name = table_config_file.split('.')[0]
 
