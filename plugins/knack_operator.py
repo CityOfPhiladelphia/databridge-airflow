@@ -1,51 +1,42 @@
-import os
-
 from airflow.hooks.base_hook import BaseHook
-from airflow.contrib.operators.awsbatch_operator import AWSBatchOperator
 from airflow.utils.decorators import apply_defaults
 
+from abstract_batch_operator import PartialAWSBatchOperator
 
-ENVIRONMENT = os.environ['ENVIRONMENT']
-knack_conn = BaseHook.get_connection('knack')
 
-class KnackToS3Operator(AWSBatchOperator):
-    """
-    Runs an AWS Batch Job to extract data from Knack to S3
+class KnackToS3Operator(PartialAWSBatchOperator):
+    """Runs an AWS Batch Job to extract data from Knack to S3."""
 
-    :param object_id: knack object_id
-    :type object_id: int
-    :param table_schema: schema name in the S3 bucket
-    :type table_schema: string
-    :param table_name: table name in the S3 bucket
-    :type table_name: string
-    """
-
-    ui_color = '#ededed'
-    
     @apply_defaults
-    def __init__(
-        self,
-        object_id,
-        table_name,
-        table_schema,
-        *args, **kwargs):
-        super(KnackToS3Operator, self).__init__(
-            job_name='knack_to_s3_{}'.format(table_name),
-            job_definition='knack-airflow-{}'.format(ENVIRONMENT),
-            job_queue='airflow-{}'.format(ENVIRONMENT),
-            region_name='us-east-1',
-            overrides={
-                'command': [
-                    'extract-knack', 
-                    'extract-records',
-                    knack_conn.login,
-                    knack_conn.password,
-                    str(object_id),
-                    '--s3_bucket=citygeo-airflow-databridge2',
-                    '--s3_key=staging/{}/{}.csv'.format(
-                        table_schema,
-                        table_name),
-                ],
-            },
-            task_id='knack_to_s3_{}'.format(table_name),
-            *args, **kwargs)
+    def __init__(self, object_id, *args, **kwargs):
+        self.object_id = str(object_id) # Need to cast or Batch throws an error
+        super(KnackToS3Operator, self).__init__(*args, **kwargs)
+
+    @property
+    def _job_name(self):
+        return 'knack_to_s3_{}_{}'.format(self.table_schema, self.table_name)
+
+    @property
+    def _job_definition(self):
+        return 'knack-airflow-{}'.format(self.ENVIRONMENT)
+
+    @property
+    def connection(self):
+        return BaseHook.get_connection('knack')
+
+    @property
+    def _command(self):
+        command = [
+            'extract-knack', 
+            'extract-records',
+            self.connection.login,
+            self.connection.password,
+            self.object_id,
+            '--s3_bucket={}'.format(self.S3_BUCKET),
+            '--s3_key={}'.format(self.csv_s3_key),
+        ]
+        return command
+
+    @property
+    def _task_id(self):
+        return 'knack_to_s3_{}_{}'.format(self.table_schema, self.table_name)

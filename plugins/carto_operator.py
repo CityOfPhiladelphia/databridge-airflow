@@ -1,62 +1,43 @@
-import os
-
 from airflow.hooks.base_hook import BaseHook
-from airflow.contrib.operators.awsbatch_operator import AWSBatchOperator
 from airflow.utils.decorators import apply_defaults
 
-ENVIRONMENT = os.environ['ENVIRONMENT']
+from abstract_batch_operator import PartialAWSBatchOperator
 
-carto_conn = BaseHook.get_connection('carto_phl')
 
-class S3ToCartoOperator(AWSBatchOperator):
-    """
-    Runs an AWS Batch Job to load data from S3 to Carto
-    
-    :param table_schema: schema name of the csv in S3
-    :type table_schema: string
-    :param table_name: table name of the csv in S3
-    :type table_name: string
-    :param select_users: carto users to grant select to (comma separated string)
-    :type seleect_users string
-    """
-    
-    ui_color = '#ededed'
-    
+class S3ToCartoOperator(PartialAWSBatchOperator):
+    """Runs an AWS Batch Job to load data from S3 to Carto."""
+
     @apply_defaults
-    def __init__(
-        self,
-        table_schema,
-        table_name,
-        select_users,
-        *args, **kwargs):
-        self.table_schema = table_schema
-        super(S3ToCartoOperator, self).__init__(
-            job_name='s3_to_carto_{}_{}'.format(table_schema, table_name),
-            job_definition='carto-db2-airflow-{}'.format(ENVIRONMENT),
-            job_queue='airflow-{}'.format(ENVIRONMENT),
-            region_name='us-east-1',
-            overrides={
-                'command': [
-                    'databridge_etl_tools',
-                    'cartoupdate',
-                    '--table_name={}'.format(table_name),
-                    '--connection_string={}'.format(carto_conn.password),
-                    '--s3_bucket=citygeo-airflow-databridge2',
-                    '--json_schema_s3_key=schemas/{}__{}.json'.format(table_schema, table_name),
-                    '--csv_s3_key=staging/{}/{}.csv'.format(
-                        self.carto_table_schema,
-                        table_name),
-                    "--select_users={}".format(select_users),
-                ],
-            },
-            task_id='s3_to_carto_{}_{}'.format(table_schema, table_name),
-            *args, **kwargs)
+    def __init__(self, select_users, *args, **kwargs):
+        self.select_users = select_users
+        super(S3ToCartoOperator, self).__init__(*args, **kwargs)
 
     @property
-    def carto_table_schema(self):
-        if '_' in self.table_schema:
-            # Remove 'gis_' from the schema
-            table_schema = self.table_schema.split('_', 1)[1]
-        else:
-            table_schema = self.table_schema
-        return table_schema
+    def _job_name(self):
+        return 's3_to_carto_{}_{}'.format(self.table_schema, self.table_name)
+
+    @property
+    def _job_definition(self):
+        return 'carto-db2-airflow-{}'.format(self.ENVIRONMENT)
+
+    @property
+    def connection(self):
+        return BaseHook.get_connection('carto_phl')
+
+    @property
+    def _command(self):
+        command = [
+            'databridge_etl_tools',
+            'cartoupdate',
+            '--table_name={}'.format(self.table_name),
+            '--connection_string={}'.format(self.connection.password),
+            '--s3_bucket={}'.format(self.S3_BUCKET),
+            '--json_schema_s3_key={}'.format(self.json_schema_s3_key),
+            '--csv_s3_key={}'.format(self.csv_s3_key),
+            "--select_users={}".format(self.select_users),
+        ]
+        return command
+
+    @property
+    def _task_id(self):
+        return 's3_to_carto_{}_{}'.format(self.table_schema, self.table_name)

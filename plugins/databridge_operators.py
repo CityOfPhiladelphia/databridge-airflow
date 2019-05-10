@@ -1,125 +1,121 @@
-import os
-
 from airflow.hooks.base_hook import BaseHook
-from airflow.contrib.operators.awsbatch_operator import AWSBatchOperator
 from airflow.utils.decorators import apply_defaults
+
+from abstract_batch_operator import PartialAWSBatchOperator
 
 import cx_Oracle
 
 
-ENVIRONMENT = os.environ['ENVIRONMENT']
+class DataBridgeToS3Operator(PartialAWSBatchOperator):
+    """Runs an AWS Batch Job to extract data from DataBridge to S3."""
 
-db_conn = BaseHook.get_connection('databridge')
-db_connection_string = '{}/{}@{}'.format(
-        db_conn.login,
-        db_conn.password,
-        cx_Oracle.makedsn(db_conn.host,
-                          db_conn.port,
-                          db_conn.extra)
-        )
-db2_conn = BaseHook.get_connection('databridge2')
-db2_connection_string = 'postgresql://{}:{}@{}:{}/{}'.format(
-        db2_conn.login,
-        db2_conn.password,
-        db2_conn.host,
-        db2_conn.port,
-        db2_conn.extra)
-
-class DataBridgeToS3Operator(AWSBatchOperator):
-    """
-    Runs an AWS Batch Job to extract data from DataBridge to S3
-
-    :param table_schema: schema name of the table in the source oracle database
-    :type table_schema: string
-    :param table_name: table name of the table in the source oracle database
-    :type table_name: string
-    """
-
-    ui_color = '#ededed'
-    
     @apply_defaults
-    def __init__(
-        self,
-        table_schema,
-        table_name,
-        *args, **kwargs):
-        super(DataBridgeToS3Operator, self).__init__(
-            job_name='db_to_s3_{}_{}'.format(table_schema, table_name),
-            job_definition='carto-db2-airflow-{}'.format(ENVIRONMENT),
-            job_queue='airflow-{}'.format(ENVIRONMENT),
-            region_name='us-east-1',
-            overrides={
-                'command': [
-                    'databridge_etl_tools', 
-                    'extract', 
-                    '--table_name={}'.format(table_name),
-                    '--table_schema={}'.format(table_schema), 
-                    '--connection_string={}'.format(db_connection_string),
-                    '--s3_bucket=citygeo-airflow-databridge2',
-                    '--s3_key=staging/{}/{}.csv'.format(
-                        table_schema.split('_')[1],
-                        table_name),
-                ],
-            },
-            task_id='db_to_s3_{}_{}'.format(table_schema, table_name),
-            *args, **kwargs)
-
-class S3ToDataBridge2Operator(AWSBatchOperator):
-    """
-    Runs an AWS Batch Job to load data from S3 to DataBridge2
-    
-    :param table_schema: schema name of the csv in S3
-    :type table_schema: string
-    :param table_name: table name of the csv in S3
-    :type table_name: string
-    """
-
-    ui_color = '#ededed'
-    
-    @apply_defaults
-    def __init__(
-        self,
-        table_schema,
-        table_name,
-        *args, **kwargs):
-        self.table_schema = table_schema
-        super(S3ToDataBridge2Operator, self).__init__(
-            job_name='s3_to_databridge2_{}_{}'.format(table_schema, table_name),
-            job_definition='carto-db2-airflow-{}'.format(ENVIRONMENT),
-            job_queue='airflow-{}'.format(ENVIRONMENT),
-            region_name='us-east-1',
-            overrides={
-                'command': [
-                    'databridge_etl_tools',
-                    'load',
-                    '--table_name=databridge_{}'.format(table_name),
-                    '--table_schema={}'.format(self.databridge2_table_schema),
-                    '--connection_string={}'.format(db2_connection_string),
-                    '--s3_bucket=citygeo-airflow-databridge2',
-                    '--json_schema_s3_key=schemas/{}__{}.json'.format(
-                        table_schema,
-                        table_name),
-                    '--csv_s3_key=staging/{}/{}.csv'.format(
-                        self.databridge2_table_schema,
-                        table_name),
-                ],
-            },
-            task_id='s3_to_databridge2_{}_{}'.format(table_schema, table_name),
-            *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super(DataBridgeToS3Operator, self).__init__(*args, **kwargs)
 
     @property
-    def databridge2_table_schema(self):
-        if '_' in self.table_schema:
-            # Remove 'gis_' from the schema
-            table_schema = self.table_schema.split('_', 1)[1]
-        else:
-            table_schema = self.table_schema
-        if table_schema.isdigit():
-            databridge2_table_schema = self.integer_to_word(table_schema)
-        else:
-            databridge2_table_schema = table_schema
-        return databridge2_table_schema
+    def _job_name(self):
+        return 'db_to_s3_{}_{}'.format(self.table_schema, self.table_name)
 
+    @property
+    def _job_definition(self):
+        return 'carto-db2-airflow-{}'.format(self.ENVIRONMENT)
+
+    @property
+    def connection_string(self):
+        db_conn = BaseHook.get_connection('databridge')
+
+        connection_string = '{}/{}@{}'.format(
+            db_conn.login,
+            db_conn.password,
+            cx_Oracle.makedsn(db_conn.host,
+                              db_conn.port,
+                              db_conn.extra)
+        )
+
+        return connection_string
+
+    @property
+    def _command(self):
+        command = [
+            'databridge_etl_tools', 
+            'extract',
+            '--table_name={}'.format(self.table_name),
+            '--table_schema={}'.format(self.table_schema),
+            '--connection_string={}'.format(self.connection_string),
+            '--s3_bucket={}'.format(self.S3_BUCKET),
+            '--s3_key={}'.format(self.csv_s3_key),
+        ]
+        return command
+
+    @property
+    def _task_id(self):
+        return 'db_to_s3_{}_{}'.format(self.table_schema, self.table_name)
+
+class S3ToDataBridge2Operator(PartialAWSBatchOperator):
+    """Runs an AWS Batch Job to load data from S3 to DataBridge2."""
+
+    @apply_defaults
+    def __init__(self, *args, **kwargs):
+        super(S3ToDataBridge2Operator, self).__init__(*args, **kwargs)
+
+    @property
+    def database_prefixed_table_name(self):
+        return '{}_{}'.format(self.connection_id, self.table_name)
+
+    @property
+    def _table_schema(self):
+        table_schema = self.table_schema
+
+        # TODO: When the database migration is complete, this can be removed
+        if table_schema.isdigit():
+            table_schema = self.integer_to_word(table_schema)
+
+        return table_schema
+
+    @property
+    def _job_name(self):
+        return 's3_to_databridge2_{}_{}'.format(self.table_schema, self.table_name)
+
+    @property
+    def _job_definition(self):
+        return 'carto-db2-airflow-{}'.format(self.ENVIRONMENT)
+
+    @property
+    def connection_string(self):
+        db2_conn = BaseHook.get_connection('databridge2')
+
+        connection_string = 'postgresql://{}:{}@{}:{}/{}'.format(
+            db2_conn.login,
+            db2_conn.password,
+            db2_conn.host,
+            db2_conn.port,
+            db2_conn.extra)
+
+        return connection_string
+
+    @property
+    def connection_id(self):
+        return BaseHook.get_connection('databridge2').conn_id
+
+    @property
+    def _command(self):
+        command = [
+            'databridge_etl_tools', 
+            'extract', 
+            '--table_name={}'.format(self.table_name),
+            '--table_schema={}'.format(self.table_schema),
+            '--connection_string={}'.format(self.connection_string),
+            '--s3_bucket={}'.format(self.S3_BUCKET),
+            '--s3_key={}'.format(self._s3_key),
+        ]
+        return command
+
+    @property
+    def _task_id(self):
+        return 's3_to_databridge2_{}_{}'.format(self.table_schema, self.table_name)
+
+    # TODO: When the database migration is complete, this can be removed
     @staticmethod
     def integer_to_word(integer: int) -> str:
         '''Converts integers to words, ie. 311 -> threeoneone '''
@@ -134,9 +130,12 @@ class S3ToDataBridge2Operator(AWSBatchOperator):
             '8': 'eight',
             '9': 'nine',
         }
+
         integer_as_string = str(integer)
         result = ''
+
         for letter in integer_as_string:
             spelled_out_integer = INT_WORD_MAP.get(letter)
             result += spelled_out_integer
+
         return result
