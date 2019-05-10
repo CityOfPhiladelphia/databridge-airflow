@@ -60,9 +60,10 @@ class S3ToDataBridge2Operator(PartialAWSBatchOperator):
     def __init__(self, *args, **kwargs):
         super(S3ToDataBridge2Operator, self).__init__(*args, **kwargs)
 
+    # TODO: Change this? Importing from databridge is temporary so should we even be doing this?
     @property
     def database_prefixed_table_name(self):
-        return '{}_{}'.format(self.connection_id, self.table_name)
+        return 'databridge'
 
     @property
     def _table_schema(self):
@@ -104,8 +105,8 @@ class S3ToDataBridge2Operator(PartialAWSBatchOperator):
         command = [
             'databridge_etl_tools',
             'load',
-            '--table_name={}'.format(self.table_name),
-            '--table_schema={}'.format(self.database_prefixed_table_name),
+            '--table_name={}'.format(self.database_prefixed_table_name),
+            '--table_schema={}'.format(self.table_schema),
             '--connection_string={}'.format(self.connection_string),
             '--s3_bucket={}'.format(self.S3_BUCKET),
             '--json_schema_s3_key={}'.format(self.json_schema_s3_key),
