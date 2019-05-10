@@ -5,35 +5,35 @@ from airflow.contrib.operators.slack_webhook_operator import SlackWebhookOperato
 from airflow.plugins_manager import AirflowPlugin
 
 
-slack_webhook_token = BaseHook.get_connection('slack').password
+SLACK_WEBHOOK_TOKEN = BaseHook.get_connection('slack').password
 
 class SlackNotificationOperator(BaseOperator):
     """Pings a specified channel with a link to a log on success or failure."""
-    
+
     @staticmethod
     def failed(context):
-         slack_msg = """
+        slack_msg = """
             :red_circle: Task Failed.
             *Task*: {task}
             *Dag*: {dag}
             *Execution Time*: {exec_date}
             *Log Url*: {log_url}
             """.format(
-            task=context.get('task_instance').task_id,
-            dag=context.get('task_instance').dag_id,
-            ti=context.get('task_instance'),
-            exec_date=context.get('execution_date'),
-            log_url=context.get('task_instance').log_url,
-         )
-         failed_alert = SlackWebhookOperator(
+                task=context.get('task_instance').task_id,
+                dag=context.get('task_instance').dag_id,
+                ti=context.get('task_instance'),
+                exec_date=context.get('execution_date'),
+                log_url=context.get('task_instance').log_url,
+            )
+        failed_alert = SlackWebhookOperator(
             task_id='slack_test',
             http_conn_id='slack',
-            webhook_token=slack_webhook_token,
+            webhook_token=SLACK_WEBHOOK_TOKEN,
             message=slack_msg,
             username='airflow',
             dag=context.get('dag'),
-         )
-         return failed_alert.execute(context=context)
+        )
+        return failed_alert.execute(context=context)
 
     @staticmethod
     def success(context):
@@ -44,16 +44,16 @@ class SlackNotificationOperator(BaseOperator):
             *Execution Time*: {exec_date}
             *Log Url*: {log_url}
             """.format(
-            task=context.get('task_instance').task_id,
-            dag=context.get('task_instance').dag_id,
-            ti=context.get('task_instance'),
-            exec_date=context.get('execution_date'),
-            log_url=context.get('task_instance').log_url,
-        )
+                task=context.get('task_instance').task_id,
+                dag=context.get('task_instance').dag_id,
+                ti=context.get('task_instance'),
+                exec_date=context.get('execution_date'),
+                log_url=context.get('task_instance').log_url,
+            )
         succeeded_alert = SlackWebhookOperator(
             task_id='slack_test',
             http_conn_id='slack',
-            webhook_token=slack_webhook_token,
+            webhook_token=SLACK_WEBHOOK_TOKEN,
             message=slack_msg,
             username='airflow',
             dag=context.get('dag'),
