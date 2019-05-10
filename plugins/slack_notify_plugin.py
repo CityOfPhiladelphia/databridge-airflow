@@ -1,3 +1,4 @@
+"""Defines a SlackNotificationOperator to send Slack notifications."""
 from airflow.hooks.base_hook import BaseHook
 from airflow.models import BaseOperator
 from airflow.contrib.operators.slack_webhook_operator import SlackWebhookOperator

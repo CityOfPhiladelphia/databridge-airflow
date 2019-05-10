@@ -1,3 +1,4 @@
+"""Defines operators to extract and load data to and from databridge / databridge2."""
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.decorators import apply_defaults
 

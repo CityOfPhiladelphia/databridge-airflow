@@ -1,3 +1,4 @@
+"""Defines a KnackToS3Operator to extract data from Knack."""
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.decorators import apply_defaults
 

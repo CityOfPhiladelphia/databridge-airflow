@@ -1,3 +1,4 @@
+"""Defines a S3ToCartoOperator to load data from S3 to Carto."""
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.decorators import apply_defaults
 

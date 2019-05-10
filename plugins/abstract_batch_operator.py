@@ -1,5 +1,4 @@
-"""This module defines a PartialAWSBatchOperator to define
-default AWS Batch values."""
+"""Defines a PartialAWSBatchOperator to input default AWS Batch values."""
 
 from abc import ABC, abstractmethod
 import os
