@@ -35,13 +35,13 @@ class PartialAWSBatchOperator(AWSBatchOperator, ABC):
             task_id=self._task_id,
             *args, **kwargs)
 
-    @abstractmethod
     @property
+    @abstractmethod
     def _job_name(self):
         pass
 
-    @abstractmethod
     @property
+    @abstractmethod
     def _job_definition(self):
         pass
 
@@ -49,8 +49,8 @@ class PartialAWSBatchOperator(AWSBatchOperator, ABC):
     def _job_queue(self):
         return 'airflow-{}'.format(self.ENVIRONMENT)
 
-    @abstractmethod
     @property
+    @abstractmethod
     def _command(self):
         pass
 
@@ -58,8 +58,8 @@ class PartialAWSBatchOperator(AWSBatchOperator, ABC):
     def _overrides(self):
         return {'command': self._command}
 
-    @abstractmethod
     @property
+    @abstractmethod
     def _task_id(self):
         pass
 
