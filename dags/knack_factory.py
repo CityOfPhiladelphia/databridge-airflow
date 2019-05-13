@@ -18,8 +18,7 @@ def knack_dag_factory(
         table_schema,
         upload_to_carto,
         schedule_interval,
-        select_users,
-        retries=0):
+        select_users):
 
     dag_id = '{}__{}'.format(table_schema, table_name)
 
@@ -27,7 +26,7 @@ def knack_dag_factory(
         'owner': 'airflow',
         'start_date': datetime(2019, 5, 10, 0, 0, 0) - timedelta(hours=8),
         'on_failure_callback': SlackNotificationOperator.failed,
-        'retries': retries
+        'retries': 2 if os.environ['PROD'] else 0
     }
 
     with DAG(
