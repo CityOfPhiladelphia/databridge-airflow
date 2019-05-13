@@ -20,7 +20,7 @@ class DataBridgeToS3Operator(PartialAWSBatchOperator):
 
     @property
     def _job_definition(self):
-        return 'carto-db2-airflow-{}'.format(self.ENVIRONMENT)
+        return 'carto-db2-airflow'
 
     @property
     def connection_string(self):
@@ -81,7 +81,7 @@ class S3ToDataBridge2Operator(PartialAWSBatchOperator):
 
     @property
     def _job_definition(self):
-        return 'carto-db2-airflow-{}'.format(self.ENVIRONMENT)
+        return 'carto-db2-airflow'
 
     @property
     def connection_string(self):
