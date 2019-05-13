@@ -63,7 +63,7 @@ class S3ToDataBridge2Operator(PartialAWSBatchOperator):
     # TODO: Change this? Importing from databridge is temporary so should we even be doing this?
     @property
     def database_prefixed_table_name(self):
-        return 'databridge'
+        return 'databridge_{}'.format(self.table_name)
 
     @property
     def _table_schema(self):
