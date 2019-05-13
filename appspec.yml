@@ -9,5 +9,5 @@ permissions:
     owner: ubuntu
 hooks:
   AfterInstall:
-    - location: scripts/deploy_prod.sh
+    - location: scripts/deploy.sh
       runas: ubuntu
