@@ -5,8 +5,8 @@ deploy:
     revision_type: github
     access_key_id: $AWS_ACCESS_KEY_ID
     secret_access_key: $AWS_SECRET_ACCESS_KEY
-    application: airflow-test
-    deployment_group: airflow-test
+    application: airflow-prod
+    deployment_group: airflow-prod
     region: us-east-1
     on:
       branch: master
