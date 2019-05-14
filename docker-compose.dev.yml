@@ -18,7 +18,7 @@ services:
             # persist data on the local filesystem.
             - PGDATA=/var/lib/postgresql/data/pgdata
         volumes:
-            - ./pgdata:/var/lib/postgresql/data/pgdata
+            - /var/lib/postgresql/data/pgdata:/var/lib/postgresql/data/pgdata
 
     webserver:
         build:
