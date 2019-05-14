@@ -26,7 +26,7 @@ def knack_dag_factory(
         'owner': 'airflow',
         'start_date': datetime(2019, 5, 10, 0, 0, 0) - timedelta(hours=8),
         'on_failure_callback': SlackNotificationOperator.failed,
-        'retries': 2 if os.environ['PROD'] else 0
+        'retries': 2 if 'PROD' in os.environ else 0
     }
 
     with DAG(
