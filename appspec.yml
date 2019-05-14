@@ -8,6 +8,9 @@ permissions:
     pattern: '**'
     owner: ubuntu
 hooks:
+  BeforeInstall:
+    - location: scripts/before_install.sh
+      runas: ubuntu
   AfterInstall:
     - location: scripts/deploy.sh
       runas: ubuntu
