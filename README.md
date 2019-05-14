@@ -46,4 +46,4 @@ PROD=true SEED_DB=true docker-compose up -d
 ```
 
 ## Deployment
-- Automated deployment is done by Travis CI and AWS Code Deploy. Anytime a commit is made to the master branch, airflow is redeployed to a production EC2 instance. For this reason, make sure any development takes place on a branch and is thoroughly QA'd before merging to master.
+- Automated deployment is done by Travis CI and AWS Code Deploy. Anytime a commit is made to the master branch, airflow is redeployed to a production EC2 instance. For this reason, make sure any development takes place on a branch and is thoroughly QA'd before merging to master. Notifcations as to the status of the deployment are posted to #airflow-prod
