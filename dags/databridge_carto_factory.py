@@ -23,7 +23,7 @@ def databridge_carto_dag_factory(
 
     default_args = {
         'owner': 'airflow',
-        'start_date': datetime(2019, 10, 1, 0, 0, 0) - timedelta(hours=8),
+        'start_date': datetime(2019, 5, 15, 0, 0, 0) - timedelta(hours=8),
         'on_failure_callback': SlackNotificationOperator.failed,
         'retries': 2 if 'PROD' in os.environ else 0,
         'retry_delay': timedelta(minutes=5)
