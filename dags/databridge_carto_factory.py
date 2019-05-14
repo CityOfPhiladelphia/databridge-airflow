@@ -39,11 +39,11 @@ def databridge_carto_dag_factory(
             table_schema=table_schema,
             table_name=table_name)
 
-        s3_to_databridge2 = S3ToDataBridge2Operator(
-            table_schema=table_schema,
-            table_name=table_name)
+        # s3_to_databridge2 = S3ToDataBridge2Operator(
+        #     table_schema=table_schema,
+        #     table_name=table_name)
 
-        databridge_to_s3 >> s3_to_databridge2
+        # databridge_to_s3 >> s3_to_databridge2
 
         if upload_to_carto:
             s3_to_carto = S3ToCartoOperator(
