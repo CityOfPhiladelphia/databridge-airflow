@@ -34,7 +34,7 @@ class KnackToS3Operator(PartialAWSBatchOperator):
             'extract-records',
             self.connection.login,
             self.connection.password,
-            self.object_id,
+            str(self.object_id),
             '--s3_bucket={}'.format(self.S3_BUCKET),
             '--s3_key={}'.format(self.csv_s3_key),
         ]
