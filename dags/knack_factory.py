@@ -9,8 +9,8 @@ import yaml
 from airflow import DAG
 
 from slack_notify_plugin import SlackNotificationOperator
-from knack_plugin import KnackToS3Operator
-from carto_plugin import S3ToCartoOperator
+from knack_operator import KnackToS3Operator
+from carto_operator import S3ToCartoOperator
 
 
 def knack_dag_factory(

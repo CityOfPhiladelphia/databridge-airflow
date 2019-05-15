@@ -5,7 +5,7 @@ from airflow.hooks.base_hook import BaseHook
 from airflow.utils.decorators import apply_defaults
 from airflow.plugins_manager import AirflowPlugin
 
-from .abstract.abstract_batch_operator import PartialAWSBatchOperator
+from .abstract_batch_operator import PartialAWSBatchOperator
 
 
 class S3ToCartoOperator(PartialAWSBatchOperator):
