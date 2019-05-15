@@ -3,6 +3,7 @@ from typing import List, Type
 
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.decorators import apply_defaults
+from airflow.plugins_manager import AirflowPlugin
 
 from .abstract.abstract_batch_operator import PartialAWSBatchOperator
 
@@ -44,3 +45,7 @@ class S3ToCartoOperator(PartialAWSBatchOperator):
     @property
     def _task_id(self) -> str:
         return 's3_to_carto_{}_{}'.format(self.table_schema, self.table_name)
+
+class CartoPlugin(AirflowPlugin):
+    name = 'carto_plugin'
+    operators = [S3ToCartoOperator]

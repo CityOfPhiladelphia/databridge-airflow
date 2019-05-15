@@ -3,6 +3,7 @@ from typing import List
 
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.decorators import apply_defaults
+from airflow.plugins_manager import AirflowPlugin
 
 import cx_Oracle
 
@@ -135,3 +136,7 @@ class S3ToDataBridge2Operator(PartialAWSBatchOperator):
             result += spelled_out_integer
 
         return result
+
+class DatabridgePlugin(AirflowPlugin):
+    name = 'databridge_plugin'
+    operators = [DataBridgeToS3Operator, S3ToDataBridge2Operator]

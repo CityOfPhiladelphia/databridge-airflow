@@ -3,6 +3,7 @@ from typing import Type, List, Union
 
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.decorators import apply_defaults
+from airflow.plugins_manager import AirflowPlugin
 
 from .abstract.abstract_batch_operator import PartialAWSBatchOperator
 
@@ -43,3 +44,7 @@ class KnackToS3Operator(PartialAWSBatchOperator):
     @property
     def _task_id(self) -> str:
         return 'knack_to_s3_{}_{}'.format(self.table_schema, self.table_name)
+
+class KnackPlugin(AirflowPlugin):
+    name = 'knack_plugin'
+    operators = [KnackToS3Operator]
