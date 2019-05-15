@@ -1,5 +1,9 @@
-language: generic
-
+language: python
+python: "3.5"
+install:
+  - pip install -r requirements.test.txt
+script:
+  - pytest -p no:warnings test.py
 deploy:
   - provider: codedeploy
     revision_type: github

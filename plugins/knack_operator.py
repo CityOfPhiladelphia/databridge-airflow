@@ -4,7 +4,7 @@ from typing import Type, List, Union
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.decorators import apply_defaults
 
-from abstract_batch_operator import PartialAWSBatchOperator
+from .abstract.abstract_batch_operator import PartialAWSBatchOperator
 
 
 class KnackToS3Operator(PartialAWSBatchOperator):

@@ -1,0 +1,2 @@
+apache-airflow[crypto,postgres,s3,celery,rabbitmq,mssql,slack]==1.10.2
+pytest==4.5.0
