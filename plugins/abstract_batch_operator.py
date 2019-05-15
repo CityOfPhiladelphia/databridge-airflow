@@ -56,7 +56,7 @@ class PartialAWSBatchOperator(AWSBatchOperator, ABC):
         pass
 
     @property
-    def _overrides(self) -> Dict:
+    def _overrides(self) -> Dict[str, str]:
         return {'command': self._command}
 
     @property
