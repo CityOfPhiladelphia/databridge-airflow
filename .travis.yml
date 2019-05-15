@@ -4,12 +4,12 @@ addons:
   apt:
     packages:
       - libpq-dev
-env:
-  - SLUGIFY_USES_TEXT_UNIDECODE=yes
-install:
-  - pip install -r requirements.test.txt
-script:
-  - pytest -p no:warnings test.py
+# env:
+#   - SLUGIFY_USES_TEXT_UNIDECODE=yes
+# install:
+#   - pip install -r requirements.test.txt
+# script:
+#   - pytest -p no:warnings test.py
 deploy:
   - provider: codedeploy
     revision_type: github
