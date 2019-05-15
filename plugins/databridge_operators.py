@@ -39,7 +39,7 @@ class DataBridgeToS3Operator(PartialAWSBatchOperator):
         return connection_string
 
     @property
-    def _command(self) -> List:
+    def _command(self) -> List[str]:
         command = [
             'databridge_etl_tools',
             'extract',
@@ -94,7 +94,7 @@ class S3ToDataBridge2Operator(PartialAWSBatchOperator):
         return connection_string
 
     @property
-    def _command(self) -> List:
+    def _command(self) -> List[str]:
         command = [
             'databridge_etl_tools',
             'load',

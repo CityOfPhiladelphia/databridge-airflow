@@ -18,7 +18,7 @@ def databridge_carto_dag_factory(
         table_name: str,
         upload_to_carto: bool,
         schedule_interval: str,
-        select_users: List) -> None:
+        select_users: List[str]) -> None:
 
     dag_id = '{}__{}'.format(table_schema, table_name)
 

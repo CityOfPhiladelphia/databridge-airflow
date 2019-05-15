@@ -28,7 +28,7 @@ class S3ToCartoOperator(PartialAWSBatchOperator):
         return BaseHook.get_connection('carto_phl')
 
     @property
-    def _command(self) -> List:
+    def _command(self) -> List[str]:
         command = [
             'databridge_etl_tools',
             'cartoupdate',
