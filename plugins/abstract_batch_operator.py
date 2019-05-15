@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 import os
+from typing import Dict
 
 from airflow.contrib.operators.awsbatch_operator import AWSBatchOperator
 from airflow.utils.decorators import apply_defaults
@@ -19,8 +20,8 @@ class PartialAWSBatchOperator(AWSBatchOperator, ABC):
     @apply_defaults
     def __init__(
             self,
-            table_schema,
-            table_name,
+            table_schema: str,
+            table_name: str,
             *args, **kwargs):
 
         self.table_schema = table_schema
@@ -46,7 +47,7 @@ class PartialAWSBatchOperator(AWSBatchOperator, ABC):
         pass
 
     @property
-    def _job_queue(self):
+    def _job_queue(self) -> str:
         return 'airflow-{}'.format(self.ENVIRONMENT)
 
     @property
@@ -55,7 +56,7 @@ class PartialAWSBatchOperator(AWSBatchOperator, ABC):
         pass
 
     @property
-    def _overrides(self):
+    def _overrides(self) -> Dict:
         return {'command': self._command}
 
     @property
@@ -64,9 +65,9 @@ class PartialAWSBatchOperator(AWSBatchOperator, ABC):
         pass
 
     @property
-    def json_schema_s3_key(self):
+    def json_schema_s3_key(self) -> str:
         return 'schemas/{}/{}.json'.format(self.table_schema, self.table_name)
 
     @property
-    def csv_s3_key(self):
+    def csv_s3_key(self) -> str:
         return 'staging/{}/{}.csv'.format(self.table_schema, self.table_name)

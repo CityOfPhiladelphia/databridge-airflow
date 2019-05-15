@@ -1,5 +1,8 @@
 """Defines a S3ToCartoOperator to load data from S3 to Carto."""
+from typing import List
+
 from airflow.hooks.base_hook import BaseHook
+from airflow.models.connection import Connection
 from airflow.utils.decorators import apply_defaults
 
 from abstract_batch_operator import PartialAWSBatchOperator
@@ -9,24 +12,24 @@ class S3ToCartoOperator(PartialAWSBatchOperator):
     """Runs an AWS Batch Job to load data from S3 to Carto."""
 
     @apply_defaults
-    def __init__(self, select_users, *args, **kwargs):
+    def __init__(self, select_users: str, *args, **kwargs):
         self.select_users = select_users
         super(S3ToCartoOperator, self).__init__(*args, **kwargs)
 
     @property
-    def _job_name(self):
+    def _job_name(self) -> str:
         return 's3_to_carto_{}_{}'.format(self.table_schema, self.table_name)
 
     @property
-    def _job_definition(self):
+    def _job_definition(self) -> str:
         return 'carto-db2-airflow'
 
     @property
-    def connection(self):
+    def connection(self) -> Connection:
         return BaseHook.get_connection('carto_phl')
 
     @property
-    def _command(self):
+    def _command(self) -> List:
         command = [
             'databridge_etl_tools',
             'cartoupdate',
@@ -40,5 +43,5 @@ class S3ToCartoOperator(PartialAWSBatchOperator):
         return command
 
     @property
-    def _task_id(self):
+    def _task_id(self) -> str:
         return 's3_to_carto_{}_{}'.format(self.table_schema, self.table_name)

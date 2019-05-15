@@ -1,10 +1,12 @@
 """Defines operators to extract and load data to and from databridge / databridge2."""
+from typing import List
+
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.decorators import apply_defaults
 
-from abstract_batch_operator import PartialAWSBatchOperator
-
 import cx_Oracle
+
+from abstract_batch_operator import PartialAWSBatchOperator
 
 
 class DataBridgeToS3Operator(PartialAWSBatchOperator):
@@ -15,15 +17,15 @@ class DataBridgeToS3Operator(PartialAWSBatchOperator):
         super(DataBridgeToS3Operator, self).__init__(*args, **kwargs)
 
     @property
-    def _job_name(self):
+    def _job_name(self) -> str:
         return 'db_to_s3_{}_{}'.format(self.table_schema, self.table_name)
 
     @property
-    def _job_definition(self):
+    def _job_definition(self) -> str:
         return 'carto-db2-airflow'
 
     @property
-    def connection_string(self):
+    def connection_string(self) -> str:
         db_conn = BaseHook.get_connection('databridge')
 
         connection_string = '{}/{}@{}'.format(
@@ -37,7 +39,7 @@ class DataBridgeToS3Operator(PartialAWSBatchOperator):
         return connection_string
 
     @property
-    def _command(self):
+    def _command(self) -> List:
         command = [
             'databridge_etl_tools',
             'extract',
@@ -50,7 +52,7 @@ class DataBridgeToS3Operator(PartialAWSBatchOperator):
         return command
 
     @property
-    def _task_id(self):
+    def _task_id(self) -> str:
         return 'db_to_s3_{}_{}'.format(self.table_schema, self.table_name)
 
 class S3ToDataBridge2Operator(PartialAWSBatchOperator):
@@ -60,13 +62,8 @@ class S3ToDataBridge2Operator(PartialAWSBatchOperator):
     def __init__(self, *args, **kwargs):
         super(S3ToDataBridge2Operator, self).__init__(*args, **kwargs)
 
-    # TODO: Change this? Importing from databridge is temporary so should we even be doing this?
     @property
-    def database_prefixed_table_name(self):
-        return 'databridge_{}'.format(self.table_name)
-
-    @property
-    def _table_schema(self):
+    def _table_schema(self) -> str:
         table_schema = self.table_schema
 
         # TODO: When the database migration is complete, this can be removed
@@ -76,15 +73,15 @@ class S3ToDataBridge2Operator(PartialAWSBatchOperator):
         return table_schema
 
     @property
-    def _job_name(self):
+    def _job_name(self) -> str:
         return 's3_to_databridge2_{}_{}'.format(self.table_schema, self.table_name)
 
     @property
-    def _job_definition(self):
+    def _job_definition(self) -> str:
         return 'carto-db2-airflow'
 
     @property
-    def connection_string(self):
+    def connection_string(self) -> str:
         db2_conn = BaseHook.get_connection('databridge2')
 
         connection_string = 'postgresql://{}:{}@{}:{}/{}'.format(
@@ -97,15 +94,11 @@ class S3ToDataBridge2Operator(PartialAWSBatchOperator):
         return connection_string
 
     @property
-    def connection_id(self):
-        return BaseHook.get_connection('databridge2').conn_id
-
-    @property
-    def _command(self):
+    def _command(self) -> List:
         command = [
             'databridge_etl_tools',
             'load',
-            '--table_name={}'.format(self.database_prefixed_table_name),
+            '--table_name={}'.format(self.table_name),
             '--table_schema={}'.format(self.table_schema),
             '--connection_string={}'.format(self.connection_string),
             '--s3_bucket={}'.format(self.S3_BUCKET),
@@ -115,7 +108,7 @@ class S3ToDataBridge2Operator(PartialAWSBatchOperator):
         return command
 
     @property
-    def _task_id(self):
+    def _task_id(self) -> str:
         return 's3_to_databridge2_{}_{}'.format(self.table_schema, self.table_name)
 
     # TODO: When the database migration is complete, this can be removed

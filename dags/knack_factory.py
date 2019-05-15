@@ -1,6 +1,7 @@
 """"
 This module creates dags to extract data from knack and load it to carto.
 """
+from typing import List
 from datetime import datetime, timedelta
 import os
 import yaml
@@ -13,12 +14,12 @@ from carto_operator import S3ToCartoOperator
 
 
 def knack_dag_factory(
-        object_id,
-        table_name,
-        table_schema,
-        upload_to_carto,
-        schedule_interval,
-        select_users):
+        object_id: int,
+        table_name: str,
+        table_schema: str,
+        upload_to_carto: bool,
+        schedule_interval: str,
+        select_users: List) -> None:
 
     dag_id = '{}__{}'.format(table_schema, table_name)
 
@@ -62,7 +63,7 @@ for department in os.listdir(os.path.join('dags', 'knack_dag_config')):
         with open(os.path.join('dags', 'knack_dag_config', department, table_config_file)) as f:
             yaml_data = yaml.safe_load(f.read())
 
-            object_id = yaml_data.get('knack_object_id')
+            object_id = int(yaml_data.get('knack_object_id'))
             table_schema = yaml_data.get('table_schema')
             upload_to_carto = yaml_data.get('upload_to_carto')
             schedule_interval = yaml_data.get('schedule_interval')

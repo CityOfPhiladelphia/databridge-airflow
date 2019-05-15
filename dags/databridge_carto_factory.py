@@ -1,6 +1,7 @@
 """"
 This module creates dags to extract data from databridge and load it to databridge2 and carto.
 """
+from typing import List
 from datetime import datetime, timedelta
 import os
 import yaml
@@ -13,11 +14,11 @@ from carto_operator import S3ToCartoOperator
 
 
 def databridge_carto_dag_factory(
-        table_schema,
-        table_name,
-        upload_to_carto,
-        schedule_interval,
-        select_users):
+        table_schema: str,
+        table_name: str,
+        upload_to_carto: bool,
+        schedule_interval: str,
+        select_users: List) -> None:
 
     dag_id = '{}__{}'.format(table_schema, table_name)
 
