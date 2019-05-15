@@ -1,8 +1,7 @@
 """Defines a S3ToCartoOperator to load data from S3 to Carto."""
-from typing import List
+from typing import List, Type
 
 from airflow.hooks.base_hook import BaseHook
-from airflow.models.connection import Connection
 from airflow.utils.decorators import apply_defaults
 
 from abstract_batch_operator import PartialAWSBatchOperator
@@ -25,7 +24,7 @@ class S3ToCartoOperator(PartialAWSBatchOperator):
         return 'carto-db2-airflow'
 
     @property
-    def connection(self) -> Connection:
+    def connection(self) -> Type:
         return BaseHook.get_connection('carto_phl')
 
     @property
