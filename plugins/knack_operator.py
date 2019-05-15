@@ -1,5 +1,5 @@
 """Defines a KnackToS3Operator to extract data from Knack."""
-from typing import Type, List
+from typing import Type, List, Union
 
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.decorators import apply_defaults
@@ -28,7 +28,7 @@ class KnackToS3Operator(PartialAWSBatchOperator):
         return BaseHook.get_connection('knack')
 
     @property
-    def _command(self) -> List[str]:
+    def _command(self) -> List[Union[str, int]]:
         command = [
             'extract-knack',
             'extract-records',
