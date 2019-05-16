@@ -1,9 +1,10 @@
-language: python
-python: "3.5"
-addons:
-  apt:
-    packages:
-      - libpq-dev
+language: generic
+# language: python
+# python: "3.5"
+# addons:
+#   apt:
+#     packages:
+#       - libpq-dev
 # env:
 #   - SLUGIFY_USES_TEXT_UNIDECODE=yes
 # install:
