@@ -64,7 +64,6 @@ for department in os.listdir(os.path.join('dags', 'knack_dag_config')):
             yaml_data = yaml.safe_load(f.read())
 
             object_id = int(yaml_data.get('knack_object_id'))
-            table_schema = yaml_data.get('table_schema')
             upload_to_carto = yaml_data.get('upload_to_carto')
             schedule_interval = yaml_data.get('schedule_interval')
             select_users = ','.join(yaml_data.get('carto_users'))

@@ -5,4 +5,3 @@ carto_users:
   - publicuser
   - tileuser
 knack_object_id: 6
-table_schema: ppr
