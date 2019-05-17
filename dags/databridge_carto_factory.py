@@ -1,7 +1,7 @@
 """"
 This module creates dags to extract data from databridge and load it to databridge2 and carto.
 """
-from typing import List
+from typing import Optional
 from datetime import datetime, timedelta
 import os
 import yaml
@@ -17,7 +17,8 @@ def databridge_carto_dag_factory(
         table_name: str,
         upload_to_carto: bool,
         schedule_interval: str,
-        select_users: List[str]) -> None:
+        select_users: str,
+        index_fields: Optional[str] = None) -> None:
 
     dag_id = '{}__{}'.format(table_schema, table_name)
 
@@ -50,7 +51,8 @@ def databridge_carto_dag_factory(
             s3_to_carto = S3ToCartoOperator(
                 table_schema=table_schema,
                 table_name=table_name,
-                select_users=select_users)
+                select_users=select_users,
+                index_fields=index_fields)
 
             databridge_to_s3 >> s3_to_carto
 
@@ -67,10 +69,17 @@ for department in os.listdir(os.path.join('dags', 'carto_dag_config')):
             upload_to_carto = yaml_data.get('upload_to_carto')
             schedule_interval = yaml_data.get('schedule_interval')
             select_users = ','.join(yaml_data.get('carto_users'))
+            index_list = yaml_data.get('indexes', None)
+
+            if index_list:
+                index_fields = ','.join(index_list)
+            else:
+                index_fields = None
 
         databridge_carto_dag_factory(
             table_schema=department,
             table_name=table_name,
             upload_to_carto=upload_to_carto,
             schedule_interval=schedule_interval,
-            select_users=select_users)
+            select_users=select_users,
+            index_fields=index_fields)

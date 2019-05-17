@@ -106,7 +106,7 @@ RUN chmod +x /worker_entrypoint.sh
 
 # Cache bust
 ENV updated-adds-on 5-1-2019_5
-RUN pip3 install git+https://github.com/CityOfPhiladelphia/databridge-etl-tools#egg=databridge_etl_tools
+RUN pip3 install git+https://github.com/CityOfPhiladelphia/databridge-etl-tools#egg=databridge_etl_tools[carto,oracle,postgres] --process-dependency-links
 
 USER worker
 ENTRYPOINT ["/worker_entrypoint.sh"]

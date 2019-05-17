@@ -1,5 +1,5 @@
 """Defines a S3ToCartoOperator to load data from S3 to Carto."""
-from typing import List, Type
+from typing import Optional, List, Type
 
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.decorators import apply_defaults
@@ -12,8 +12,9 @@ class S3ToCartoOperator(PartialAWSBatchOperator):
     """Runs an AWS Batch Job to load data from S3 to Carto."""
 
     @apply_defaults
-    def __init__(self, select_users: str, *args, **kwargs):
+    def __init__(self, select_users: str, index_fields: Optional[str] = None, *args, **kwargs):
         self.select_users = select_users
+        self.index_fields = index_fields
         super(S3ToCartoOperator, self).__init__(*args, **kwargs)
 
     @property
@@ -38,8 +39,10 @@ class S3ToCartoOperator(PartialAWSBatchOperator):
             '--s3_bucket={}'.format(self.S3_BUCKET),
             '--json_schema_s3_key={}'.format(self.json_schema_s3_key),
             '--csv_s3_key={}'.format(self.csv_s3_key),
-            "--select_users={}".format(self.select_users),
+            "--select_users={}".format(self.select_users)
         ]
+        if self.index_fields:
+            command.append('--index_fields={}'.format(self.index_fields))
         return command
 
     @property

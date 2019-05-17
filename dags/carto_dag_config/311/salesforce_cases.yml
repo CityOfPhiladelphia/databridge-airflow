@@ -4,3 +4,8 @@ upload_to_ago:
 carto_users:
   - tileuser
   - cartodb_user_5219a680-1104-4b8d-bf75-f02f304849e1
+indexes:
+  - service_name
+  - agency_responsible
+  - requested_datetime
+  - status
