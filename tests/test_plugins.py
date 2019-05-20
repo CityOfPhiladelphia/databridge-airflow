@@ -1,26 +1,15 @@
-import os
-from datetime import datetime
 import pytest
+from datetime import datetime
 
-from airflow.models import Connection, TaskInstance
+from airflow.models import TaskInstance
 from airflow import DAG, settings
 
-os.environ['ENVIRONMENT'] = "test"
-from airflow.operators.carto_operator import S3ToCartoOperator
 
+# try:
+#     from airflow.operators.carto_plugin import S3ToCartoOperator
+# except ImportError:
+#     from plugins.operators.carto_operator import S3ToCartoOperator
 
-@pytest.fixture
-def carto():
-    os.environ['AIRFLOW__CORE__FERNET_KEY'] = '46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho='
-    conn = Connection(
-        conn_id='carto_phl',
-        conn_type='HTTP',
-        login='login',
-        password='password',
-    )
-    session = settings.Session()
-    session.add(conn)
-    session.commit()
 
 # def test_s3_to_carto_operator(carto):
     # with DAG(dag_id='anydag', start_date=datetime.now()) as dag:
