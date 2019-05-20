@@ -23,7 +23,6 @@ services:
     webserver:
         build:
             context: .
-            dockerfile: Dockerfile.server
         image: airflow
         restart: always
         depends_on:

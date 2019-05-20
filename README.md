@@ -9,7 +9,7 @@ Airflow instance for ETL's involving Databridge
 
 ## Overview
 - Jobs are scheduled and triggered by Airflow
-- Jobs consist of data extraction, transformation, and loading - primarily through using [databridge-etl-tools](https://github.com/CityOfPhiladelphia/databridge-etl-tools) in a AWS Batch job.
+- Jobs consist of data extraction, transformation, and loading - primarily through using [databridge-etl-tools](https://github.com/CityOfPhiladelphia/databridge-etl-tools) and [extract-knack](https://github.com/CityOfPhiladelphia/extract-knack) in AWS Batch and Lambda.
 - Jobs are pushed to a RabbitMQ task queue by Airflow
 - Airflow stores encrypted database credentials and other metadata in a Postgres database
 - All secrets (database credentials, slack API keys, carto API keys) are stored in AWS Secrets Manager. These are fetched from AWS Secrets Manager when Airflow is launched.
