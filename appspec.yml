@@ -9,8 +9,8 @@ permissions:
     owner: ubuntu
 hooks:
   BeforeInstall:
-    - location: scripts/before_install.sh
+    - location: codedeploy/before_install.sh
       runas: ubuntu
   AfterInstall:
-    - location: scripts/deploy.sh
+    - location: codedeploy/deploy.sh
       runas: ubuntu
