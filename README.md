@@ -34,7 +34,7 @@ SEED_DB=true docker-compose -f docker-compose.dev.yml up
 ## Production
 - If you're launching a production environment, pass the PROD environment variable to use the appropriate slack channel for alerts:
 ```bash
-SEED_DB=true docker-compose.prod.yml up -d
+SEED_DB=true docker-compose -f docker-compose.prod.yml up -d
 ```
 
 ## Deployment
