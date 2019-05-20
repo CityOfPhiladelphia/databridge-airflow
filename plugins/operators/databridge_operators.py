@@ -1,5 +1,6 @@
 """Defines operators to extract and load data to and from databridge / databridge2."""
 from typing import List
+import json
 
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.decorators import apply_defaults
@@ -34,7 +35,7 @@ class DataBridgeToS3Operator(PartialAWSBatchOperator):
             db_conn.password,
             cx_Oracle.makedsn(db_conn.host,
                               db_conn.port,
-                              db_conn.extra)
+                              json.loads(db_conn.extra)['db_name'])
         )
 
         return connection_string
@@ -90,7 +91,7 @@ class S3ToDataBridge2Operator(PartialAWSBatchOperator):
             db2_conn.password,
             db2_conn.host,
             db2_conn.port,
-            db2_conn.extra)
+            json.loads(db2_conn.extra)['db_name'])
 
         return connection_string
 

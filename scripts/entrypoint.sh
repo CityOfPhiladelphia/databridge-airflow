@@ -101,7 +101,6 @@ set_environment_variables() {
   eval $(python3 /secrets_manager.py --name=brt-viewer --key=host --env=BRT_VIEWER_HOST)
   eval $(python3 /secrets_manager.py --name=brt-viewer --key=username --env=BRT_VIEWER_LOGIN)
   eval $(python3 /secrets_manager.py --name=brt-viewer --key=password --env=BRT_VIEWER_PASSWORD)
-  eval $(python3 /secrets_manager.py --name=brt-viewer --key=dbname --env=BRT_VIEWER_DB_NAME)
 
   # carto_phl
   eval $(python3 /secrets_manager.py --name=carto-prod --key=username --env=CARTO_PHL_LOGIN)
@@ -111,13 +110,11 @@ set_environment_variables() {
   eval $(python3 /secrets_manager.py --name=databridge --key=host --env=DATABRIDGE_HOST)
   eval $(python3 /secrets_manager.py --name=databridge --key=username --env=DATABRIDGE_LOGIN)
   eval $(python3 /secrets_manager.py --name=databridge --key=password --env=DATABRIDGE_PASSWORD)
-  eval $(python3 /secrets_manager.py --name=databridge --key=dbname --env=DATABRIDGE_DB_NAME)
 
   # databridge2
   eval $(python3 /secrets_manager.py --name=databridge-raw --key=host --env=DATABRIDGE2_HOST)
   eval $(python3 /secrets_manager.py --name=databridge-raw --key=username --env=DATABRIDGE2_LOGIN)
   eval $(python3 /secrets_manager.py --name=databridge-raw --key=password --env=DATABRIDGE2_PASSWORD)
-  eval $(python3 /secrets_manager.py --name=databridge-raw --key=dbname --env=DATABRIDGE2_DB_NAME)
 
   # hansen
   #eval $(python3 /secrets_manager.py --name=hansen --key=host --env=HANSEN_HOST)
@@ -140,17 +137,17 @@ set_environment_variables() {
 set_airflow_connections() {
   airflow connections \
 	  --add --conn_id brt-viewer \
-	  --conn_type oracle \
-	  --conn_host $BRT_VIEWER_HOST \
-	  --conn_login $BRT_VIEWER_LOGIN \
-	  --conn_password $BRT_VIEWER_PASSWORD \
-	  --conn_port 1521 \
-	  --conn_extra $BRT_VIEWER_DB_NAME
+          --conn_type oracle \
+          --conn_host $BRT_VIEWER_HOST \
+          --conn_login $BRT_VIEWER_LOGIN \
+          --conn_password $BRT_VIEWER_PASSWORD \
+          --conn_port 1521 \
+          --conn_extra '{"db_name": "BRTPROD"}'
   airflow connections \
 	  --add --conn_id carto_phl \
-	  --conn_type HTTP \
-	  --conn_login $CARTO_PHL_LOGIN \
-	  --conn_password $CARTO_PHL_PASSWORD
+          --conn_type HTTP \
+          --conn_login $CARTO_PHL_LOGIN \
+          --conn_password $CARTO_PHL_PASSWORD
   airflow connections \
 	  --add --conn_id databridge \
           --conn_type oracle \
@@ -158,15 +155,15 @@ set_airflow_connections() {
           --conn_login $DATABRIDGE_LOGIN \
           --conn_password $DATABRIDGE_PASSWORD \
           --conn_port 1521 \
-	  --conn_extra $DATABRIDGE_DB_NAME
+	        --conn_extra '{"db_name": "GISDBP"}'
   airflow connections \
-          --add --conn_id "databridge2" \
+    --add --conn_id "databridge2" \
           --conn_type postgres \
           --conn_host $DATABRIDGE2_HOST \
           --conn_login $DATABRIDGE2_LOGIN \
           --conn_password $DATABRIDGE2_PASSWORD \
           --conn_port 5432 \
-	  --conn_extra $DATABRIDGE2_DB_NAME
+	        --conn_extra $'{"db_name": "databridge_raw"}' 
   #airflow connections \
          # --add --conn_id hansen \
         #  --conn_type oracle \
@@ -176,14 +173,14 @@ set_airflow_connections() {
         #  --conn_port 1521
   airflow connections \
 	  --add --conn_id slack \
-	  --conn_type HTTP \
-	  --conn_host https://hooks.slack.com/services \
-	  --conn_password $SLACK_PASSWORD
+          --conn_type HTTP \
+          --conn_host https://hooks.slack.com/services \
+          --conn_password $SLACK_PASSWORD
   airflow connections \
 	  --add --conn_id knack \
-	  --conn_type HTTP \
-	  --conn_login $KNACK_APPLICATION_ID \
-  	  --conn_password $KNACK_API_KEY
+          --conn_type HTTP \
+          --conn_login $KNACK_APPLICATION_ID \
+          --conn_password $KNACK_API_KEY
 }    
 
 add_users() {
