@@ -56,14 +56,14 @@ RUN set -ex \
     && useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow \
     && python3 -m pip install -U pip \
     && pip3 install -U setuptools \
-    && pip3 install Cython \
+    && pip3 install Cython==0.29.7 \
                     pytz==2015.7 \
-                    pyOpenSSL \
-                    ndg-httpsclient \
-                    pyasn1 \
-                    click \
+                    pyOpenSSL==19.0.0 \
+                    ndg-httpsclient==0.5.1 \
+                    pyasn1==0.4.5 \
+                    click==7.0 \
                     apache-airflow[crypto,postgres,s3,celery,rabbitmq,mssql,slack]==1.10.2 \
-                    awscli \
+                    awscli==1.16.161 \
                     boto3==1.7.84 \
                     cryptography==2.6.1 \
                     cx-Oracle==7.0.0 \
