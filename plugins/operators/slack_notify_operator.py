@@ -59,7 +59,3 @@ class SlackNotificationOperator(BaseOperator):
             dag=context.get('dag'),
         )
         return succeeded_alert.execute(context=context)
-
-class SlackNotifyPlugin(AirflowPlugin):
-    name = 'slack_notify_plugin'
-    operators = [SlackNotificationOperator]

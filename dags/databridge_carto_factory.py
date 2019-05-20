@@ -9,8 +9,8 @@ import yaml
 from airflow import DAG
 
 from airflow.operators.slack_notify_plugin import SlackNotificationOperator
-from airflow.operators.databridge_operators import DataBridgeToS3Operator
-from airflow.operators.carto_operator import S3ToCartoOperator
+from airflow.operators.databridge_plugin import DataBridgeToS3Operator
+from airflow.operators.carto_plugin import S3ToCartoOperator
 
 
 def databridge_carto_dag_factory(
