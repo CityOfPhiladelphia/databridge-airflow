@@ -16,16 +16,13 @@ Airflow instance for ETL's involving Databridge
 - Airflow stores encrypted database credentials and other metadata in a Postgres database
 - All secrets (database credentials, slack API keys, carto API keys) are stored in AWS Secrets Manager. These are fetched from AWS Secrets Manager when Airflow is launched.
 
-## AWS AMI Installation
-- Create an EC2 instance from our `airflow` AMI with access to S3, Batch, and AWS Secrets Manager
-
-## Manual Installation on Ubuntu (no AMI)
-** Just use the AMI **
+## Testing
 ```bash
-./scripts/setup.sh
+source scripts/run_tests.sh
 ```
 
 ## Configuration
+- Create an EC2 instance from our `airflow` AMI with access to S3, Batch, and AWS Secrets Manager
 - To set all of the database connections up, simply passing the SEED_DB environment variable to docker-compose. Airflow's entrypoint will pick up this environment variable, fetch all database secrets from AWS Secrets Manager, and load them into Airflow's local Postgres Database: 
 ```bash
 SEED_DB=true docker-compose -f docker-compose.dev.yml up

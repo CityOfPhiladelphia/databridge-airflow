@@ -70,6 +70,7 @@ RUN set -ex \
                     Flask-Bcrypt==0.7.1 \
                     pyodbc==4.0.26 \
                     PyYAML==5.1 \
+                    pytest==4.5.0 \
     && apt-get remove --purge -yqq $buildDeps \
     && apt-get clean \
     && rm -rf \

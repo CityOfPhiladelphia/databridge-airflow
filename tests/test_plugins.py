@@ -1,19 +1,13 @@
 import os
 from datetime import datetime
-
 import pytest
 
-from airflow.models import DagBag, Connection, TaskInstance
+from airflow.models import Connection, TaskInstance
 from airflow import DAG, settings
 
-os.environ['ENVIRONMENT'] = "1"
-from plugins.carto_operator import S3ToCartoOperator
+os.environ['ENVIRONMENT'] = "test"
+from airflow.operators.carto_operator import S3ToCartoOperator
 
-
-@pytest.fixture
-def dagbag():
-    dagbag = DagBag()
-    return dagbag
 
 @pytest.fixture
 def carto():
@@ -27,10 +21,6 @@ def carto():
     session = settings.Session()
     session.add(conn)
     session.commit()
-
-def test_import_dags(dagbag):
-    errors = dagbag.import_errors
-    assert not errors
 
 # def test_s3_to_carto_operator(carto):
     # with DAG(dag_id='anydag', start_date=datetime.now()) as dag:
