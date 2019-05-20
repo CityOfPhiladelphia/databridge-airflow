@@ -7,7 +7,7 @@ from airflow.plugins_manager import AirflowPlugin
 
 import cx_Oracle
 
-from abstract_batch_operator import PartialAWSBatchOperator
+from operators.abstract.abstract_batch_operator import PartialAWSBatchOperator
 
 
 class DataBridgeToS3Operator(PartialAWSBatchOperator):
@@ -136,7 +136,3 @@ class S3ToDataBridge2Operator(PartialAWSBatchOperator):
             result += spelled_out_integer
 
         return result
-
-class DatabridgePlugin(AirflowPlugin):
-    name = 'databridge_plugin'
-    operators = [DataBridgeToS3Operator, S3ToDataBridge2Operator]
