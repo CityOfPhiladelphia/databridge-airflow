@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/CityOfPhiladelphia/databridge-airflow.svg?branch=master)](https://travis-ci.com/CityOfPhiladelphia/databridge-airflow)
+
 # databridge-airflow
 Airflow instance for ETL's involving Databridge
 
