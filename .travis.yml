@@ -1,16 +1,16 @@
+sudo: required
+
 language: generic
-# language: python
-# python: "3.5"
-# addons:
-#   apt:
-#     packages:
-#       - libpq-dev
-# env:
-#   - SLUGIFY_USES_TEXT_UNIDECODE=yes
-# install:
-#   - pip install -r requirements.test.txt
-# script:
-#   - pytest -p no:warnings test.py
+
+services:
+  - docker
+
+before_install:
+  - chmod +x .travis/*.sh
+
+script:
+  - .travis/run_tests.sh
+
 deploy:
   - provider: codedeploy
     revision_type: github

@@ -1,0 +1,12 @@
+version: '3'
+services:
+    child_image:
+        build:
+            context: .
+        image: airflow
+    parent_image:
+        build:
+          context: .
+        image: test
+        depends_on:
+            - child_image

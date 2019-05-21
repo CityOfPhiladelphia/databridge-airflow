@@ -17,10 +17,10 @@ RUN set -ex \
     rm ${AIRFLOW_HOME}/airflow.cfg
 
 COPY tests ${AIRFLOW_HOME}/tests
-COPY scripts/run_tests.sh /run_tests.sh
+COPY .travis/entrypoint.sh /entrypoint.sh
 
-RUN chmod +x /run_tests.sh
+RUN chmod +x /entrypoint.sh
 
 WORKDIR /${AIRFLOW_HOME}
 
-ENTRYPOINT ["/run_tests.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
