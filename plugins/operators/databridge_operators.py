@@ -8,7 +8,7 @@ from airflow.plugins_manager import AirflowPlugin
 
 import cx_Oracle
 
-from operators.abstract.abstract_batch_operator import PartialAWSBatchOperator
+from plugins.operators.abstract.abstract_batch_operator import PartialAWSBatchOperator
 
 
 class DataBridgeToS3Operator(PartialAWSBatchOperator):
@@ -101,7 +101,7 @@ class S3ToDataBridge2Operator(PartialAWSBatchOperator):
             'databridge_etl_tools',
             'load',
             '--table_name={}'.format(self.table_name),
-            '--table_schema={}'.format(self.table_schema),
+            '--table_schema={}'.format(self._table_schema),
             '--connection_string={}'.format(self.connection_string),
             '--s3_bucket={}'.format(self.S3_BUCKET),
             '--json_schema_s3_key={}'.format(self.json_schema_s3_key),

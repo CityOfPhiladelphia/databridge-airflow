@@ -28,7 +28,7 @@ airflow connections \
         --conn_type postgres \
         --conn_host localhost \
         --conn_login login \
-        --conn_password login \
+        --conn_password password \
         --conn_port 5432 \
         --conn_extra $'{"db_name": "db_name"}' 
 #airflow connections \
@@ -49,4 +49,4 @@ airflow connections \
         --conn_login knack_application_id \
         --conn_password knack_api_key
 
-pytest -p no:warnings tests
+pytest -p no:warnings tests/
