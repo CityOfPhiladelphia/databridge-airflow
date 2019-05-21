@@ -18,7 +18,7 @@ Airflow instance for ETL's involving Databridge
 
 ## Testing
 ```bash
-source scripts/run_tests.sh
+source .travis/run_tests.sh
 ```
 
 ## Configuration

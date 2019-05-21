@@ -2,11 +2,18 @@ sudo: required
 
 language: generic
 
+addons:
+  apt:
+    packages:
+      - python3-dev
+      - build-essential
+
 services:
   - docker
 
 before_install:
   - chmod +x .travis/*.sh
+  - .travis/get_oracle_client.sh
 
 script:
   - .travis/run_tests.sh

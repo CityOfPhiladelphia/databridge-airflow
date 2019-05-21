@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
 
-docker-compose -f docker-compose.test.yml up
+docker build -f Dockerfile.test -t test .
+
+docker run test
