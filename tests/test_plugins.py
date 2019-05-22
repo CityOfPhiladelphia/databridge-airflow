@@ -14,20 +14,17 @@ from airflow.operators.knack_plugin import KnackToS3Operator
 from airflow.operators.slack_notify_plugin import SlackNotificationOperator
 
 
-@pytest.fixture(scope='module')
-def global_data():
-    return {
-        'table_schema': 'schema',
-        'table_name': 'table',
-        'select_users': 'user',
-        'object_id': '1'
-    }
+TABLE_SCHEMA = 'schema'
+TABLE_NAME = 'table'
+NUMERICAL_TABLE_NAME = '311'
+SELECT_USERS = 'user'
+OBJECT_ID = '1'
 
-def test_s3_to_carto_operator(global_data):
+def test_s3_to_carto_operator():
     carto_operator = S3ToCartoOperator(
-        table_schema=global_data['table_schema'],
-        table_name=global_data['table_name'],
-        select_users=global_data['select_users']
+        table_schema=TABLE_SCHEMA,
+        table_name=TABLE_NAME,
+        select_users=SELECT_USERS
     )
 
     expected_command = [
@@ -43,10 +40,10 @@ def test_s3_to_carto_operator(global_data):
 
     assert carto_operator._command == expected_command
 
-def test_databridge_to_s3_operator(global_data):
+def test_databridge_to_s3_operator():
     databridge_to_s3 = DataBridgeToS3Operator(
-        table_schema=global_data['table_schema'],
-        table_name=global_data['table_name'],
+        table_schema=TABLE_SCHEMA,
+        table_name=TABLE_NAME,
     )
 
     expected_command = [
@@ -61,10 +58,10 @@ def test_databridge_to_s3_operator(global_data):
 
     assert databridge_to_s3._command == expected_command
 
-def test_s3_to_databridge2_operator_non_numerical(global_data):
+def test_s3_to_databridge2_operator_non_numerical():
     s3_to_databridge2 = S3ToDataBridge2Operator(
-        table_schema=global_data['table_schema'],
-        table_name=global_data['table_name']
+        table_schema=TABLE_SCHEMA,
+        table_name=TABLE_NAME
     )
 
     expected_command = [
@@ -80,13 +77,10 @@ def test_s3_to_databridge2_operator_non_numerical(global_data):
 
     assert s3_to_databridge2._command == expected_command
     
-def test_s3_to_databridge2_operator_numerical(global_data):
-    table_schema = '311'
-    table_name = global_data['table_name']
-
+def test_s3_to_databridge2_operator_numerical():
     s3_to_databridge2 = S3ToDataBridge2Operator(
-        table_schema=table_schema,
-        table_name=table_name
+        table_schema=NUMERICAL_TABLE_NAME,
+        table_name=TABLE_NAME
     )
 
     expected_command = [
@@ -102,11 +96,11 @@ def test_s3_to_databridge2_operator_numerical(global_data):
 
     assert s3_to_databridge2._command == expected_command
 
-def test_knack_to_s3_operator(global_data):
+def test_knack_to_s3_operator():
     knack_to_s3 = KnackToS3Operator(
-        table_schema=global_data['table_schema'],
-        table_name=global_data['table_name'],
-        object_id=global_data['object_id']
+        table_schema=TABLE_SCHEMA,
+        table_name=TABLE_NAME,
+        object_id=OBJECT_ID
     )
 
     expected_command = [

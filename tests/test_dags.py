@@ -30,3 +30,4 @@ def test_all_dags_loaded(dagbag):
         num_files += len(files)
 
     assert dagbag.size() == num_files
+
