@@ -1,9 +1,11 @@
 import os
+import sys
 import pytest
 
 from airflow.models import DagBag
 
 os.environ['ENVIRONMENT'] = 'TEST'
+sys.path.append('../')
 from dags.databridge_carto_factory import databridge_carto_dag_factory
 
 

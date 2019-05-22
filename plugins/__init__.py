@@ -1,6 +1,6 @@
 from airflow.plugins_manager import AirflowPlugin
 
-from plugins.operators import (
+from operators import (
     S3ToCartoOperator,
     DataBridgeToS3Operator, S3ToDataBridge2Operator,
     KnackToS3Operator,

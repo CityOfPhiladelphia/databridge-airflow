@@ -4,7 +4,7 @@ from typing import Optional, List, Type
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.decorators import apply_defaults
 
-from plugins.operators.abstract.abstract_batch_operator import PartialAWSBatchOperator
+from operators.abstract.abstract_batch_operator import PartialAWSBatchOperator
 
 
 class S3ToCartoOperator(PartialAWSBatchOperator):

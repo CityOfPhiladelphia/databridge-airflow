@@ -1,4 +1,5 @@
 import os
+import sys
 import pytest
 from datetime import datetime
 
@@ -6,6 +7,7 @@ from airflow.models import TaskInstance
 from airflow import DAG, settings
 
 os.environ['ENVIRONMENT'] = 'TEST'
+sys.path.append('../')
 from airflow.operators.carto_plugin import S3ToCartoOperator
 from airflow.operators.databridge_plugin import DataBridgeToS3Operator, S3ToDataBridge2Operator
 from airflow.operators.knack_plugin import KnackToS3Operator
