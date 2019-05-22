@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-docker build -f Dockerfile.test -t test .
+docker build -f Dockerfile.travis -t travis .
 
-docker run test
+docker run travis

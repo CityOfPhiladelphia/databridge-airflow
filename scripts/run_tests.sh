@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
 
-pytest -p no:warnings tests
+docker build -f Dockerfile.test -t test .
+
+docker run test

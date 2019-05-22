@@ -71,22 +71,18 @@ RUN set -ex \
         /usr/share/doc-base
 
 # instant basic-lite instant oracle client
+COPY oracle-instantclient12.1-basiclite-12.1.0.2.0-1.x86_64.rpm /oracle-instantclient12.1-basiclite-12.1.0.2.0-1.x86_64.rpm
+
 RUN set -ex \
-    && aws s3api get-object \
-           --bucket citygeo-oracle-instant-client \
-           --key oracle-instantclient12.1-basiclite-12.1.0.2.0-1.x86_64.rpm \
-                 oracle-instantclient12.1-basiclite-12.1.0.2.0-1.x86_64.rpm \
-    && alien -i oracle-instantclient12.1-basiclite-12.1.0.2.0-1.x86_64.rpm \
-    && rm oracle-instantclient12.1-basiclite-12.1.0.2.0-1.x86_64.rpm
+    alien -i /oracle-instantclient12.1-basiclite-12.1.0.2.0-1.x86_64.rpm \
+    && rm /oracle-instantclient12.1-basiclite-12.1.0.2.0-1.x86_64.rpm
 
 # instant oracle-sdk
+COPY oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm /oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm
+
 RUN set -ex \
-    && aws s3api get-object \
-           --bucket citygeo-oracle-instant-client \ 
-           --key oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm \
-                 oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm \
-    && alien -i oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm \
-    && rm oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm
+    alien -i /oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm \
+    && rm /oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm
 
 COPY dags ${AIRFLOW_HOME}/dags
 COPY plugins ${AIRFLOW_HOME}/plugins
