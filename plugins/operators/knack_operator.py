@@ -6,9 +6,10 @@ from airflow.utils.decorators import apply_defaults
 from airflow.plugins_manager import AirflowPlugin
 
 from operators.abstract.abstract_batch_operator import PartialAWSBatchOperator
+from operators.abstract.abstract_lambda_operator import PartialAWSLambdaOperator
 
 
-class KnackToS3Operator(PartialAWSBatchOperator):
+class KnackToS3BatchOperator(PartialAWSBatchOperator):
     """Runs an AWS Batch Job to extract data from Knack to S3."""
 
     @apply_defaults
@@ -43,4 +44,32 @@ class KnackToS3Operator(PartialAWSBatchOperator):
 
     @property
     def _task_id(self) -> str:
-        return 'knack_to_s3_{}_{}'.format(self.table_schema, self.table_name)
+        return 'knack_to_s3_batch_{}_{}'.format(self.table_schema, self.table_name)
+
+class KnackToS3LambdaOperator(PartialAWSLambdaOperator):
+    """Runs a AWS Lambda Function to extract data from Knack to S3."""
+
+    function_name = 'extract-knack'
+
+    def __int__(self, object_id, *args, **kwargs):
+        super().__init__(task_id=self._task_id, *args, **kwargs)
+        self.object_id = object_id
+
+    @property
+    def connection(self) -> Type:
+        return BaseHook.get_connection('knack')
+
+    @property
+    def _task_id(self) -> str:
+        return 'knack_to_s3_lambda_{}_{}'.format(self.table_schema, self.table_name)
+
+    @property
+    def payload(self) -> Type:
+        return json.dumps({
+            'command_name': 'extract-records',
+            'api-id': self.connection.login,
+            'api-key': self.connection.password,
+            'object-id': str(self.object_id),
+            's3_bucket'self.S3_BUCKET,
+            's3_key'self.csv_s3_key
+        })

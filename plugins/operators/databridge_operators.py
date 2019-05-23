@@ -1,5 +1,6 @@
 """Defines operators to extract and load data to and from databridge / databridge2."""
-from typing import List
+from abc import ABC
+from typing import List, Type
 import json
 
 from airflow.hooks.base_hook import BaseHook
@@ -9,23 +10,11 @@ from airflow.plugins_manager import AirflowPlugin
 import cx_Oracle
 
 from operators.abstract.abstract_batch_operator import PartialAWSBatchOperator
+from operators.abstract.abstract_lambda_operator import PartialAWSLambdaOperator
 
 
-class DataBridgeToS3Operator(PartialAWSBatchOperator):
-    """Runs an AWS Batch Job to extract data from DataBridge to S3."""
-
-    @apply_defaults
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    @property
-    def _job_name(self) -> str:
-        return 'db_to_s3_{}_{}'.format(self.table_schema, self.table_name)
-
-    @property
-    def _job_definition(self) -> str:
-        return 'carto-db2-airflow'
-
+class BaseDataBridgeOperator(ABC):
+    """Abstract base class for DataBridgeOperators"""
     @property
     def connection_string(self) -> str:
         db_conn = BaseHook.get_connection('databridge')
@@ -41,30 +30,6 @@ class DataBridgeToS3Operator(PartialAWSBatchOperator):
         return connection_string
 
     @property
-    def _command(self) -> List[str]:
-        command = [
-            'databridge_etl_tools',
-            'extract',
-            '--table_name={}'.format(self.table_name),
-            '--table_schema=gis_{}'.format(self.table_schema),
-            '--connection_string={}'.format(self.connection_string),
-            '--s3_bucket={}'.format(self.S3_BUCKET),
-            '--s3_key={}'.format(self.csv_s3_key),
-        ]
-        return command
-
-    @property
-    def _task_id(self) -> str:
-        return 'db_to_s3_{}_{}'.format(self.table_schema, self.table_name)
-
-class S3ToDataBridge2Operator(PartialAWSBatchOperator):
-    """Runs an AWS Batch Job to load data from S3 to DataBridge2."""
-
-    @apply_defaults
-    def __init__(self, *args, **kwargs):
-        super(S3ToDataBridge2Operator, self).__init__(*args, **kwargs)
-
-    @property
     def _table_schema(self) -> str:
         table_schema = self.table_schema
 
@@ -74,46 +39,7 @@ class S3ToDataBridge2Operator(PartialAWSBatchOperator):
 
         return table_schema
 
-    @property
-    def _job_name(self) -> str:
-        return 's3_to_databridge2_{}_{}'.format(self.table_schema, self.table_name)
-
-    @property
-    def _job_definition(self) -> str:
-        return 'carto-db2-airflow'
-
-    @property
-    def connection_string(self) -> str:
-        db2_conn = BaseHook.get_connection('databridge2')
-
-        connection_string = 'postgresql://{}:{}@{}:{}/{}'.format(
-            db2_conn.login,
-            db2_conn.password,
-            db2_conn.host,
-            db2_conn.port,
-            json.loads(db2_conn.extra)['db_name'])
-
-        return connection_string
-
-    @property
-    def _command(self) -> List[str]:
-        command = [
-            'databridge_etl_tools',
-            'load',
-            '--table_name={}'.format(self.table_name),
-            '--table_schema={}'.format(self._table_schema),
-            '--connection_string={}'.format(self.connection_string),
-            '--s3_bucket={}'.format(self.S3_BUCKET),
-            '--json_schema_s3_key={}'.format(self.json_schema_s3_key),
-            '--csv_s3_key={}'.format(self.csv_s3_key),
-        ]
-        return command
-
-    @property
-    def _task_id(self) -> str:
-        return 's3_to_databridge2_{}_{}'.format(self.table_schema, self.table_name)
-
-    # TODO: When the database migration is complete, this can be removed
+     # TODO: When the database migration is complete, this can be removed
     @staticmethod
     def integer_to_word(integer: int) -> str:
         '''Converts integers to words, ie. 311 -> threeoneone '''
@@ -137,3 +63,117 @@ class S3ToDataBridge2Operator(PartialAWSBatchOperator):
             result += spelled_out_integer
 
         return result
+
+class DataBridgeToS3BatchOperator(PartialAWSBatchOperator, BaseDataBridgeOperator):
+    """Runs an AWS Batch Job to extract data from DataBridge to S3."""
+
+    @apply_defaults
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @property
+    def _job_name(self) -> str:
+        return 'db_to_s3_{}_{}'.format(self.table_schema, self.table_name)
+
+    @property
+    def _job_definition(self) -> str:
+        return 'carto-db2-airflow'
+
+    @property
+    def _command(self) -> List[str]:
+        command = [
+            'databridge_etl_tools',
+            'extract',
+            '--table_name={}'.format(self.table_name),
+            '--table_schema=gis_{}'.format(self.table_schema),
+            '--connection_string={}'.format(self.connection_string),
+            '--s3_bucket={}'.format(self.S3_BUCKET),
+            '--s3_key={}'.format(self.csv_s3_key),
+        ]
+        return command
+
+    @property
+    def _task_id(self) -> str:
+        return 'db_to_s3_batch_{}_{}'.format(self.table_schema, self.table_name)
+
+class DataBridgeToS3LambdaOperator(PartialAWSLambdaOperator, BaseDataBridgeOperator):
+    """Runs an AWS Lambda Function to extract data from DataBridge to S3."""
+
+    function_name = 'databridge-etl-tools'
+
+    @apply_defaults
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @property
+    def _task_id(self) -> str:
+        return 'db_to_s3_lambda_{}_{}'.format(self.table_schema, self.table_name)
+
+    @property
+    def payload(self) -> Type:
+        return json.dumps({
+            'command_name': 'extract',
+            'table_name': self.table_name,
+            'table_schema': 'gis_{}'.format(self.table_schema),
+            'connection_string': self.connection_string,
+            's3_bucket': self.S3_BUCKET,
+            's3_key'self.csv_s3_key
+        })
+
+class S3ToDataBridge2BatchOperator(PartialAWSBatchOperator, BaseDataBridgeOperator):
+    """Runs an AWS Batch Job to load data from S3 to DataBridge2."""
+
+    @apply_defaults
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @property
+    def _job_name(self) -> str:
+        return 's3_to_databridge2_{}_{}'.format(self.table_schema, self.table_name)
+
+    @property
+    def _job_definition(self) -> str:
+        return 'carto-db2-airflow'
+
+    @property
+    def _command(self) -> List[str]:
+        command = [
+            'databridge_etl_tools',
+            'load',
+            '--table_name={}'.format(self.table_name),
+            '--table_schema={}'.format(self._table_schema),
+            '--connection_string={}'.format(self.connection_string),
+            '--s3_bucket={}'.format(self.S3_BUCKET),
+            '--json_schema_s3_key={}'.format(self.json_schema_s3_key),
+            '--csv_s3_key={}'.format(self.csv_s3_key),
+        ]
+        return command
+
+    @property
+    def _task_id(self) -> str:
+        return 's3_to_databridge2_batch_{}_{}'.format(self.table_schema, self.table_name)
+
+class S3ToDataBridge2LambdaOperator(PartialAWSLambdaOperator, BaseDataBridgeOperator):
+    """Runs an AWS Lambda Function to load data from S3 to DataBridge2."""
+
+    function_name = 'databridge-etl-tools'
+
+    @apply_defaults
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @property
+    def _task_id(self) -> str:
+        return 's3_to_databridge2_batch_{}_{}'.format(self.table_schema, self.table_name)
+
+    @property
+    def _command(self) -> Type:
+        return json.dumps({
+            'command_name': 'load',
+            'table_name': self.table_name,
+            'table_schema': self._table_schema,
+            'connection_string': self.connection_string,
+            's3_bucket': self.S3_BUCKET,
+            'json_schema_s3_key': self.json_schema_s3_key,
+            'csv_s3_key': self.csv_s3_key
+        })

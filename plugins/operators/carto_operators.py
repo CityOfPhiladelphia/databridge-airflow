@@ -9,6 +9,7 @@ from airflow.models import BaseOperator
 from airflow.contrib.hooks.aws_lambda_hook import AwsLambdaHook
 
 from operators.abstract.abstract_batch_operator import PartialAWSBatchOperator
+from operators.abstract.abstract_lambda_operator import PartialAWSLambdaOperator
 
 
 class S3ToCartoBatchOperator(PartialAWSBatchOperator):
@@ -50,36 +51,18 @@ class S3ToCartoBatchOperator(PartialAWSBatchOperator):
 
     @property
     def _task_id(self) -> str:
-        return 's3_to_carto_{}_{}'.format(self.table_schema, self.table_name)
+        return 's3_to_carto_batch_{}_{}'.format(self.table_schema, self.table_name)
 
-class S3ToCartoLambdaOperator(BaseOperator):
+class S3ToCartoLambdaOperator(PartialAWSLambdaOperator):
     """Runs an AWS Lambda Function to load data from S3 to Carto."""
 
-    ui_color = '#f4b042'
+    function_name = 'databridge-etl-tools'
 
-    @apply_defaults
-    def __init__(
-        self, 
-        table_name: str, 
-        table_schema: str, 
-        select_users: str,
-        *args, **kwargs):
-
-        self.table_name = table_name
-        self.table_schema = table_schema
+    def __init__(self, select_users: str, index_fields: Optional[str] = None, *args, **kwargs):
         self.select_users = select_users
+        self.index_fields = index_fields
 
         super().__init__(task_id=self._task_id, *args, **kwargs)
-
-        self.hook = self.get_hook()
-
-    @property
-    def json_schema_s3_key(self) -> str:
-        return 'schemas/{}/{}.json'.format(self.table_schema, self.table_name)
-
-    @property
-    def csv_s3_key(self) -> str:
-        return 'staging/{}/{}.csv'.format(self.table_schema, self.table_name)
 
     @property
     def connection(self) -> Type:
@@ -95,37 +78,8 @@ class S3ToCartoLambdaOperator(BaseOperator):
             'command_name': 'cartoupdate',
             'table_name': self.table_name,
             'connection_string': self.connection.password,
-            's3_bucket': 'citygeo-airflow-databridge2',
+            's3_bucket': self.S3_BUCKET,
             'json_schema_s3_key': self.json_schema_s3_key,
             'csv_s3_key': self.csv_s3_key,
             'select_users': self.select_users
         })
-
-    def get_hook(self):
-        return AwsLambdaHook(
-            function_name='databridge-etl-tools',
-            region_name='us-east-1',
-            log_type='Tail',
-            invocation_type='RequestResponse'
-        )
-
-    def execute(self, context):
-        self.log.info(
-            'Running AWS Lambda Function - Function name: {} - Payload: {}'.format(
-                self.hook.function_name, self.payload
-            )
-        )
-
-        response = self.hook.invoke_lambda(self.payload)
-
-        # Returned logs are base64 encoded
-        self.log.info('LogResult: {}'.format(base64.b64decode(response['LogResult'])))
-
-        if response['StatusCode'] == 200:
-            self.log.info('{} completed successfully!'.format(self.hook.function_name))
-        else:
-            self.log.info(
-                '{} failed with status code {}'.format(
-                    self.hook.function_name, response
-                )
-            )
