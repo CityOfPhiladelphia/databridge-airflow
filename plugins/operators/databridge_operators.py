@@ -16,7 +16,7 @@ class DataBridgeToS3Operator(PartialAWSBatchOperator):
 
     @apply_defaults
     def __init__(self, *args, **kwargs):
-        super(DataBridgeToS3Operator, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @property
     def _job_name(self) -> str:

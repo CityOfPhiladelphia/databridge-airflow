@@ -10,7 +10,7 @@ from airflow import DAG
 
 from airflow.operators.slack_notify_plugin import SlackNotificationOperator
 from airflow.operators.knack_plugin import KnackToS3Operator
-from airflow.operators.carto_plugin import S3ToCartoOperator
+from airflow.operators.carto_plugin import S3ToCartoBatchOperator
 
 
 def knack_dag_factory(
@@ -46,7 +46,7 @@ def knack_dag_factory(
         knack_to_s3
 
         if upload_to_carto:
-            s3_to_carto = S3ToCartoOperator(
+            s3_to_carto = S3ToCartoBatchOperator(
                 table_schema=table_schema,
                 table_name=table_name,
                 select_users=select_users)

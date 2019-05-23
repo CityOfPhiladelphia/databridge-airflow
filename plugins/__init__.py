@@ -1,7 +1,7 @@
 from airflow.plugins_manager import AirflowPlugin
 
 from operators import (
-    S3ToCartoOperator,
+    S3ToCartoBatchOperator, S3ToCartoLambdaOperator,
     DataBridgeToS3Operator, S3ToDataBridge2Operator,
     KnackToS3Operator,
     SlackNotificationOperator,
@@ -10,7 +10,7 @@ from operators import (
 
 class CartoPlugin(AirflowPlugin):
     name = 'carto_plugin'
-    operators = [S3ToCartoOperator]
+    operators = [S3ToCartoBatchOperator, S3ToCartoLambdaOperator]
 
 class DatabridgePlugin(AirflowPlugin):
     name = 'databridge_plugin'

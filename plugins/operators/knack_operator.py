@@ -14,7 +14,7 @@ class KnackToS3Operator(PartialAWSBatchOperator):
     @apply_defaults
     def __init__(self, object_id, *args, **kwargs):
         self.object_id = object_id
-        super(KnackToS3Operator, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @property
     def _job_name(self) -> str:
