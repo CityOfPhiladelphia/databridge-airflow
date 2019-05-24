@@ -52,8 +52,8 @@ class KnackToS3LambdaOperator(PartialAWSLambdaOperator):
     function_name = 'extract-knack'
 
     def __int__(self, object_id, *args, **kwargs):
-        super().__init__(task_id=self._task_id, *args, **kwargs)
         self.object_id = object_id
+        super().__init__(task_id=self._task_id, *args, **kwargs)
 
     @property
     def connection(self) -> Type:
@@ -70,6 +70,6 @@ class KnackToS3LambdaOperator(PartialAWSLambdaOperator):
             'api-id': self.connection.login,
             'api-key': self.connection.password,
             'object-id': str(self.object_id),
-            's3_bucket'self.S3_BUCKET,
-            's3_key'self.csv_s3_key
+            's3_bucket': self.S3_BUCKET,
+            's3_key': self.csv_s3_key
         })

@@ -117,7 +117,7 @@ class DataBridgeToS3LambdaOperator(PartialAWSLambdaOperator, BaseDataBridgeOpera
             'table_schema': 'gis_{}'.format(self.table_schema),
             'connection_string': self.connection_string,
             's3_bucket': self.S3_BUCKET,
-            's3_key'self.csv_s3_key
+            's3_key': self.csv_s3_key
         })
 
 class S3ToDataBridge2BatchOperator(PartialAWSBatchOperator, BaseDataBridgeOperator):
@@ -167,7 +167,7 @@ class S3ToDataBridge2LambdaOperator(PartialAWSLambdaOperator, BaseDataBridgeOper
         return 's3_to_databridge2_batch_{}_{}'.format(self.table_schema, self.table_name)
 
     @property
-    def _command(self) -> Type:
+    def payload(self) -> Type:
         return json.dumps({
             'command_name': 'load',
             'table_name': self.table_name,

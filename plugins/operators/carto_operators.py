@@ -61,8 +61,7 @@ class S3ToCartoLambdaOperator(PartialAWSLambdaOperator):
     def __init__(self, select_users: str, index_fields: Optional[str] = None, *args, **kwargs):
         self.select_users = select_users
         self.index_fields = index_fields
-
-        super().__init__(task_id=self._task_id, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @property
     def connection(self) -> Type:
