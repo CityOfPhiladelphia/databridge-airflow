@@ -29,39 +29,4 @@ with DAG(
         select_users='publicuser,tileuser'
     )
 
-# with DAG(
-#         dag_id='0_test_knack_to_s3_lambda',
-#         schedule_interval=None,
-#         default_args=default_args,
-#         max_active_runs=1,
-# ) as dag:
-
-#     knack_to_s3_lambda = KnackToS3LambdaOperator(
-#         table_name='li_imm_dang',
-#         table_schema='lni',
-#         select_users='publicuser,tileuser'
-#     )
-
-with DAG(
-        dag_id='0_test_databridge_to_s3_lambda',
-        schedule_interval=None,
-        default_args=default_args,
-        max_active_runs=1,
-) as dag:
-
-    databridge_to_s3_lambda = DataBridgeToS3LambdaOperator(
-        table_name='li_imm_dang',
-        table_schema='gis_lni',
-    )
-
-with DAG(
-        dag_id='0_test_s3_to_databridge2_lambda',
-        schedule_interval=None,
-        default_args=default_args,
-        max_active_runs=1,
-) as dag:
-
-    s3_to_databridge2_lambda = S3ToDataBridge2LambdaOperator(
-        table_name='li_imm_dang',
-        table_schema='lni',
-    )
+    s3_to_carto_lambda

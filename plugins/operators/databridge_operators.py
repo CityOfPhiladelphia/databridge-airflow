@@ -13,8 +13,8 @@ from operators.abstract.abstract_batch_operator import PartialAWSBatchOperator
 from operators.abstract.abstract_lambda_operator import PartialAWSLambdaOperator
 
 
-class BaseDataBridgeOperator(ABC):
-    """Abstract base class for DataBridgeOperators"""
+class BaseDataBridgeToS3Operator(ABC):
+    """Abstract base class for DataBridgeToS3Operators"""
     @property
     def connection_string(self) -> str:
         db_conn = BaseHook.get_connection('databridge')
@@ -29,6 +29,21 @@ class BaseDataBridgeOperator(ABC):
 
         return connection_string
 
+class BaseS3ToDataBridge2Operator(ABC):
+    @property
+    def connection_string(self) -> str:
+        db_conn = BaseHook.get_connection('databridge2')
+
+        connection_string = 'postgresql://{login}:{password}@{host}:{port}/{db_name}'.format(
+            login=db_conn.login,
+            password=db_conn.password,
+            host=db_conn.host,
+            port=db_conn.port,
+            db_name=json.loads(db_conn.extra)['db_name']
+        )
+
+        return connection_string
+
     @property
     def _table_schema(self) -> str:
         table_schema = self.table_schema
@@ -39,7 +54,7 @@ class BaseDataBridgeOperator(ABC):
 
         return table_schema
 
-     # TODO: When the database migration is complete, this can be removed
+    # TODO: When the database migration is complete, this can be removed
     @staticmethod
     def integer_to_word(integer: int) -> str:
         '''Converts integers to words, ie. 311 -> threeoneone '''
@@ -64,7 +79,7 @@ class BaseDataBridgeOperator(ABC):
 
         return result
 
-class DataBridgeToS3BatchOperator(PartialAWSBatchOperator, BaseDataBridgeOperator):
+class DataBridgeToS3BatchOperator(PartialAWSBatchOperator, BaseDataBridgeToS3Operator):
     """Runs an AWS Batch Job to extract data from DataBridge to S3."""
 
     @apply_defaults
@@ -96,7 +111,7 @@ class DataBridgeToS3BatchOperator(PartialAWSBatchOperator, BaseDataBridgeOperato
     def _task_id(self) -> str:
         return 'db_to_s3_batch_{}_{}'.format(self.table_schema, self.table_name)
 
-class DataBridgeToS3LambdaOperator(PartialAWSLambdaOperator, BaseDataBridgeOperator):
+class DataBridgeToS3LambdaOperator(PartialAWSLambdaOperator, BaseDataBridgeToS3Operator):
     """Runs an AWS Lambda Function to extract data from DataBridge to S3."""
 
     function_name = 'databridge-etl-tools'
@@ -120,7 +135,7 @@ class DataBridgeToS3LambdaOperator(PartialAWSLambdaOperator, BaseDataBridgeOpera
             's3_key': self.csv_s3_key
         })
 
-class S3ToDataBridge2BatchOperator(PartialAWSBatchOperator, BaseDataBridgeOperator):
+class S3ToDataBridge2BatchOperator(PartialAWSBatchOperator, BaseS3ToDataBridge2Operator):
     """Runs an AWS Batch Job to load data from S3 to DataBridge2."""
 
     @apply_defaults
@@ -153,7 +168,7 @@ class S3ToDataBridge2BatchOperator(PartialAWSBatchOperator, BaseDataBridgeOperat
     def _task_id(self) -> str:
         return 's3_to_databridge2_batch_{}_{}'.format(self.table_schema, self.table_name)
 
-class S3ToDataBridge2LambdaOperator(PartialAWSLambdaOperator, BaseDataBridgeOperator):
+class S3ToDataBridge2LambdaOperator(PartialAWSLambdaOperator, BaseS3ToDataBridge2Operator):
     """Runs an AWS Lambda Function to load data from S3 to DataBridge2."""
 
     function_name = 'databridge-etl-tools'
@@ -164,7 +179,7 @@ class S3ToDataBridge2LambdaOperator(PartialAWSLambdaOperator, BaseDataBridgeOper
 
     @property
     def _task_id(self) -> str:
-        return 's3_to_databridge2_batch_{}_{}'.format(self.table_schema, self.table_name)
+        return 's3_to_databridge2_lambda_{}_{}'.format(self.table_schema, self.table_name)
 
     @property
     def payload(self) -> Type:

@@ -1,5 +1,6 @@
 """Defines a KnackToS3Operator to extract data from Knack."""
 from typing import Type, List, Union
+import json
 
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.decorators import apply_defaults
@@ -51,9 +52,9 @@ class KnackToS3LambdaOperator(PartialAWSLambdaOperator):
 
     function_name = 'extract-knack'
 
-    def __int__(self, object_id, *args, **kwargs):
+    def __init__(self, object_id, *args, **kwargs):
         self.object_id = object_id
-        super().__init__(task_id=self._task_id, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @property
     def connection(self) -> Type:
