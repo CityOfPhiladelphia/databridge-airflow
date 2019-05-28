@@ -68,8 +68,8 @@ class KnackToS3LambdaOperator(PartialAWSLambdaOperator):
     def payload(self) -> Type:
         return json.dumps({
             'command_name': 'extract-records',
-            'api-id': self.connection.login,
-            'api-key': self.connection.password,
+            'app-id': self.connection.login,
+            'app-key': self.connection.password,
             'object-id': str(self.object_id),
             's3_bucket': self.S3_BUCKET,
             's3_key': self.csv_s3_key

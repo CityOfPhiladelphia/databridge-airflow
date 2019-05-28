@@ -111,29 +111,11 @@ class DataBridgeToS3BatchOperator(PartialAWSBatchOperator, BaseDataBridgeToS3Ope
     def _task_id(self) -> str:
         return 'db_to_s3_batch_{}_{}'.format(self.table_schema, self.table_name)
 
-class DataBridgeToS3LambdaOperator(PartialAWSLambdaOperator, BaseDataBridgeToS3Operator):
+class DataBridgeToS3LambdaOperator():
     """Runs an AWS Lambda Function to extract data from DataBridge to S3."""
 
-    function_name = 'databridge-etl-tools'
-
-    @apply_defaults
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    @property
-    def _task_id(self) -> str:
-        return 'db_to_s3_lambda_{}_{}'.format(self.table_schema, self.table_name)
-
-    @property
-    def payload(self) -> Type:
-        return json.dumps({
-            'command_name': 'extract',
-            'table_name': self.table_name,
-            'table_schema': 'gis_{}'.format(self.table_schema),
-            'connection_string': self.connection_string,
-            's3_bucket': self.S3_BUCKET,
-            's3_key': self.csv_s3_key
-        })
+        raise NotImplementedError('Not implemented due to the Oracle client being too large to fit on lambda.')
 
 class S3ToDataBridge2BatchOperator(PartialAWSBatchOperator, BaseS3ToDataBridge2Operator):
     """Runs an AWS Batch Job to load data from S3 to DataBridge2."""

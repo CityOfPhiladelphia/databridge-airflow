@@ -11,7 +11,7 @@ os.environ['ENVIRONMENT'] = 'TEST'
 sys.path.append('../')
 from airflow.operators.carto_plugin import S3ToCartoBatchOperator, S3ToCartoLambdaOperator
 from airflow.operators.databridge_plugin import (
-    DataBridgeToS3BatchOperator, DataBridgeToS3LambdaOperator,
+    DataBridgeToS3BatchOperator,
     S3ToDataBridge2BatchOperator, S3ToDataBridge2LambdaOperator,
 )
 from airflow.operators.knack_plugin import KnackToS3BatchOperator, KnackToS3LambdaOperator
@@ -80,23 +80,6 @@ def test_databridge_to_s3_batch_operator():
     ]
 
     assert databridge_to_s3._command == expected_command
-
-def test_databridge_to_s3_lambda_operator():
-    databridge_to_s3 = DataBridgeToS3LambdaOperator(
-        table_schema=TABLE_SCHEMA,
-        table_name=TABLE_NAME,
-    )
-
-    expected_payload = json.dumps({
-        'command_name': 'extract',
-        'table_name': 'table',
-        'table_schema': 'gis_schema',
-        'connection_string': 'login/password@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SID=db_name)))',
-        's3_bucket': 'citygeo-airflow-databridge2',
-        's3_key': 'staging/schema/table.csv'
-    })
-
-    assert databridge_to_s3.payload == expected_payload
 
 def test_s3_to_databridge2_batch_operator_non_numerical():
     s3_to_databridge2 = S3ToDataBridge2BatchOperator(

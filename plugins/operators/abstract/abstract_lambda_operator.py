@@ -9,6 +9,9 @@ from airflow.models import BaseOperator
 from airflow.contrib.hooks.aws_lambda_hook import AwsLambdaHook
 
 
+class LambdaFailedException(Exception): 
+    pass
+
 class PartialAWSLambdaOperator(BaseOperator, ABC):
     """Sets default AWS Lambda values."""
 
@@ -19,10 +22,10 @@ class PartialAWSLambdaOperator(BaseOperator, ABC):
 
     @apply_defaults
     def __init__(
-        self, 
-        table_name: str, 
-        table_schema: str,
-        *args, **kwargs):
+            self,
+            table_name: str,
+            table_schema: str,
+            *args, **kwargs):
 
         self.table_name = table_name
         self.table_schema = table_schema
@@ -68,11 +71,15 @@ class PartialAWSLambdaOperator(BaseOperator, ABC):
         # Returned logs are base64 encoded
         self.log.info('LogResult: {}'.format(base64.b64decode(response['LogResult'])))
 
+        if 'FunctionError' in response:
+            self.log.error('{} failed!'.format(self.hook.function_name))
+            raise LambdaFailedException
+        
         if response['StatusCode'] == 200:
             self.log.info('{} completed successfully!'.format(self.hook.function_name))
         else:
             self.log.info(
-                '{} failed with status code {}'.format(
+                '{} failed due to a network issue with status code {}'.format(
                     self.hook.function_name, response
                 )
             )
