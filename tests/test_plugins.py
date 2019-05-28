@@ -183,8 +183,8 @@ def test_knack_to_s3_lambda_operator():
 
     expected_payload = json.dumps({
         'command_name': 'extract-records',
-        'api-id': 'knack_application_id',
-        'api-key': 'knack_api_key',
+        'app-id': 'knack_application_id',
+        'app-key': 'knack_api_key',
         'object-id': '1',
         's3_bucket': 'citygeo-airflow-databridge2',
         's3_key': 'staging/schema/table.csv'

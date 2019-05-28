@@ -102,10 +102,6 @@ set_environment_variables() {
   eval $(python3 /secrets_manager.py --name=brt-viewer --key=username --env=BRT_VIEWER_LOGIN)
   eval $(python3 /secrets_manager.py --name=brt-viewer --key=password --env=BRT_VIEWER_PASSWORD)
 
-  # carto_phl
-  eval $(python3 /secrets_manager.py --name=carto-prod --key=username --env=CARTO_PHL_LOGIN)
-  eval $(python3 /secrets_manager.py --name=carto-prod --key=connection_string --env=CARTO_PHL_PASSWORD)
-
   # databridge
   eval $(python3 /secrets_manager.py --name=databridge --key=host --env=DATABRIDGE_HOST)
   eval $(python3 /secrets_manager.py --name=databridge --key=username --env=DATABRIDGE_LOGIN)
@@ -122,11 +118,17 @@ set_environment_variables() {
   #eval $(python3 /secrets_manager.py --name=hansen --key=password --env=HANSEN_PASSWORD)
   #eval $(python3 /secrets_manager.py --name=hansen --key=dbname --env=HANSEN_EXTRA)
 
-  # slack
   if [ "$ENVIRONMENT" = "prod" ]; then
-      eval $(python3 /secrets_manager.py --name=airflow-slack-prod --key=password --env=SLACK_PASSWORD)
+    # slack
+    eval $(python3 /secrets_manager.py --name=airflow-slack-prod --key=password --env=SLACK_PASSWORD)
+    # carto
+    eval $(python3 /secrets_manager.py --name=carto-prod --key=connection_string --env=CARTO_PHL_PASSWORD)
   else
-      eval $(python3 /secrets_manager.py --name=airflow-slack-dev --key=password --env=SLACK_PASSWORD)
+    # slack
+    eval $(python3 /secrets_manager.py --name=airflow-slack-dev --key=password --env=SLACK_PASSWORD)
+    # carto
+    eval $(python3 /secrets_manager.py --name=carto-dev --key=connection_string --env=CARTO_PHL_PASSWORD)
+
   fi
 
   # knack
