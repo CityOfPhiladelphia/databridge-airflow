@@ -190,6 +190,10 @@ add_users() {
   airflow create_user --role Viewer --username viewer --firstname viewer --lastname viewer --email alex.waldman@phila.gov --password $VIEWER_USER_PASSWORD
 }
 
+make_pool() {
+  airflow pool -s carto 1 "Limits concurrent carto requests to avoid the rate limit"
+}
+
 wait_for_port "RabbitMQ" "$RABBITMQ_HOST" "$RABBITMQ_PORT"
 wait_for_port "Postgres" "$POSTGRES_HOST" "$POSTGRES_PORT"
 
@@ -201,6 +205,7 @@ case "$1" in
       set_environment_variables
       set_airflow_connections
       add_users
+      make_pool
     fi
     exec airflow webserver
     ;;

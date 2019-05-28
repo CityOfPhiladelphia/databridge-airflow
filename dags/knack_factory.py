@@ -49,7 +49,8 @@ def knack_dag_factory(
             s3_to_carto = S3ToCartoBatchOperator(
                 table_schema=table_schema,
                 table_name=table_name,
-                select_users=select_users)
+                select_users=select_users,
+                pool='carto')
 
             knack_to_s3 >> s3_to_carto
 

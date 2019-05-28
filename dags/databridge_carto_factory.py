@@ -53,7 +53,8 @@ def databridge_carto_dag_factory(
                 table_schema=table_schema,
                 table_name=table_name,
                 select_users=select_users,
-                index_fields=index_fields)
+                index_fields=index_fields,
+                pool='carto')
 
             databridge_to_s3 >> s3_to_carto
 
