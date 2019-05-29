@@ -103,7 +103,6 @@ set_environment_variables() {
   eval $(python3 /secrets_manager.py --name=brt-viewer --key=password --env=BRT_VIEWER_PASSWORD)
 
   # carto_phl
-  eval $(python3 /secrets_manager.py --name=carto-prod --key=username --env=CARTO_PHL_LOGIN)
   eval $(python3 /secrets_manager.py --name=carto-prod --key=connection_string --env=CARTO_PHL_PASSWORD)
 
   # databridge
@@ -146,7 +145,6 @@ set_airflow_connections() {
   airflow connections \
 	  --add --conn_id carto_phl \
           --conn_type HTTP \
-          --conn_login $CARTO_PHL_LOGIN \
           --conn_password $CARTO_PHL_PASSWORD
   airflow connections \
 	  --add --conn_id databridge \
