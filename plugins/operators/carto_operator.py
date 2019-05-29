@@ -11,10 +11,15 @@ class S3ToCartoOperator(PartialAWSBatchOperator):
     """Runs an AWS Batch Job to load data from S3 to Carto."""
 
     @apply_defaults
-    def __init__(self, select_users: str, index_fields: Optional[str] = None, *args, **kwargs):
+    def __init__(self,
+                 conn_id: str,
+                 select_users: str,
+                 index_fields: Optional[str] = None,
+                 **kwargs):
+        self.conn_id = conn_id
         self.select_users = select_users
         self.index_fields = index_fields
-        super(S3ToCartoOperator, self).__init__(*args, **kwargs)
+        super(S3ToCartoOperator, self).__init__(**kwargs)
 
     @property
     def _job_name(self) -> str:
@@ -26,7 +31,7 @@ class S3ToCartoOperator(PartialAWSBatchOperator):
 
     @property
     def connection(self) -> Type:
-        return BaseHook.get_connection('carto_phl')
+        return BaseHook.get_connection(self.conn_id)
 
     @property
     def _command(self) -> List[str]:

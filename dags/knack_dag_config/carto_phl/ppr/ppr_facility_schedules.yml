@@ -1,7 +1,9 @@
 schedule_interval: 30 8 * * 2-6
 upload_to_carto: true
+carto_conn_id: carto_phl
 upload_to_ago: 
 carto_users:
   - publicuser
   - tileuser
 knack_object_id: 31
+knack_conn_id: knack

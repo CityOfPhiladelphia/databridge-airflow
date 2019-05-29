@@ -19,15 +19,9 @@ def test_import_dags(dagbag):
     assert not errors
 
 def test_all_dags_loaded(dagbag):
-    NUM_EXAMPLE_DAGS = 18
-    
-    num_files = NUM_EXAMPLE_DAGS
+    num_files = NUM_EXAMPLE_DAGS = 18
 
-    for root, dirs, files in os.walk(os.path.join('dags', 'carto_dag_config')):
-        num_files += len(files)
-
-    for root, dirs, files in os.walk(os.path.join('dags', 'knack_dag_config')):
+    for root, dirs, files in os.walk('dags'):
         num_files += len(files)
 
     assert dagbag.size() == num_files
-

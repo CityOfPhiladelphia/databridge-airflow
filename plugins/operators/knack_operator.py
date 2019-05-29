@@ -12,7 +12,8 @@ class KnackToS3Operator(PartialAWSBatchOperator):
     """Runs an AWS Batch Job to extract data from Knack to S3."""
 
     @apply_defaults
-    def __init__(self, object_id, *args, **kwargs):
+    def __init__(self, conn_id: str, object_id: int, *args, **kwargs):
+        self.conn_id = conn_id
         self.object_id = object_id
         super(KnackToS3Operator, self).__init__(*args, **kwargs)
 
@@ -26,7 +27,7 @@ class KnackToS3Operator(PartialAWSBatchOperator):
 
     @property
     def connection(self) -> Type:
-        return BaseHook.get_connection('knack')
+        return BaseHook.get_connection(self.conn_id)
 
     @property
     def _command(self) -> List[Union[str, int]]:

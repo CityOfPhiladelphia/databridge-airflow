@@ -14,6 +14,8 @@ from airflow.operators.carto_plugin import S3ToCartoOperator
 
 
 def knack_dag_factory(
+        knack_conn_id: str,
+        carto_conn_id: str,
         object_id: int,
         table_name: str,
         table_schema: str,
@@ -39,6 +41,7 @@ def knack_dag_factory(
     ) as dag:
 
         knack_to_s3 = KnackToS3Operator(
+            conn_id=knack_conn_id,
             object_id=object_id,
             table_schema=table_schema,
             table_name=table_name)
@@ -47,6 +50,7 @@ def knack_dag_factory(
 
         if upload_to_carto:
             s3_to_carto = S3ToCartoOperator(
+                conn_id=carto_conn_id,
                 table_schema=table_schema,
                 table_name=table_name,
                 select_users=select_users)
@@ -55,23 +59,28 @@ def knack_dag_factory(
 
         globals()[dag_id] = dag # Airflow looks at the module global vars for DAG type variables
 
-for department in os.listdir(os.path.join('dags', 'knack_dag_config')):
-    for table_config_file in os.listdir(os.path.join('dags', 'knack_dag_config', department)):
-        # Drop the file extension
-        table_name = table_config_file.split('.')[0]
+for environment in os.listdir(os.path.join('dags', 'knack_dag_config')):
+    for department in os.listdir(os.path.join('dags', 'knack_dag_config', environment)):
+        for table_config_file in os.listdir(os.path.join('dags', 'knack_dag_config', department)):
+            # Drop the file extension
+            table_name = table_config_file.split('.')[0]
 
-        with open(os.path.join('dags', 'knack_dag_config', department, table_config_file)) as f:
-            yaml_data = yaml.safe_load(f.read())
+            with open(os.path.join('dags', 'knack_dag_config', department, table_config_file)) as f:
+                yaml_data = yaml.safe_load(f.read())
 
-            object_id = int(yaml_data.get('knack_object_id'))
-            upload_to_carto = yaml_data.get('upload_to_carto')
-            schedule_interval = yaml_data.get('schedule_interval')
-            select_users = ','.join(yaml_data.get('carto_users'))
+                knack_conn_id = yaml_data.get('knack_conn_id')
+                carto_conn_id = yaml_data.get('carto_conn_id')
+                object_id = int(yaml_data.get('knack_object_id'))
+                upload_to_carto = yaml_data.get('upload_to_carto')
+                schedule_interval = yaml_data.get('schedule_interval')
+                select_users = ','.join(yaml_data.get('carto_users'))
 
-        knack_dag_factory(
-            object_id=object_id,
-            table_name=table_name,
-            table_schema=department,
-            upload_to_carto=upload_to_carto,
-            schedule_interval=schedule_interval,
-            select_users=select_users)
+            knack_dag_factory(
+                knack_conn_id=knack_conn_id,
+                carto_conn_id=carto_conn_id,
+                object_id=object_id,
+                table_name=table_name,
+                table_schema=department,
+                upload_to_carto=upload_to_carto,
+                schedule_interval=schedule_interval,
+                select_users=select_users)

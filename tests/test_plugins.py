@@ -14,6 +14,8 @@ from airflow.operators.knack_plugin import KnackToS3Operator
 from airflow.operators.slack_notify_plugin import SlackNotificationOperator
 
 
+CARTO_CONN_ID = 'carto_phl'
+KNACK_CONN_ID = 'knack'
 TABLE_SCHEMA = 'schema'
 TABLE_NAME = 'table'
 NUMERICAL_TABLE_NAME = '311'
@@ -22,6 +24,7 @@ OBJECT_ID = '1'
 
 def test_s3_to_carto_operator():
     carto_operator = S3ToCartoOperator(
+        conn_id=CARTO_CONN_ID,
         table_schema=TABLE_SCHEMA,
         table_name=TABLE_NAME,
         select_users=SELECT_USERS
@@ -98,6 +101,7 @@ def test_s3_to_databridge2_operator_numerical():
 
 def test_knack_to_s3_operator():
     knack_to_s3 = KnackToS3Operator(
+        conn_id=KNACK_CONN_ID,
         table_schema=TABLE_SCHEMA,
         table_name=TABLE_NAME,
         object_id=OBJECT_ID

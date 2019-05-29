@@ -13,6 +13,8 @@ from airflow.operators.databridge_plugin import DataBridgeToS3Operator
 from airflow.operators.carto_plugin import S3ToCartoOperator
 
 
+CARTO_PHL_CONN_ID = 'carto_phl'
+
 def databridge_carto_dag_factory(
         table_schema: str,
         table_name: str,
@@ -50,6 +52,7 @@ def databridge_carto_dag_factory(
 
         if upload_to_carto:
             s3_to_carto = S3ToCartoOperator(
+                conn_id=CARTO_PHL_CONN_ID,
                 table_schema=table_schema,
                 table_name=table_name,
                 select_users=select_users,

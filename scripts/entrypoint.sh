@@ -105,6 +105,9 @@ set_environment_variables() {
   # carto_phl
   eval $(python3 /secrets_manager.py --name=carto-prod --key=connection_string --env=CARTO_PHL_PASSWORD)
 
+  # carto_gsg
+  eval $(python3 /secrets_manager.py --name=carto-dev --key=connection_string --env=CARTO_GSG_PASSWORD)
+
   # databridge
   eval $(python3 /secrets_manager.py --name=databridge --key=host --env=DATABRIDGE_HOST)
   eval $(python3 /secrets_manager.py --name=databridge --key=username --env=DATABRIDGE_LOGIN)
@@ -131,6 +134,10 @@ set_environment_variables() {
   # knack
   eval $(python3 /secrets_manager.py --name=knack-ppr --key=application_id --env=KNACK_APPLICATION_ID)
   eval $(python3 /secrets_manager.py --name=knack-ppr --key=api_key --env=KNACK_API_KEY)
+
+  # knack_test
+  eval $(python3 /secrets_manager.py --name=knack-ppr-test --key=application_id --env=KNACK_TEST_APPLICATION_ID)
+  eval $(python3 /secrets_manager.py --name=knack-ppr-test --key=api_key --env=KNACK_TEST_API_KEY)
 }
 
 set_airflow_connections() {
@@ -146,6 +153,10 @@ set_airflow_connections() {
 	  --add --conn_id carto_phl \
           --conn_type HTTP \
           --conn_password $CARTO_PHL_PASSWORD
+  airflow connections \
+	  --add --conn_id carto_gsg \
+          --conn_type HTTP \
+          --conn_password $CARTO_GSG_PASSWORD
   airflow connections \
 	  --add --conn_id databridge \
           --conn_type oracle \
@@ -179,6 +190,11 @@ set_airflow_connections() {
           --conn_type HTTP \
           --conn_login $KNACK_APPLICATION_ID \
           --conn_password $KNACK_API_KEY
+  airflow connections \
+	  --add --conn_id knack_test \
+          --conn_type HTTP \
+          --conn_login $KNACK_TEST_APPLICATION_ID \
+          --conn_password $KNACK_TEST_API_KEY
 }    
 
 add_users() {
