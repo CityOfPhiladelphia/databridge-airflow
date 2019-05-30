@@ -1,5 +1,6 @@
 schedule_interval: 15 6 * * *
 upload_to_carto: true
+carto_executor: batch
 upload_to_ago: 
 carto_users:
   - tileuser

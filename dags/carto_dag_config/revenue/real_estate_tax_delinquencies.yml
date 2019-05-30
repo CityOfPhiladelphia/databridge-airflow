@@ -1,5 +1,6 @@
 schedule_interval: false #manually triggered
 upload_to_carto: true
+carto_executor: lambda
 upload_to_ago: 
 carto_users:
   - publicuser
