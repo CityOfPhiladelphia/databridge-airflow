@@ -21,9 +21,10 @@ def knack_dag_factory(
         table_schema: str,
         upload_to_carto: bool,
         schedule_interval: str,
-        select_users: str) -> None:
+        select_users: str,
+        environment: str) -> None:
 
-    dag_id = '{}__{}'.format(table_schema, table_name)
+    dag_id = '{}__{}__{}'.format(table_schema, table_name, environment)
 
     default_args = {
         'owner': 'airflow',
@@ -40,7 +41,7 @@ def knack_dag_factory(
             max_active_runs=1,
     ) as dag:
 
-        knack_to_s3 = KnackToS3Operator(
+        knack_to_s3 = KnackToS3LambdaOperator(
             conn_id=knack_conn_id,
             object_id=object_id,
             table_schema=table_schema,
@@ -49,7 +50,7 @@ def knack_dag_factory(
         knack_to_s3
 
         if upload_to_carto:
-            s3_to_carto = S3ToCartoOperator(
+            s3_to_carto = S3ToCartoLambdaOperator(
                 conn_id=carto_conn_id,
                 table_schema=table_schema,
                 table_name=table_name,
@@ -62,11 +63,11 @@ def knack_dag_factory(
 
 for environment in os.listdir(os.path.join('dags', 'knack_dag_config')):
     for department in os.listdir(os.path.join('dags', 'knack_dag_config', environment)):
-        for table_config_file in os.listdir(os.path.join('dags', 'knack_dag_config', department)):
+        for table_config_file in os.listdir(os.path.join('dags', 'knack_dag_config', environment, department)):
             # Drop the file extension
             table_name = table_config_file.split('.')[0]
 
-            with open(os.path.join('dags', 'knack_dag_config', department, table_config_file)) as f:
+            with open(os.path.join('dags', 'knack_dag_config', environment, department, table_config_file)) as f:
                 yaml_data = yaml.safe_load(f.read())
 
                 knack_conn_id = yaml_data.get('knack_conn_id')
@@ -84,4 +85,5 @@ for environment in os.listdir(os.path.join('dags', 'knack_dag_config')):
                 table_schema=department,
                 upload_to_carto=upload_to_carto,
                 schedule_interval=schedule_interval,
-                select_users=select_users)
+                select_users=select_users,
+                environment=environment)

@@ -51,7 +51,7 @@ def databridge_carto_dag_factory(
         # databridge_to_s3 >> s3_to_databridge2
 
         if upload_to_carto:
-            s3_to_carto = S3ToCartoOperator(
+            s3_to_carto = S3ToCartoLambdaOperator(
                 conn_id=CARTO_PHL_CONN_ID,
                 table_schema=table_schema,
                 table_name=table_name,

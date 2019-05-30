@@ -24,11 +24,7 @@ class S3ToCartoBatchOperator(PartialAWSBatchOperator):
         self.conn_id = conn_id
         self.select_users = select_users
         self.index_fields = index_fields
-<<<<<<< HEAD:plugins/operators/carto_operator.py
-        super(S3ToCartoOperator, self).__init__(**kwargs)
-=======
-        super().__init__(*args, **kwargs)
->>>>>>> master:plugins/operators/carto_operators.py
+        super().__init__(**kwargs)
 
     @property
     def _job_name(self) -> str:
@@ -65,10 +61,15 @@ class S3ToCartoBatchOperator(PartialAWSBatchOperator):
 class S3ToCartoLambdaOperator(PartialAWSLambdaOperator):
     """Runs an AWS Lambda Function to load data from S3 to Carto."""
 
-    def __init__(self, select_users: str, index_fields: Optional[str] = None, *args, **kwargs):
+    def __init__(self, 
+                 conn_id: str,
+                 select_users: str, 
+                 index_fields: Optional[str] = None, 
+                 **kwargs):
+        self.conn_id = conn_id
         self.select_users = select_users
         self.index_fields = index_fields
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
 
     @property
     def function_name(self) -> str:
@@ -76,7 +77,7 @@ class S3ToCartoLambdaOperator(PartialAWSLambdaOperator):
 
     @property
     def connection(self) -> Type:
-        return BaseHook.get_connection('carto_phl')
+        return BaseHook.get_connection(self.conn_id)
     
     @property
     def _task_id(self) -> str:
