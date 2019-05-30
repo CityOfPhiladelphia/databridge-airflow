@@ -9,8 +9,8 @@ import yaml
 from airflow import DAG
 
 from airflow.operators.slack_notify_plugin import SlackNotificationOperator
-from airflow.operators.databridge_plugin import DataBridgeToS3Operator
-from airflow.operators.carto_plugin import S3ToCartoOperator
+from airflow.operators.databridge_plugin import DataBridgeToS3BatchOperator
+from airflow.operators.carto_plugin import S3ToCartoLambdaOperator
 
 
 def databridge_carto_dag_factory(
@@ -38,22 +38,23 @@ def databridge_carto_dag_factory(
             max_active_runs=1,
     ) as dag:
 
-        databridge_to_s3 = DataBridgeToS3Operator(
+        databridge_to_s3 = DataBridgeToS3BatchOperator(
             table_schema=table_schema,
             table_name=table_name)
 
-        # s3_to_databridge2 = S3ToDataBridge2Operator(
+        # s3_to_databridge2 = S3ToDataBridge2LambdaOperator(
         #     table_schema=table_schema,
         #     table_name=table_name)
 
         # databridge_to_s3 >> s3_to_databridge2
 
         if upload_to_carto:
-            s3_to_carto = S3ToCartoOperator(
+            s3_to_carto = S3ToCartoLambdaOperator(
                 table_schema=table_schema,
                 table_name=table_name,
                 select_users=select_users,
-                index_fields=index_fields)
+                index_fields=index_fields,
+                pool='carto')
 
             databridge_to_s3 >> s3_to_carto
 

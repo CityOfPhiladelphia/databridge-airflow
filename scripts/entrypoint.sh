@@ -102,8 +102,9 @@ set_environment_variables() {
   eval $(python3 /secrets_manager.py --name=brt-viewer --key=username --env=BRT_VIEWER_LOGIN)
   eval $(python3 /secrets_manager.py --name=brt-viewer --key=password --env=BRT_VIEWER_PASSWORD)
 
-  # carto_phl
+  # carto
   eval $(python3 /secrets_manager.py --name=carto-prod --key=connection_string --env=CARTO_PHL_PASSWORD)
+  eval $(python3 /secrets_manager.py --name=carto-dev --key=connection_string --env=CARTO_GSG_PASSWORD)
 
   # databridge
   eval $(python3 /secrets_manager.py --name=databridge --key=host --env=DATABRIDGE_HOST)
@@ -121,11 +122,12 @@ set_environment_variables() {
   #eval $(python3 /secrets_manager.py --name=hansen --key=password --env=HANSEN_PASSWORD)
   #eval $(python3 /secrets_manager.py --name=hansen --key=dbname --env=HANSEN_EXTRA)
 
-  # slack
   if [ "$ENVIRONMENT" = "prod" ]; then
-      eval $(python3 /secrets_manager.py --name=airflow-slack-prod --key=password --env=SLACK_PASSWORD)
+    # slack
+    eval $(python3 /secrets_manager.py --name=airflow-slack-prod --key=password --env=SLACK_PASSWORD)
   else
-      eval $(python3 /secrets_manager.py --name=airflow-slack-dev --key=password --env=SLACK_PASSWORD)
+    # slack
+    eval $(python3 /secrets_manager.py --name=airflow-slack-dev --key=password --env=SLACK_PASSWORD)
   fi
 
   # knack
@@ -146,6 +148,10 @@ set_airflow_connections() {
 	  --add --conn_id carto_phl \
           --conn_type HTTP \
           --conn_password $CARTO_PHL_PASSWORD
+  airflow connections \
+	  --add --conn_id carto_gsg \
+          --conn_type HTTP \
+          --conn_password $CARTO_GSG_PASSWORD
   airflow connections \
 	  --add --conn_id databridge \
           --conn_type oracle \
@@ -188,6 +194,10 @@ add_users() {
   airflow create_user --role Viewer --username viewer --firstname viewer --lastname viewer --email alex.waldman@phila.gov --password $VIEWER_USER_PASSWORD
 }
 
+make_pool() {
+  airflow pool -s carto 1 "Limits concurrent carto requests to avoid the rate limit"
+}
+
 wait_for_port "RabbitMQ" "$RABBITMQ_HOST" "$RABBITMQ_PORT"
 wait_for_port "Postgres" "$POSTGRES_HOST" "$POSTGRES_PORT"
 
@@ -199,6 +209,7 @@ case "$1" in
       set_environment_variables
       set_airflow_connections
       add_users
+      make_pool
     fi
     exec airflow webserver
     ;;
