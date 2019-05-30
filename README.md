@@ -16,6 +16,8 @@ Airflow instance for ETL's involving Databridge
 - Airflow stores encrypted database credentials and other metadata in a Postgres database
 - All secrets (database credentials, slack API keys, carto API keys) are stored in AWS Secrets Manager. These are fetched from AWS Secrets Manager when Airflow is launched.
 
+![airflow-layout](assets/Airflow.png)
+
 ## Requirements
 - docker-compose
 - Docker

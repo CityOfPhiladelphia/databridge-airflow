@@ -24,7 +24,7 @@ class KnackToS3BatchOperator(PartialAWSBatchOperator):
 
     @property
     def _job_definition(self) -> str:
-        return 'knack-airflow'
+        return 'knack-airflow-{}'.format(self.ENVIRONMENT)
 
     @property
     def connection(self) -> Type:

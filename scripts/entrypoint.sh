@@ -102,6 +102,10 @@ set_environment_variables() {
   eval $(python3 /secrets_manager.py --name=brt-viewer --key=username --env=BRT_VIEWER_LOGIN)
   eval $(python3 /secrets_manager.py --name=brt-viewer --key=password --env=BRT_VIEWER_PASSWORD)
 
+  # carto
+  eval $(python3 /secrets_manager.py --name=carto-prod --key=connection_string --env=CARTO_PHL_PASSWORD)
+  eval $(python3 /secrets_manager.py --name=carto-dev --key=connection_string --env=CARTO_GSG_PASSWORD)
+
   # databridge
   eval $(python3 /secrets_manager.py --name=databridge --key=host --env=DATABRIDGE_HOST)
   eval $(python3 /secrets_manager.py --name=databridge --key=username --env=DATABRIDGE_LOGIN)
@@ -121,14 +125,9 @@ set_environment_variables() {
   if [ "$ENVIRONMENT" = "prod" ]; then
     # slack
     eval $(python3 /secrets_manager.py --name=airflow-slack-prod --key=password --env=SLACK_PASSWORD)
-    # carto
-    eval $(python3 /secrets_manager.py --name=carto-prod --key=connection_string --env=CARTO_PHL_PASSWORD)
   else
     # slack
     eval $(python3 /secrets_manager.py --name=airflow-slack-dev --key=password --env=SLACK_PASSWORD)
-    # carto
-    eval $(python3 /secrets_manager.py --name=carto-dev --key=connection_string --env=CARTO_PHL_PASSWORD)
-
   fi
 
   # knack
@@ -148,8 +147,11 @@ set_airflow_connections() {
   airflow connections \
 	  --add --conn_id carto_phl \
           --conn_type HTTP \
-          --conn_login $CARTO_PHL_LOGIN \
           --conn_password $CARTO_PHL_PASSWORD
+  airflow connections \
+	  --add --conn_id carto_gsg \
+          --conn_type HTTP \
+          --conn_password $CARTO_GSG_PASSWORD
   airflow connections \
 	  --add --conn_id databridge \
           --conn_type oracle \

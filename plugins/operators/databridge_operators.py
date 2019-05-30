@@ -92,7 +92,7 @@ class DataBridgeToS3BatchOperator(PartialAWSBatchOperator, BaseDataBridgeToS3Ope
 
     @property
     def _job_definition(self) -> str:
-        return 'carto-db2-airflow'
+        return 'carto-db2-airflow-{}'.format(self.ENVIRONMENT)
 
     @property
     def _command(self) -> List[str]:
@@ -130,7 +130,7 @@ class S3ToDataBridge2BatchOperator(PartialAWSBatchOperator, BaseS3ToDataBridge2O
 
     @property
     def _job_definition(self) -> str:
-        return 'carto-db2-airflow'
+        return 'carto-db2-airflow-{}'.format(self.ENVIRONMENT)
 
     @property
     def _command(self) -> List[str]:

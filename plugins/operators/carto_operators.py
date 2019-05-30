@@ -27,7 +27,7 @@ class S3ToCartoBatchOperator(PartialAWSBatchOperator):
 
     @property
     def _job_definition(self) -> str:
-        return 'carto-db2-airflow'
+        return 'carto-db2-airflow-{}'.format(self.ENVIRONMENT)
 
     @property
     def connection(self) -> Type:
