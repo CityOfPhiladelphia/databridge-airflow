@@ -27,7 +27,7 @@ class PartialAWSBatchOperator(AWSBatchOperator, ABC):
         self.table_schema = table_schema
         self.table_name = table_name
 
-        super(PartialAWSBatchOperator, self).__init__(
+        super().__init__(
             job_name=self._job_name,
             job_definition=self._job_definition,
             job_queue=self._job_queue,

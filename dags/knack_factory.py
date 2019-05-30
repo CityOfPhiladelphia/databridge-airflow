@@ -9,8 +9,8 @@ import yaml
 from airflow import DAG
 
 from airflow.operators.slack_notify_plugin import SlackNotificationOperator
-from airflow.operators.knack_plugin import KnackToS3Operator
-from airflow.operators.carto_plugin import S3ToCartoOperator
+from airflow.operators.knack_plugin import KnackToS3LambdaOperator
+from airflow.operators.carto_plugin import S3ToCartoLambdaOperator
 
 
 def knack_dag_factory(
@@ -53,7 +53,8 @@ def knack_dag_factory(
                 conn_id=carto_conn_id,
                 table_schema=table_schema,
                 table_name=table_name,
-                select_users=select_users)
+                select_users=select_users,
+                pool='carto')
 
             knack_to_s3 >> s3_to_carto
 
