@@ -1,6 +1,7 @@
 """Defines a PartialAWSLambdaOperator to input default AWS Lambda values."""
 
 from abc import ABC, abstractmethod
+import os
 import json
 import base64
 
@@ -17,6 +18,7 @@ class PartialAWSLambdaOperator(BaseOperator, ABC):
 
     ui_color = '#f4b042'
 
+    ENVIRONMENT = os.environ['ENVIRONMENT']
     AWS_REGION = 'us-east-1'
     S3_BUCKET = 'citygeo-airflow-databridge2'
 
@@ -32,6 +34,11 @@ class PartialAWSLambdaOperator(BaseOperator, ABC):
         self.hook = self.get_hook()
 
         super().__init__(task_id=self._task_id, *args, **kwargs)
+
+    @property
+    @abstractmethod
+    def function_name(self):
+        pass
 
     @property
     def json_schema_s3_key(self) -> str:

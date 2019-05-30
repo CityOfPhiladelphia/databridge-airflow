@@ -50,11 +50,13 @@ class KnackToS3BatchOperator(PartialAWSBatchOperator):
 class KnackToS3LambdaOperator(PartialAWSLambdaOperator):
     """Runs a AWS Lambda Function to extract data from Knack to S3."""
 
-    function_name = 'extract-knack'
-
     def __init__(self, object_id, *args, **kwargs):
         self.object_id = object_id
         super().__init__(*args, **kwargs)
+
+    @property
+    def function_name(self) -> str:
+        return 'extract-knack-{}'.format(self.ENVIRONMENT)
 
     @property
     def connection(self) -> Type:

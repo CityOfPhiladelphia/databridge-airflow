@@ -56,12 +56,14 @@ class S3ToCartoBatchOperator(PartialAWSBatchOperator):
 class S3ToCartoLambdaOperator(PartialAWSLambdaOperator):
     """Runs an AWS Lambda Function to load data from S3 to Carto."""
 
-    function_name = 'databridge-etl-tools'
-
     def __init__(self, select_users: str, index_fields: Optional[str] = None, *args, **kwargs):
         self.select_users = select_users
         self.index_fields = index_fields
         super().__init__(*args, **kwargs)
+
+    @property
+    def function_name(self) -> str:
+        return 'databridge-etl-tools-{}'.format(self.ENVIRONMENT)
 
     @property
     def connection(self) -> Type:

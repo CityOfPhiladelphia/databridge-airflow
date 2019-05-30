@@ -153,11 +153,13 @@ class S3ToDataBridge2BatchOperator(PartialAWSBatchOperator, BaseS3ToDataBridge2O
 class S3ToDataBridge2LambdaOperator(PartialAWSLambdaOperator, BaseS3ToDataBridge2Operator):
     """Runs an AWS Lambda Function to load data from S3 to DataBridge2."""
 
-    function_name = 'databridge-etl-tools'
-
     @apply_defaults
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    @property
+    def function_name(self) -> str:
+        return 'databridge-etl-tools-{}'.format(self.ENVIRONMENT)
 
     @property
     def _task_id(self) -> str:
