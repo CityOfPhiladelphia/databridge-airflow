@@ -16,6 +16,11 @@ airflow connections \
         --conn_login login \
         --conn_password password
 airflow connections \
+    --add --conn_id carto_gsg \
+        --conn_type HTTP \
+        --conn_login login \
+        --conn_password password
+airflow connections \
     --add --conn_id databridge \
         --conn_type oracle \
         --conn_host localhost \
@@ -45,6 +50,11 @@ airflow connections \
         --conn_password password
 airflow connections \
     --add --conn_id knack \
+        --conn_type HTTP \
+        --conn_login knack_application_id \
+        --conn_password knack_api_key
+airflow connections \
+    --add --conn_id knack_test \
         --conn_type HTTP \
         --conn_login knack_application_id \
         --conn_password knack_api_key

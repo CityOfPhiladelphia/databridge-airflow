@@ -26,14 +26,9 @@ NUMERICAL_TABLE_NAME = '311'
 SELECT_USERS = 'user'
 OBJECT_ID = '1'
 
-<<<<<<< HEAD
-def test_s3_to_carto_operator():
-    carto_operator = S3ToCartoOperator(
-        conn_id=CARTO_CONN_ID,
-=======
 def test_s3_to_carto_batch_operator():
     carto_operator = S3ToCartoBatchOperator(
->>>>>>> master
+        conn_id=CARTO_CONN_ID,
         table_schema=TABLE_SCHEMA,
         table_name=TABLE_NAME,
         select_users=SELECT_USERS
@@ -54,6 +49,7 @@ def test_s3_to_carto_batch_operator():
 
 def test_s3_to_carto_lambda_operator():
     carto_operator = S3ToCartoLambdaOperator(
+        conn_id=CARTO_CONN_ID,
         table_schema=TABLE_SCHEMA,
         table_name=TABLE_NAME,
         select_users=SELECT_USERS
@@ -145,32 +141,9 @@ def test_s3_to_databridge2_batch_operator_numerical():
 
     assert s3_to_databridge2._command == expected_command
 
-<<<<<<< HEAD
-def test_knack_to_s3_operator():
-    knack_to_s3 = KnackToS3Operator(
-        conn_id=KNACK_CONN_ID,
-=======
-def test_s3_to_databridge2_lambda_operator_numerical():
-    s3_to_databridge2 = S3ToDataBridge2LambdaOperator(
-        table_schema=NUMERICAL_TABLE_NAME,
-        table_name=TABLE_NAME
-    )
-
-    expected_payload = json.dumps({
-        'command_name': 'load',
-        'table_name': 'table',
-        'table_schema': 'threeoneone',
-        'connection_string': 'postgresql://login:password@localhost:5432/db_name',
-        's3_bucket': 'citygeo-airflow-databridge2',
-        'json_schema_s3_key': 'schemas/311/table.json',
-        'csv_s3_key': 'staging/311/table.csv'
-    })
-
-    assert s3_to_databridge2.payload == expected_payload
-
 def test_knack_to_s3_batch_operator():
     knack_to_s3 = KnackToS3BatchOperator(
->>>>>>> master
+        conn_id=KNACK_CONN_ID,
         table_schema=TABLE_SCHEMA,
         table_name=TABLE_NAME,
         object_id=OBJECT_ID
@@ -190,6 +163,7 @@ def test_knack_to_s3_batch_operator():
 
 def test_knack_to_s3_lambda_operator():
     knack_to_s3 = KnackToS3LambdaOperator(
+        conn_id=KNACK_CONN_ID,
         table_schema=TABLE_SCHEMA,
         table_name=TABLE_NAME,
         object_id=OBJECT_ID
