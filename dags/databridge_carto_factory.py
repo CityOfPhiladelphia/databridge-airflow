@@ -19,7 +19,6 @@ def databridge_carto_dag_factory(
         table_schema: str,
         table_name: str,
         upload_to_carto: bool,
-        carto_executor: str,
         schedule_interval: str,
         select_users: str,
         index_fields: Optional[str] = None) -> None:
@@ -52,24 +51,18 @@ def databridge_carto_dag_factory(
         # databridge_to_s3 >> s3_to_databridge2
 
         if upload_to_carto:
-            if carto_executor == 'Batch':
-                s3_to_carto = S3ToCartoBatchOperator(
-                    conn_id=CARTO_PHL_CONN_ID,
-                    table_schema=table_schema,
-                    table_name=table_name,
-                    select_users=select_users,
-                    index_fields=index_fields,
-                    pool='carto')
-            elif carto_executor == 'batch':
-                s3_to_carto = S3ToCartoBatchOperator(
-                    conn_id=CARTO_PHL_CONN_ID,
-                    table_schema=table_schema,
-                    table_name=table_name,
-                    select_users=select_users,
-                    index_fields=index_fields,
-                    pool='carto')
+            s3_to_carto = S3ToCartoBatchOperator(
+                conn_id=CARTO_PHL_CONN_ID,
+                table_schema=table_schema,
+                table_name=table_name,
+                select_users=select_users,
+                index_fields=index_fields,
+                pool='carto')
 
             databridge_to_s3 >> s3_to_carto
+
+        else:
+            databridge_to_s3
 
         globals()[dag_id] = dag # Airflow looks at the module global vars for DAG type variables
 
@@ -82,7 +75,6 @@ for department in os.listdir(os.path.join('dags', 'carto_dag_config')):
             yaml_data = yaml.safe_load(f.read())
 
             upload_to_carto = yaml_data.get('upload_to_carto')
-            carto_executor = yaml_data.get('carto_executor', None)
             schedule_interval = yaml_data.get('schedule_interval')
             select_users = ','.join(yaml_data.get('carto_users'))
             index_list = yaml_data.get('indexes', None)
@@ -96,7 +88,6 @@ for department in os.listdir(os.path.join('dags', 'carto_dag_config')):
             table_schema=department,
             table_name=table_name,
             upload_to_carto=upload_to_carto,
-            carto_executor=carto_executor,
             schedule_interval=schedule_interval,
             select_users=select_users,
             index_fields=index_fields)

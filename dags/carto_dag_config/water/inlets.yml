@@ -1,6 +1,5 @@
 schedule_interval: 0 12 * * 0
 upload_to_carto: true
-carto_executor: lambda
 upload_to_ago: 
 carto_users:
   - publicuser
