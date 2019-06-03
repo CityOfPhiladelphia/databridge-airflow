@@ -10,7 +10,7 @@ from airflow import DAG
 
 from airflow.operators.slack_notify_plugin import SlackNotificationOperator
 from airflow.operators.databridge_plugin import DataBridgeToS3BatchOperator
-from airflow.operators.carto_plugin import S3ToCartoLambdaOperator, S3ToCartoBatchOperator
+from airflow.operators.carto_plugin import S3ToCartoBatchOperator, S3ToCartoBatchOperator
 
 
 CARTO_PHL_CONN_ID = 'carto_phl'
@@ -45,15 +45,15 @@ def databridge_carto_dag_factory(
             table_schema=table_schema,
             table_name=table_name)
 
-        # s3_to_databridge2 = S3ToDataBridge2LambdaOperator(
+        # s3_to_databridge2 = S3ToDataBridge2BatchOperator(
         #     table_schema=table_schema,
         #     table_name=table_name)
 
         # databridge_to_s3 >> s3_to_databridge2
 
         if upload_to_carto:
-            if carto_executor == 'lambda':
-                s3_to_carto = S3ToCartoLambdaOperator(
+            if carto_executor == 'Batch':
+                s3_to_carto = S3ToCartoBatchOperator(
                     conn_id=CARTO_PHL_CONN_ID,
                     table_schema=table_schema,
                     table_name=table_name,
