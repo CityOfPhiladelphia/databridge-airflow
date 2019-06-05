@@ -41,6 +41,9 @@ def knack_dag_factory(
             max_active_runs=1,
     ) as dag:
 
+        if 'test' in knack_conn_id:
+            table_schema += '_test'
+
         knack_to_s3 = KnackToS3BatchOperator(
             conn_id=knack_conn_id,
             object_id=object_id,
