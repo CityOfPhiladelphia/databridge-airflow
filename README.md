@@ -23,6 +23,9 @@ Airflow instance for ETL's involving Databridge
 - Jobs are launched from job definitions. A job definition consists of some configuration for a job. In our case, the most important thing noted in a job definition is the specification of which Docker image to use. Docker images are stored in [AWS ECR](https://aws.amazon.com/ecr/). There is one docker image and job definition for [databridge-etl-tools](https://github.com/CityOfPhiladelphia/databridge-etl-tools) and another for [extract-knack](https://github.com/CityOfPhiladelphia/extract-knack).
 - Jobs require a command to know what to execute. The job will terminate when the execution completes. For this project, commands consist of the commands used to run [databridge-etl-tools](https://github.com/CityOfPhiladelphia/databridge-etl-tools) and [extract-knack](https://github.com/CityOfPhiladelphia/extract-knack), as detailed in their respective Github repositories.
 
+## How DAGs are built
+- Since their is little to no differentiation between DAGs, they can be built in bulk using configuration files to significantly reduce the amount of code needed to build them. The `dags` directory contains two subdirectories, `databridge_dag_config` and `knack_dag_config`. The scripts `databridge_dag_factory.py` and `knack_dag_factory.py` in the `dags` directory build DAGs using the corresponding subdirectories.
+
 ## Requirements
 - docker-compose
 - Docker

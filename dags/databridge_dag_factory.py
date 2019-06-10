@@ -66,12 +66,12 @@ def databridge_carto_dag_factory(
 
         globals()[dag_id] = dag # Airflow looks at the module global vars for DAG type variables
 
-for department in os.listdir(os.path.join('dags', 'carto_dag_config')):
-    for table_config_file in os.listdir(os.path.join('dags', 'carto_dag_config', department)):
+for department in os.listdir(os.path.join('dags', 'databridge_dag_config')):
+    for table_config_file in os.listdir(os.path.join('dags', 'databridge_dag_config', department)):
         # Drop the file extension
         table_name = table_config_file.split('.')[0]
 
-        with open(os.path.join('dags', 'carto_dag_config', department, table_config_file)) as f:
+        with open(os.path.join('dags', 'databridge_dag_config', department, table_config_file)) as f:
             yaml_data = yaml.safe_load(f.read())
 
             upload_to_carto = yaml_data.get('upload_to_carto')
