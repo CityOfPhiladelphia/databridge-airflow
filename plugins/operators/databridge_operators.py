@@ -10,7 +10,6 @@ from airflow.plugins_manager import AirflowPlugin
 import cx_Oracle
 
 from operators.abstract.abstract_batch_operator import PartialAWSBatchOperator
-from operators.abstract.abstract_lambda_operator import PartialAWSLambdaOperator
 
 
 class BaseDataBridgeToS3Operator(ABC):
@@ -111,12 +110,6 @@ class DataBridgeToS3BatchOperator(PartialAWSBatchOperator, BaseDataBridgeToS3Ope
     def _task_id(self) -> str:
         return 'db_to_s3_batch_{}_{}'.format(self.table_schema, self.table_name)
 
-class DataBridgeToS3LambdaOperator():
-    """Runs an AWS Lambda Function to extract data from DataBridge to S3."""
-
-    def __init__(self, *args, **kwargs):
-        raise NotImplementedError('Not implemented due to the Oracle client being too large to fit on lambda.')
-
 class S3ToDataBridge2BatchOperator(PartialAWSBatchOperator, BaseS3ToDataBridge2Operator):
     """Runs an AWS Batch Job to load data from S3 to DataBridge2."""
 
@@ -149,30 +142,3 @@ class S3ToDataBridge2BatchOperator(PartialAWSBatchOperator, BaseS3ToDataBridge2O
     @property
     def _task_id(self) -> str:
         return 's3_to_databridge2_batch_{}_{}'.format(self.table_schema, self.table_name)
-
-class S3ToDataBridge2LambdaOperator(PartialAWSLambdaOperator, BaseS3ToDataBridge2Operator):
-    """Runs an AWS Lambda Function to load data from S3 to DataBridge2."""
-
-    @apply_defaults
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    @property
-    def function_name(self) -> str:
-        return 'databridge-etl-tools-{}'.format(self.ENVIRONMENT)
-
-    @property
-    def _task_id(self) -> str:
-        return 's3_to_databridge2_lambda_{}_{}'.format(self.table_schema, self.table_name)
-
-    @property
-    def payload(self) -> Type:
-        return json.dumps({
-            'command_name': 'load',
-            'table_name': self.table_name,
-            'table_schema': self._table_schema,
-            'connection_string': self.connection_string,
-            's3_bucket': self.S3_BUCKET,
-            'json_schema_s3_key': self.json_schema_s3_key,
-            'csv_s3_key': self.csv_s3_key
-        })

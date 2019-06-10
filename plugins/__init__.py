@@ -1,28 +1,25 @@
 from airflow.plugins_manager import AirflowPlugin
 
 from operators import (
-    S3ToCartoBatchOperator, S3ToCartoLambdaOperator,
-    DataBridgeToS3BatchOperator, DataBridgeToS3LambdaOperator,
-    S3ToDataBridge2BatchOperator, S3ToDataBridge2LambdaOperator,
-    KnackToS3BatchOperator, KnackToS3LambdaOperator,
+    S3ToCartoBatchOperator,
+    DataBridgeToS3BatchOperator,
+    S3ToDataBridge2BatchOperator,
+    KnackToS3BatchOperator,
     SlackNotificationOperator,
 )
 
 
 class CartoPlugin(AirflowPlugin):
     name = 'carto_plugin'
-    operators = [S3ToCartoBatchOperator, S3ToCartoLambdaOperator]
+    operators = [S3ToCartoBatchOperator]
 
 class DatabridgePlugin(AirflowPlugin):
     name = 'databridge_plugin'
-    operators = [
-        DataBridgeToS3BatchOperator, DataBridgeToS3LambdaOperator, 
-        S3ToDataBridge2BatchOperator, S3ToDataBridge2LambdaOperator
-    ]
+    operators = [DataBridgeToS3BatchOperator, S3ToDataBridge2BatchOperator]
 
 class KnackPlugin(AirflowPlugin):
     name = 'knack_plugin'
-    operators = [KnackToS3BatchOperator, KnackToS3LambdaOperator]
+    operators = [KnackToS3BatchOperator]
 
 class SlackPlugin(AirflowPlugin):
     name = 'slack_notify_plugin'

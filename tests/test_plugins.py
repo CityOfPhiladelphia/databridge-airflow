@@ -9,12 +9,9 @@ from airflow import DAG, settings
 
 os.environ['ENVIRONMENT'] = 'TEST'
 sys.path.append('../')
-from airflow.operators.carto_plugin import S3ToCartoBatchOperator, S3ToCartoLambdaOperator
-from airflow.operators.databridge_plugin import (
-    DataBridgeToS3BatchOperator,
-    S3ToDataBridge2BatchOperator, S3ToDataBridge2LambdaOperator,
-)
-from airflow.operators.knack_plugin import KnackToS3BatchOperator, KnackToS3LambdaOperator
+from airflow.operators.carto_plugin import S3ToCartoBatchOperator
+from airflow.operators.databridge_plugin import DataBridgeToS3BatchOperator, S3ToDataBridge2BatchOperator
+from airflow.operators.knack_plugin import KnackToS3BatchOperator
 from airflow.operators.slack_notify_plugin import SlackNotificationOperator
 
 
@@ -46,26 +43,6 @@ def test_s3_to_carto_batch_operator():
     ]
 
     assert carto_operator._command == expected_command
-
-def test_s3_to_carto_lambda_operator():
-    carto_operator = S3ToCartoLambdaOperator(
-        conn_id=CARTO_CONN_ID,
-        table_schema=TABLE_SCHEMA,
-        table_name=TABLE_NAME,
-        select_users=SELECT_USERS
-    )
-
-    expected_payload = json.dumps({
-        'command_name': 'cartoupdate',
-        'table_name': 'table',
-        'connection_string': 'password',
-        's3_bucket': 'citygeo-airflow-databridge2',
-        'json_schema_s3_key': 'schemas/schema/table.json',
-        'csv_s3_key': 'staging/schema/table.csv',
-        'select_users': 'user'
-    })
-
-    assert carto_operator.payload == expected_payload
 
 def test_databridge_to_s3_batch_operator():
     databridge_to_s3 = DataBridgeToS3BatchOperator(
@@ -103,24 +80,6 @@ def test_s3_to_databridge2_batch_operator_non_numerical():
     ]
 
     assert s3_to_databridge2._command == expected_command
-
-def test_s3_to_databridge2_lambda_operator_non_numerical():
-    s3_to_databridge2 = S3ToDataBridge2LambdaOperator(
-        table_schema=TABLE_SCHEMA,
-        table_name=TABLE_NAME
-    )
-
-    expected_payload = json.dumps({
-        'command_name': 'load',
-        'table_name': 'table',
-        'table_schema': 'schema',
-        'connection_string': 'postgresql://login:password@localhost:5432/db_name',
-        's3_bucket': 'citygeo-airflow-databridge2',
-        'json_schema_s3_key': 'schemas/schema/table.json',
-        'csv_s3_key': 'staging/schema/table.csv'
-    })
-
-    assert s3_to_databridge2.payload == expected_payload
     
 def test_s3_to_databridge2_batch_operator_numerical():
     s3_to_databridge2 = S3ToDataBridge2BatchOperator(
@@ -160,22 +119,3 @@ def test_knack_to_s3_batch_operator():
     ]
 
     assert knack_to_s3._command == expected_command
-
-def test_knack_to_s3_lambda_operator():
-    knack_to_s3 = KnackToS3LambdaOperator(
-        conn_id=KNACK_CONN_ID,
-        table_schema=TABLE_SCHEMA,
-        table_name=TABLE_NAME,
-        object_id=OBJECT_ID
-    )
-
-    expected_payload = json.dumps({
-        'command_name': 'extract-records',
-        'app-id': 'knack_application_id',
-        'app-key': 'knack_api_key',
-        'object-id': '1',
-        's3_bucket': 'citygeo-airflow-databridge2',
-        's3_key': 'staging/schema/table.csv'
-    })
-
-    assert knack_to_s3.payload == expected_payload

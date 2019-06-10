@@ -9,7 +9,6 @@ from airflow.models import BaseOperator
 from airflow.contrib.hooks.aws_lambda_hook import AwsLambdaHook
 
 from operators.abstract.abstract_batch_operator import PartialAWSBatchOperator
-from operators.abstract.abstract_lambda_operator import PartialAWSLambdaOperator
 
 
 class S3ToCartoBatchOperator(PartialAWSBatchOperator):
@@ -57,40 +56,3 @@ class S3ToCartoBatchOperator(PartialAWSBatchOperator):
     @property
     def _task_id(self) -> str:
         return 's3_to_carto_batch_{}_{}'.format(self.table_schema, self.table_name)
-
-class S3ToCartoLambdaOperator(PartialAWSLambdaOperator):
-    """Runs an AWS Lambda Function to load data from S3 to Carto."""
-
-    def __init__(self, 
-                 conn_id: str,
-                 select_users: str, 
-                 index_fields: Optional[str] = None, 
-                 **kwargs):
-        self.conn_id = conn_id
-        self.select_users = select_users
-        self.index_fields = index_fields
-        super().__init__(**kwargs)
-
-    @property
-    def function_name(self) -> str:
-        return 'databridge-etl-tools-{}'.format(self.ENVIRONMENT)
-
-    @property
-    def connection(self) -> Type:
-        return BaseHook.get_connection(self.conn_id)
-    
-    @property
-    def _task_id(self) -> str:
-        return 's3_to_carto_lambda_{}_{}'.format(self.table_schema, self.table_name)
-
-    @property
-    def payload(self) -> Type:
-        return json.dumps({
-            'command_name': 'cartoupdate',
-            'table_name': self.table_name,
-            'connection_string': self.connection.password,
-            's3_bucket': self.S3_BUCKET,
-            'json_schema_s3_key': self.json_schema_s3_key,
-            'csv_s3_key': self.csv_s3_key,
-            'select_users': self.select_users
-        })
