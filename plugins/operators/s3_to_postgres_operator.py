@@ -12,7 +12,8 @@ class S3ToPostgresBatchOperator(PartialAWSBatchOperator):
     """Runs an AWS Batch Job to load data from S3 to Postgres."""
 
     @apply_defaults
-    def __init__(self, *args, **kwargs):
+    def __init__(self, conn_id:str, *args, **kwargs):
+        self.conn_id = conn_id
         super().__init__(*args, **kwargs)
 
     @property

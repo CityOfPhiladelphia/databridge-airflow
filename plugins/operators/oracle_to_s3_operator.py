@@ -15,9 +15,9 @@ class OracleToS3BatchOperator(PartialAWSBatchOperator):
 
     @apply_defaults
     def __init__(self, conn_id: str, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         self.conn_id = conn_id
-
+        super().__init__(*args, **kwargs)
+        
     @property
     def connection_string(self) -> str:
         db_conn = BaseHook.get_connection(self.conn_id)

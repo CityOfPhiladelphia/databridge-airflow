@@ -15,6 +15,7 @@ from airflow.operators.carto_plugin import S3ToCartoBatchOperator, S3ToCartoBatc
 
 CARTO_PHL_CONN_ID = 'carto_phl'
 DATABRIDGE_CONN_ID = 'databridge'
+#DATABRIDGE2_CONN_ID = 'databridge2'
 
 def databridge_carto_dag_factory(
         table_schema: str,
@@ -48,7 +49,8 @@ def databridge_carto_dag_factory(
 
         # s3_to_postgres = S3ToPostgresBatchOperator(
         #     table_schema=table_schema,
-        #     table_name=table_name)
+        #     table_name=table_name,
+        #     conn_id=DATABRIDGE2_CONN_ID)
 
         # databridge_to_s3 >> s3_to_postgres
 
