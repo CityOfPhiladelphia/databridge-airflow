@@ -10,7 +10,7 @@ from airflow import DAG, settings
 os.environ['ENVIRONMENT'] = 'TEST'
 sys.path.append('../')
 from airflow.operators.carto_plugin import S3ToCartoBatchOperator
-from airflow.operators.databridge_plugin import DataBridgeToS3BatchOperator, S3ToDataBridge2BatchOperator
+from airflow.operators.databridge_plugin import OracleToS3BatchOperator, S3ToPostgresBatchOperator
 from airflow.operators.knack_plugin import KnackToS3BatchOperator
 from airflow.operators.slack_notify_plugin import SlackNotificationOperator
 
@@ -45,7 +45,7 @@ def test_s3_to_carto_batch_operator():
     assert carto_operator._command == expected_command
 
 def test_databridge_to_s3_batch_operator():
-    databridge_to_s3 = DataBridgeToS3BatchOperator(
+    databridge_to_s3 = OracleToS3BatchOperator(
         table_schema=TABLE_SCHEMA,
         table_name=TABLE_NAME,
     )
@@ -63,7 +63,7 @@ def test_databridge_to_s3_batch_operator():
     assert databridge_to_s3._command == expected_command
 
 def test_s3_to_databridge2_batch_operator_non_numerical():
-    s3_to_databridge2 = S3ToDataBridge2BatchOperator(
+    s3_to_databridge2 = S3ToPostgresBatchOperator(
         table_schema=TABLE_SCHEMA,
         table_name=TABLE_NAME
     )
@@ -82,7 +82,7 @@ def test_s3_to_databridge2_batch_operator_non_numerical():
     assert s3_to_databridge2._command == expected_command
     
 def test_s3_to_databridge2_batch_operator_numerical():
-    s3_to_databridge2 = S3ToDataBridge2BatchOperator(
+    s3_to_databridge2 = S3ToPostgresBatchOperator(
         table_schema=NUMERICAL_TABLE_NAME,
         table_name=TABLE_NAME
     )
