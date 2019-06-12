@@ -119,6 +119,11 @@ set_environment_variables() {
   eval $(python3 /secrets_manager.py --name=databridge-raw --key=username --env=DATABRIDGE2_LOGIN)
   eval $(python3 /secrets_manager.py --name=databridge-raw --key=password --env=DATABRIDGE2_PASSWORD)
 
+  # cama_test
+  eval $(python3 /secrets_manager.py --name=cama-test --key=host --env=CAMA_TEST_HOST)
+  eval $(python3 /secrets_manager.py --name=cama-test --key=username --env=CAMA_TEST_LOGIN)
+  eval $(python3 /secrets_manager.py --name=cama-test --key=password --env=CAMA_TEST_PASSWORD)
+
   # hansen
   #eval $(python3 /secrets_manager.py --name=hansen --key=host --env=HANSEN_HOST)
   #eval $(python3 /secrets_manager.py --name=hansen --key=username --env=HANSEN_LOGIN)
@@ -167,6 +172,14 @@ set_airflow_connections() {
           --conn_password $DATABRIDGE_PASSWORD \
           --conn_port 1521 \
 	        --conn_extra '{"db_name": "GISDBP"}'
+  airflow connections \
+	  --add --conn_id cama-test \
+          --conn_type oracle \
+          --conn_host $CAMA_TEST_HOST \
+          --conn_login $CAMA_TEST_LOGIN \
+          --conn_password $CAMA_TEST_PASSWORD \
+          --conn_port 1521 \
+	        --conn_extra '{"db_name": "philtest"}'
   airflow connections \
     --add --conn_id "databridge2" \
           --conn_type postgres \
