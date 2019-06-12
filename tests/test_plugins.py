@@ -1,21 +1,18 @@
 import os
 import sys
-import pytest
-import json
-from datetime import datetime
-
-from airflow.models import TaskInstance
-from airflow import DAG, settings
 
 os.environ['ENVIRONMENT'] = 'TEST'
 sys.path.append('../')
 from airflow.operators.carto_plugin import S3ToCartoBatchOperator
-from airflow.operators.databridge_plugin import OracleToS3BatchOperator, S3ToPostgresBatchOperator
+from airflow.operators.oracle_to_s3_batch_plugin import OracleToS3BatchOperator
+from airflow.operators.s3_to_postgres_batch_plugin import S3ToPostgresBatchOperator
 from airflow.operators.knack_plugin import KnackToS3BatchOperator
 from airflow.operators.slack_notify_plugin import SlackNotificationOperator
 
 
 CARTO_CONN_ID = 'carto_phl'
+DATABRIDGE_CONN_ID = 'databridge'
+DATABRIDGE2_CONN_ID = 'databridge2'
 KNACK_CONN_ID = 'knack'
 TABLE_SCHEMA = 'schema'
 TABLE_NAME = 'table'
@@ -48,6 +45,7 @@ def test_databridge_to_s3_batch_operator():
     databridge_to_s3 = OracleToS3BatchOperator(
         table_schema=TABLE_SCHEMA,
         table_name=TABLE_NAME,
+        conn_id=DATABRIDGE_CONN_ID,
     )
 
     expected_command = [
@@ -65,7 +63,8 @@ def test_databridge_to_s3_batch_operator():
 def test_s3_to_databridge2_batch_operator_non_numerical():
     s3_to_databridge2 = S3ToPostgresBatchOperator(
         table_schema=TABLE_SCHEMA,
-        table_name=TABLE_NAME
+        table_name=TABLE_NAME,
+        conn_id=DATABRIDGE2_CONN_ID,
     )
 
     expected_command = [
@@ -84,7 +83,8 @@ def test_s3_to_databridge2_batch_operator_non_numerical():
 def test_s3_to_databridge2_batch_operator_numerical():
     s3_to_databridge2 = S3ToPostgresBatchOperator(
         table_schema=NUMERICAL_TABLE_NAME,
-        table_name=TABLE_NAME
+        table_name=TABLE_NAME,
+        conn_id=DATABRIDGE2_CONN_ID,
     )
 
     expected_command = [
@@ -105,7 +105,7 @@ def test_knack_to_s3_batch_operator():
         conn_id=KNACK_CONN_ID,
         table_schema=TABLE_SCHEMA,
         table_name=TABLE_NAME,
-        object_id=OBJECT_ID
+        object_id=OBJECT_ID,
     )
 
     expected_command = [
