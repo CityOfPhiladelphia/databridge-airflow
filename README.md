@@ -52,7 +52,8 @@ Airflow instance for ETL's involving Databridge
 │   │   └───abstract
 │   │   |    └───abstract_batch_operator.py - Sets default values for the AWS Batch Operator based on our AWS Account and the environment running on Airflow
 │   │   ├───carto_operators.py - Sets default values for running an AWS Batch Job to load a table from S3 to Carto
-│   │   ├───databridge_operators.py - Sets default values for running an AWS Batch Job to extract data from Databridge to S3
+│   │   ├───oracle_to_s3_operator.py - Sets default values for running an AWS Batch Job to extract data from Oracle to S3
+│   │   ├───s3_to_postgres_operator.py - Sets default values for running an AWS Batch Job to load data from S3 to Postgres
 │   │   ├───knack_operators.py - Sets default values for running an AWS Batch job to extract data from Knack to S3
 │   │   └───slack_notify_operators.py - An operator to send Slack notifications when an Airflow task fails
 ├───scripts
