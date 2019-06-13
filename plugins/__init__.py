@@ -1,6 +1,8 @@
 from airflow.plugins_manager import AirflowPlugin
 
 from operators import (
+    AirtableToS3BatchOperator,
+    BatchGeocoderOperator,
     S3ToCartoBatchOperator,
     OracleToS3BatchOperator,
     S3ToPostgresBatchOperator,
@@ -8,6 +10,14 @@ from operators import (
     SlackNotificationOperator,
 )
 
+
+class AirtablePlugin(AirflowPlugin):
+    name = 'airtable_plugin'
+    operators = [AirtableToS3BatchOperator]
+
+class BatchGeocoderPlugin(AirflowPlugin):
+    name = 'batch_geocoder_plugin'
+    operators = [BatchGeocoderOperator]
 
 class CartoPlugin(AirflowPlugin):
     name = 'carto_plugin'

@@ -145,6 +145,13 @@ set_environment_variables() {
   # knack_test
   eval $(python3 /secrets_manager.py --name=knack-ppr-test --key=application_id --env=KNACK_TEST_APPLICATION_ID)
   eval $(python3 /secrets_manager.py --name=knack-ppr-test --key=api_key --env=KNACK_TEST_API_KEY)
+
+  # airtable
+  eval $(python3 /secrets_manager.py --name=airtable --key=application_id --env=AIRTABLE_APPLICATION_ID)
+  eval $(python3 /secrets_manager.py --name=airtable --key=api_key --env=AIRTABLE_API_KEY)
+
+  # ais
+  eval $(python3 /secrets_manager.py --name=ais --key=api_key --env=AIS_API_KEY) 
 }
 
 set_airflow_connections() {
@@ -210,6 +217,17 @@ set_airflow_connections() {
           --conn_type HTTP \
           --conn_login $KNACK_TEST_APPLICATION_ID \
           --conn_password $KNACK_TEST_API_KEY
+  airflow connections \
+	  --add --conn_id ais \
+          --conn_type HTTP \
+          --conn_host https://api.phila.gov/ais/v1 \
+          --conn_login airflow \
+          --conn_password $AIS_API_KEY
+  airflow connections \
+	  --add --conn_id airtable \
+          --conn_type HTTP \
+          --conn_login $AIRTABLE_APPLICATION_ID \
+          --conn_password $AIRTABLE_API_KEY
 }    
 
 add_users() {

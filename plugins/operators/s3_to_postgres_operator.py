@@ -5,10 +5,10 @@ import json
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.decorators import apply_defaults
 
-from operators.abstract.abstract_batch_operator import PartialAWSBatchOperator
+from operators.abstract.abstract_batch_operator import PartialAWSBatchOperatorWithTable
 
 
-class S3ToPostgresBatchOperator(PartialAWSBatchOperator):
+class S3ToPostgresBatchOperator(PartialAWSBatchOperatorWithTable):
     """Runs an AWS Batch Job to load data from S3 to Postgres."""
 
     @apply_defaults

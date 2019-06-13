@@ -7,9 +7,12 @@ from airflow.operators.carto_plugin import S3ToCartoBatchOperator
 from airflow.operators.oracle_to_s3_batch_plugin import OracleToS3BatchOperator
 from airflow.operators.s3_to_postgres_batch_plugin import S3ToPostgresBatchOperator
 from airflow.operators.knack_plugin import KnackToS3BatchOperator
+from airflow.operators.airtable_plugin import AirtableToS3BatchOperator
+from airflow.operators.batch_geocoder_plugin import BatchGeocoderOperator
 from airflow.operators.slack_notify_plugin import SlackNotificationOperator
 
 
+AIRTABLE_CONN_ID = 'airtable'
 CARTO_CONN_ID = 'carto_phl'
 DATABRIDGE_CONN_ID = 'databridge'
 DATABRIDGE2_CONN_ID = 'databridge2'
@@ -19,6 +22,10 @@ TABLE_NAME = 'table'
 NUMERICAL_TABLE_NAME = '311'
 SELECT_USERS = 'user'
 OBJECT_ID = '1'
+INPUT_FILE = 'input.csv'
+OUTPUT_FILE = 'output.csv'
+QUERY_FIELDS = 'query_field'
+AIS_FIELDS = 'lat,lon'
 
 def test_s3_to_carto_batch_operator():
     carto_operator = S3ToCartoBatchOperator(
@@ -119,3 +126,45 @@ def test_knack_to_s3_batch_operator():
     ]
 
     assert knack_to_s3._command == expected_command
+
+def test_airtable_to_s3_operator():
+    airtable_to_s3 = AirtableToS3BatchOperator(
+        table_schema=TABLE_SCHEMA,
+        table_name=TABLE_NAME,
+        conn_id=AIRTABLE_CONN_ID,
+    )
+
+    expected_command = [
+        'extract-airtable',
+        'extract-records',
+        'login',
+        'password',
+        'table',
+        '--s3-bucket=citygeo-airflow-databridge2',
+        '--s3-key=staging/schema/table.csv'
+    ]
+
+    assert airtable_to_s3._command == expected_command
+
+def test_batch_geocoder_operator():
+    batch_geocoder = BatchGeocoderOperator(
+        name='name',
+        input_file=INPUT_FILE,
+        output_file=OUTPUT_FILE,
+        query_fields=QUERY_FIELDS,
+        ais_fields=AIS_FIELDS
+    )
+
+    expected_command = [
+        'batch_geocoder',
+        'ais',
+        '--input-file=input.csv',
+        '--output-file=output.csv',
+        '--ais-url=hostname',
+        '--ais-key=password',
+        '--ais-user=login',
+        '--query-fields=query_field',
+        '--ais-fields=lat,lon'
+    ]
+
+    assert batch_geocoder._command == expected_command

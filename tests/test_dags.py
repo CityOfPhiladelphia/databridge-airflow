@@ -19,6 +19,8 @@ def test_import_dags(dagbag):
 def test_all_dags_loaded(dagbag):
     num_files = NUM_EXAMPLE_DAGS = 18
 
+    num_files += 1 # airtable_to_carto.py
+
     for root, dirs, files in os.walk(os.path.join('dags', 'databridge_dag_config')):
         num_files += len(files)
 

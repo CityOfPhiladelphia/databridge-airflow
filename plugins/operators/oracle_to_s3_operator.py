@@ -7,10 +7,10 @@ from airflow.utils.decorators import apply_defaults
 
 import cx_Oracle
 
-from operators.abstract.abstract_batch_operator import PartialAWSBatchOperator
+from operators.abstract.abstract_batch_operator import PartialAWSBatchOperatorWithTable
 
 
-class OracleToS3BatchOperator(PartialAWSBatchOperator):
+class OracleToS3BatchOperator(PartialAWSBatchOperatorWithTable):
     """Runs an AWS Batch Job to extract data from Oracle to S3."""
 
     @apply_defaults

@@ -1,17 +1,13 @@
 """Defines a S3ToCartoOperator to load data from S3 to Carto."""
 from typing import Optional, List, Type
-import json
-import base64
 
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.decorators import apply_defaults
-from airflow.models import BaseOperator
-from airflow.contrib.hooks.aws_lambda_hook import AwsLambdaHook
 
-from operators.abstract.abstract_batch_operator import PartialAWSBatchOperator
+from operators.abstract.abstract_batch_operator import PartialAWSBatchOperatorWithTable
 
 
-class S3ToCartoBatchOperator(PartialAWSBatchOperator):
+class S3ToCartoBatchOperator(PartialAWSBatchOperatorWithTable):
     """Runs an AWS Batch Job to load data from S3 to Carto."""
 
     @apply_defaults

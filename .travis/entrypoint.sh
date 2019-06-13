@@ -58,5 +58,16 @@ airflow connections \
         --conn_type HTTP \
         --conn_login knack_application_id \
         --conn_password knack_api_key
+airflow connections \
+    --add --conn_id airtable \
+        --conn_type HTTP \
+        --conn_login login \
+        --conn_password password
+airflow connections \
+    --add --conn_id ais \
+        --conn_type HTTP \
+        --conn_login login \
+        --conn_password password \
+        --conn_host hostname
 
 pytest -p no:warnings tests/

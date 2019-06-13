@@ -20,12 +20,7 @@ class PartialAWSBatchOperator(AWSBatchOperator, ABC):
     @apply_defaults
     def __init__(
             self,
-            table_schema: str,
-            table_name: str,
             *args, **kwargs):
-
-        self.table_schema = table_schema
-        self.table_name = table_name
 
         super().__init__(
             job_name=self._job_name,
@@ -63,6 +58,20 @@ class PartialAWSBatchOperator(AWSBatchOperator, ABC):
     @abstractmethod
     def _task_id(self):
         pass
+
+class PartialAWSBatchOperatorWithTable(PartialAWSBatchOperator):
+    """Sets default AWS Batch values for common jobs that use a table schema and table name."""
+    @apply_defaults
+    def __init__(
+            self,
+            table_schema: str,
+            table_name: str,
+            *args, **kwargs):
+
+        self.table_schema = table_schema
+        self.table_name = table_name
+
+        super().__init__()
 
     @property
     def json_schema_s3_key(self) -> str:

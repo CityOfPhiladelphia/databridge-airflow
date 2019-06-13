@@ -10,7 +10,7 @@ from airflow import DAG
 
 from airflow.operators.slack_notify_plugin import SlackNotificationOperator
 from airflow.operators.oracle_to_s3_batch_plugin import OracleToS3BatchOperator
-from airflow.operators.carto_plugin import S3ToCartoBatchOperator, S3ToCartoBatchOperator
+from airflow.operators.carto_plugin import S3ToCartoBatchOperator
 
 
 CARTO_PHL_CONN_ID = 'carto_phl'
