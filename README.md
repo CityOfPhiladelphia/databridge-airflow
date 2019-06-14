@@ -9,22 +9,35 @@ Airflow instance for ETL's involving Databridge
 ## Overview
 - Jobs are scheduled and triggered by Airflow
 - Airflow stores encrypted database credentials and other metadata in a Postgres database. This database is seeded with secrets (database credentials, slack API keys, carto API keys) from AWS Secrets Manager. This is done in the `scripts/entrypoint.sh` script, which uses `scripts/secrets_manager.py` to fetch secret values and then add them to Airflow.
-- Airflow kicks off jobs in AWS Batch, consisting of two tasks:
-    - Extract data from Databridge or Knack and load it into S3 
-    - Load data from S3 to Carto.
+- Airflow kicks off jobs in AWS Batch, currently there are three types of jobs:
+    - Extract data from Databridge and load to Carto
+        - Tasks:
+            - Extract data from Databridge and load to S3
+            - Load data from S3 to Carto
+    - Extract data from Knack and load to Carto
+        - Tasks:
+            - Extract data from Knack and load to S3
+            - Load data from S3 to Carto
+    - Extract data from Airtable and load to Carto
+        - Tasks:
+            - Extract data from Airtable and load to S3
+            - Geocode S3 data using the [Batch Geocoder](https://github.com/CityOfPhiladelphia/batch-geocoder)
+            - Load geocoded data from S3 to Carto
 - The job in AWS Batch uses the following command line tools to execute the task:
     - [databridge-etl-tools](https://github.com/CityOfPhiladelphia/databridge-etl-tools)
     - [extract-knack](https://github.com/CityOfPhiladelphia/extract-knack)
+    - [extract-airtable](https://github.com/CityOfPhiladelphia/extract-airtable)
+    - [batch-geocoder](https://github.com/CityOfPhiladelphia/batch-geocoder)
 
 ![airflow-layout](assets/Airflow.png)
 
 ## How AWS Batch Jobs Work
 - First [read the docs](https://docs.aws.amazon.com/batch/latest/userguide/what-is-batch.html) to understand what AWS Batch is at a high level. AWS Batch allows you to run a batch computing job in a containerized environment on AWS. Batch takes care of the autoscaling to create instances when jobs are launched and terminate them when jobs complete.
-- Jobs are launched from job definitions. A job definition consists of some configuration for a job. In our case, the most important thing noted in a job definition is the specification of which Docker image to use. Docker images are stored in [AWS ECR](https://aws.amazon.com/ecr/). There is one docker image and job definition for [databridge-etl-tools](https://github.com/CityOfPhiladelphia/databridge-etl-tools) and another for [extract-knack](https://github.com/CityOfPhiladelphia/extract-knack).
-- Jobs require a command to know what to execute. The job will terminate when the execution completes. For this project, commands consist of the commands used to run [databridge-etl-tools](https://github.com/CityOfPhiladelphia/databridge-etl-tools) and [extract-knack](https://github.com/CityOfPhiladelphia/extract-knack), as detailed in their respective Github repositories.
+- Jobs are launched from job definitions. A job definition consists of some configuration for a job. In our case, the most important thing noted in a job definition is the specification of which Docker image to use. Docker images are stored in [AWS ECR](https://aws.amazon.com/ecr/). There is one docker image and job definition for each command line tool listed in the Overview.
+- Jobs require a command to know what to execute. The job will terminate when the execution completes. For this project, commands consist of the commands used to run the command line tool, as detailed in their respective Github repositories.
 
 ## How DAGs are built
-- Since their is little to no differentiation between DAGs, they can be built in bulk using configuration files to significantly reduce the amount of code needed to build them. The `dags` directory contains two subdirectories, `databridge_dag_config` and `knack_dag_config`. The scripts `databridge_dag_factory.py` and `knack_dag_factory.py` in the `dags` directory build DAGs using the corresponding subdirectories.
+- Since their is little to no differentiation between DAGs, they can be built in bulk using configuration files to significantly reduce the amount of code needed to build them. The `dags` directory contains two subdirectories, `databridge_dag_config` and `knack_dag_config`. The scripts `databridge_dag_factory.py` and `knack_dag_factory.py` in the `dags` directory build DAGs using the corresponding subdirectories. The Airtable load of immigration services data is a one off DAG and does not involve configuration files, but simply uses the `airtable_to_carto.py` script.
 
 ## Requirements
 - docker-compose
@@ -45,17 +58,7 @@ Airflow instance for ETL's involving Databridge
 ├───config
 |   └───airflow.cfg - Config file for Airflow
 ├───dags - Folder that Airflow looks for to build DAGs
-│   ├───databridge_dag_config - Directory of subdirectories of schemas in Databridge and yml configuration files for building DAGs for each individual table
-│   └───knack_dag_config - Directory of subdirectories of schemas in Knack and yml configuration files for building DAGs for each individual table
 ├───plugins - Folder that Airflow looks for to install plugins
-│   ├───operators - Custom Airflow Operators
-│   │   └───abstract
-│   │   |    └───abstract_batch_operator.py - Sets default values for the AWS Batch Operator based on our AWS Account and the environment running on Airflow
-│   │   ├───carto_operators.py - Sets default values for running an AWS Batch Job to load a table from S3 to Carto
-│   │   ├───oracle_to_s3_operator.py - Sets default values for running an AWS Batch Job to extract data from Oracle to S3
-│   │   ├───s3_to_postgres_operator.py - Sets default values for running an AWS Batch Job to load data from S3 to Postgres
-│   │   ├───knack_operators.py - Sets default values for running an AWS Batch job to extract data from Knack to S3
-│   │   └───slack_notify_operators.py - An operator to send Slack notifications when an Airflow task fails
 ├───scripts
 │   │   ├───entrypoint.sh - Entrypoint to Airflow's Docker image. Launches Airflow's services and optionally seeds the database with connections
 │   │   ├───run_tests.sh - Script for running tests locally using Dockerfile.test
