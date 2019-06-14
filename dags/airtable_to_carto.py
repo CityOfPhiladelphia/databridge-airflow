@@ -46,8 +46,9 @@ with DAG(
         airtable_to_s3.S3_BUCKET,
         airtable_to_s3.csv_s3_key)
 
-    output_file = 's3://{}/{}.csv'.format(
+    output_file = 's3://{}/staging/{}/{}.csv'.format(
         airtable_to_s3.S3_BUCKET,
+        TABLE_SCHEMA,
         CARTO_TABLE_NAME)
 
     batch_geocoder = BatchGeocoderOperator(

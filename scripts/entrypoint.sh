@@ -220,7 +220,7 @@ set_airflow_connections() {
   airflow connections \
 	  --add --conn_id ais \
           --conn_type HTTP \
-          --conn_host https://api.phila.gov/ais/v1 \
+          --conn_host "https://api.phila.gov/ais/v1" \
           --conn_login airflow \
           --conn_password $AIS_API_KEY
   airflow connections \
