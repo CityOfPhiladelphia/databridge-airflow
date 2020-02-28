@@ -1,4 +1,4 @@
-schedule_interval: false # manually triggered
+schedule_interval: 0 6 * * *
 upload_to_carto: true
 upload_to_ago: 
 carto_users:
