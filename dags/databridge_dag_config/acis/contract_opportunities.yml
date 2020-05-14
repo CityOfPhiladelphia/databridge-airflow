@@ -1,6 +1,0 @@
-schedule_interval: 10 7 * * 2-6
-upload_to_carto: true
-upload_to_ago:
-carto_users:
-  - publicuser
-  - tileuser
