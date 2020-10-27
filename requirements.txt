@@ -7,7 +7,7 @@ click==7.0
 apache-airflow[crypto,postgres,s3,celery,rabbitmq,mssql,slack]==1.10.2
 awscli==1.16.161
 boto3==1.7.84
-cryptography==2.6.1
+cryptography==3.2
 cx-Oracle==7.0.0
 Flask-Bcrypt==0.7.1
 pyodbc==4.0.26
