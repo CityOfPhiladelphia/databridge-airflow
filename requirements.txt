@@ -11,5 +11,5 @@ cryptography==2.6.1
 cx-Oracle==7.0.0
 Flask-Bcrypt==0.7.1
 pyodbc==4.0.26
-PyYAML==5.1
+PyYAML==5.4
 pytest==4.5.0
