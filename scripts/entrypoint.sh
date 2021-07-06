@@ -74,7 +74,6 @@ delete_default_airflow_connections() {
         "webhdfs_default"
         "wasb_default"
         "vertica_default"
-        "mssql_default"
         "http_default"
         "sqlite_default"
         "postgres_default"

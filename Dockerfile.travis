@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:16.04
 # https://github.com/puckel/docker-airflow
 
 # Never prompts the user for choices on installation/configuration of packages
@@ -53,14 +53,15 @@ RUN set -ex \
         freetds-dev \
         libpq-dev \
         unixodbc-dev \
-    && locale-gen en_US.UTF-8 \
+    && sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen \
+    && locale-gen \
     && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
     && useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow
 
-RUN pip3 install -U pip \
-    && pip3 --version \
-    && pip3 install -U setuptools \
-    && pip3 install -r /requirements.txt \
+RUN python3 -m pip install -U pip==19.1.1 \
+    && pip3 install -U setuptools==41.0.1
+
+RUN pip3 install -r /requirements.txt \
     && pip3 install -r /requirements.test.txt
 
 RUN apt-get remove --purge -yqq $buildDeps \
