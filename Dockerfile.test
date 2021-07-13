@@ -62,7 +62,8 @@ RUN python3 -m pip install -U pip==19.1.1 \
     && pip3 install -U setuptools==41.0.1
 
 RUN pip3 install -r /requirements.txt \
-    && pip3 install -r /requirements.test.txt
+    && pip3 install -r /requirements.test.txt \
+    && pip3 freeze
 
 
 RUN apt-get remove --purge -yqq $buildDeps \
