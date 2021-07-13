@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 TRY_LOOP="20"
+AIRFLOW_HOME=/usr/local/airflow
 
 : "${RABBITMQ_HOST:="rabbitmq"}"
 : "${RABBITMQ_PORT:="5672"}"
@@ -74,6 +75,7 @@ delete_default_airflow_connections() {
         "webhdfs_default"
         "wasb_default"
         "vertica_default"
+        "mssql_default"
         "http_default"
         "sqlite_default"
         "postgres_default"
@@ -246,11 +248,18 @@ wait_for_port "Postgres" "$POSTGRES_HOST" "$POSTGRES_PORT"
 case "$1" in
   webserver)
     if [ -n "$SEED_DB" ]; then
+      echo "running 'airflow initdb'"
       airflow initdb
+      sleep 5
+      echo "running 'delete_default_airflow_connections'"
       delete_default_airflow_connections
+      echo "running 'set_environment_variables'"
       set_environment_variables
+      echo "running 'set_airflow_connections'"
       set_airflow_connections
+      echo "running 'add_users'"
       add_users
+      echo "running 'make_pool'"
       make_pool
     fi
     exec airflow webserver
