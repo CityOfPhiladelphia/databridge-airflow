@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 # https://github.com/puckel/docker-airflow
 
 # Never prompts the user for choices on installation/configuration of packages
@@ -8,7 +8,7 @@ ENV TERM linux
 # Airflow
 ARG AIRFLOW_VERSION=1.10.2
 ENV AIRFLOW_HOME /usr/local/airflow
-ENV AIRFLOW_INSTALL /usr/local/lib/python3.5/dist-packages/airflow
+ENV AIRFLOW_INSTALL /usr/local/lib/python3.6/dist-packages/airflow
 ENV SLUGIFY_USES_TEXT_UNIDECODE yes
 
 # Define en_US.
@@ -20,6 +20,7 @@ ENV LC_MESSAGES en_US.UTF-8
 ENV LC_ALL  en_US.UTF-8
 
 COPY requirements.txt /requirements.txt
+COPY requirements.test.txt /requirements.test.txt
 
 RUN set -ex \
     && buildDeps=' \
@@ -56,11 +57,18 @@ RUN set -ex \
     && sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen \
     && locale-gen \
     && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
-    && useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow \
-    && python3 -m pip install -U pip \
-    && pip3 install -U setuptools \
-    && pip3 install -r /requirements.txt \
-    && apt-get remove --purge -yqq $buildDeps \
+    && useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow
+
+RUN python3 -m pip install -U pip==19.1.1 \
+    && pip3 install -U setuptools==41.0.1
+
+RUN pip3 install -r /requirements.txt \
+    && pip3 install -r /requirements.test.txt \
+    && pip3 freeze
+
+
+
+RUN apt-get remove --purge -yqq $buildDeps \
     && apt-get clean \
     && rm -rf \
         /var/lib/apt/lists/* \
@@ -78,6 +86,7 @@ RUN set -ex \
                  oracle-instantclient12.1-basiclite-12.1.0.2.0-1.x86_64.rpm \
     && alien -i oracle-instantclient12.1-basiclite-12.1.0.2.0-1.x86_64.rpm \
     && rm oracle-instantclient12.1-basiclite-12.1.0.2.0-1.x86_64.rpm
+
 
 # instant oracle-sdk
 RUN set -ex \
