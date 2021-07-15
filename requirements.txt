@@ -10,7 +10,7 @@ apache-airflow[crypto,postgres,s3,celery,rabbitmq,slack]==1.10.2
 click==7.1.2
 tzlocal==1.5.1
 amqp==2.6.1
-flask-appbuilder==1.12.1
+flask-appbuilder==3.3.0
 email_validator==1.1.3
 
 
