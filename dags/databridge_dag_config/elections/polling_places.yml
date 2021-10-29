@@ -4,3 +4,5 @@ upload_to_ago:
 carto_users:
   - publicuser
   - tileuser
+indexes:
+  - precinct

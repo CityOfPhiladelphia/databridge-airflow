@@ -4,3 +4,9 @@ upload_to_ago:
 carto_users:
   - publicuser
   - tileuser
+indexes:
+  - ballot_file_id
+  - state_house
+  - state_senate
+  - city_district
+  - federal_house
