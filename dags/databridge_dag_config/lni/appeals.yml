@@ -5,5 +5,5 @@ carto_users:
   - publicuser
   - tileuser
 indexes:
-  - scheduledate
+  - scheduleddate
   - opa_account_num
