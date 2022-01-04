@@ -1,4 +1,4 @@
-schedule_interval: 13 8 * * *
+schedule_interval: 13 11 * * *
 upload_to_carto: true
 upload_to_ago:
 carto_users:
