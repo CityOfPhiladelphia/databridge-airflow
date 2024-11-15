@@ -1247,29 +1247,12 @@ write_knack_filer_types = PythonOperator(
     templates_dict={'csv_path':'{{ ti.xcom_pull("make_staging") }}/knack_filer_types.csv'},
 )
 
-
-write_contributions = GeopetlWriteOperator(
-    task_id='write_contributions',
-    dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_staging") }}/contributions.csv',
-    db_conn_id='databridge-boe',
-    db_table_name='gis_boe.campfin_contributions',
-)
-
 write_contributions_v2 = GeopetlWriteOperator(
     task_id='write_contributions_v2',
     dag=pipeline,
     csv_path='{{ ti.xcom_pull("make_staging") }}/contributions.csv',
     db_conn_id='databridge-v2-boe',
     db_table_name='boe.campfin_contributions',
-)
-
-write_expenditures = GeopetlWriteOperator(
-    task_id='write_expenditures',
-    dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_staging") }}/expenditures.csv',
-    db_conn_id='databridge-boe',
-    db_table_name='gis_boe.campfin_expenditures',
 )
 
 write_expenditures_v2 = GeopetlWriteOperator(
@@ -1280,36 +1263,12 @@ write_expenditures_v2 = GeopetlWriteOperator(
     db_table_name='boe.campfin_expenditures',
 )
 
-write_unpaid_debts = GeopetlWriteOperator(
-    task_id='write_unpaid_debts',
-    dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_staging") }}/unpaid_debts.csv',
-    db_conn_id='databridge-boe',
-    db_table_name='gis_boe.campfin_unpaid_debts',
-)
-
 write_unpaid_debts_v2 = GeopetlWriteOperator(
     task_id='write_unpaid_debts_v2',
     dag=pipeline,
     csv_path='{{ ti.xcom_pull("make_staging") }}/unpaid_debts.csv',
     db_conn_id='databridge-v2-boe',
     db_table_name='boe.campfin_unpaid_debts',
-)
-
-#write_transactions = GeopetlWriteOperator(
-#    task_id='write_transactions',
-#    dag=pipeline,
-#    csv_path='{{ ti.xcom_pull("make_staging") }}/transactions.csv',
-#    db_conn_id='databridge-boe',
-#    db_table_name='gis_boe.campfin_transactions',
-#)
-
-write_balances = GeopetlWriteOperator(
-    task_id='write_balances',
-    dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_staging") }}/balances.csv',
-    db_conn_id='databridge-boe',
-    db_table_name='gis_boe.campfin_balances',
 )
 
 write_balances_v2 = GeopetlWriteOperator(
@@ -1320,28 +1279,12 @@ write_balances_v2 = GeopetlWriteOperator(
     db_table_name='boe.campfin_balances',
 )
 
-write_summary = GeopetlWriteOperator(
-    task_id='write_summary',
-    dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_staging") }}/summary.csv',
-    db_conn_id='databridge-boe',
-    db_table_name='gis_boe.campfin_summary',
-)
-
 write_summary_v2 = GeopetlWriteOperator(
     task_id='write_summary_v2',
     dag=pipeline,
     csv_path='{{ ti.xcom_pull("make_staging") }}/summary.csv',
     db_conn_id='databridge-v2-boe',
     db_table_name='boe.campfin_summary',
-)
-
-write_candidate_campaigns = GeopetlWriteOperator(
-    task_id='write_candidate_campaigns',
-    dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_staging") }}/campaigns.csv',
-    db_conn_id='databridge-boe',
-    db_table_name='gis_boe.candidate_campaigns',
 )
 
 write_candidate_campaigns_v2 = GeopetlWriteOperator(
@@ -1352,12 +1295,6 @@ write_candidate_campaigns_v2 = GeopetlWriteOperator(
     db_table_name='boe.candidate_campaigns',
 )
 
-extract_and_write_transactions = PythonOperator(
-    task_id='extract_and_write_transactions',
-    dag=pipeline,
-    python_callable=etl_transactions_from_tripoli_to_db,
-    op_kwargs={'source_conn_id': 'campfin', 'target_conn_id':'databridge-boe', 'source_table': 'campaign_finance_opd.transactions', 'target_table': 'CAMPFIN_TRANSACTIONS'},
-)
 extract_and_write_transactions_db2 = PythonOperator(
     task_id='extract_and_write_transactions_db2',
     dag=pipeline,
@@ -1365,226 +1302,6 @@ extract_and_write_transactions_db2 = PythonOperator(
     execution_timeout=timedelta(minutes=50),
     op_kwargs={'source_conn_id': 'campfin', 'target_conn_id':'databridge-v2-boe', 'source_table': 'campaign_finance_opd.transactions', 'target_table': 'boe.campfin_transactions'},
 )
-
-
-# -----------------------------------------------------------------
-# Refresh larger datasets in s3 opendata bucket
-
-gisscripts = BaseHook.get_connection('gisscripts')
-sshhook_instance = SSHHook(remote_host="citygeo-SC3-aws.city.phila.local",
-                                        username="gisscripts",
-                                        password=gisscripts.password,
-                                        )
-linuxscripts = BaseHook.get_connection('linux-scripts-aws')
-sshhook_instance2 = SSHHook(remote_host=linuxscripts.host,
-                                        username=linuxscripts.login,
-                                        key_file=linuxscripts.password,
-                                        )
-
-# Transactions
-refresh_s3_transactions = SSHOperator(
-                task_id="refresh_s3_transactions",
-                dag=pipeline,
-                command='Powershell.exe "C:/scripts/public_s3_access/run.ps1 GIS_BOE.CAMPFIN_TRANSACTIONS -nofgdb"',
-                ssh_hook=sshhook_instance,
-                )
-
-# Contributions
-refresh_s3_contributions = SSHOperator(
-                task_id="refresh_s3_contributions",
-                dag=pipeline,
-                command='Powershell.exe "C:/scripts/public_s3_access/run.ps1 GIS_BOE.CAMPFIN_CONTRIBUTIONS -nofgdb"',
-                ssh_hook=sshhook_instance,
-                )
-
-# Expenditures
-refresh_s3_expenditures = SSHOperator(
-                task_id="refresh_s3_expenditures",
-                dag=pipeline,
-                command='Powershell.exe "C:/scripts/public_s3_access/run.ps1 GIS_BOE.CAMPFIN_EXPENDITURES -nofgdb"',
-                ssh_hook=sshhook_instance,
-                )
-
-# Unpaid Debts
-refresh_s3_unpaid_debts = SSHOperator(
-                task_id="refresh_s3_unpaid_debts",
-                dag=pipeline,
-                command='Powershell.exe "C:/scripts/public_s3_access/run.ps1 GIS_BOE.CAMPFIN_UNPAID_DEBTS -nofgdb -novalidation"',
-                ssh_hook=sshhook_instance,
-                )
-
-
-# -----------------------------------------------------------------
-# Refresh AGO
-
-# Transactions
-refresh_ago_transactions = SSHOperator(
-                task_id="refresh_ago_transactions",
-                dag=pipeline,
-                command='C:/scripts/ago_updater/ago_update.py -d CAMPFIN_TRANSACTIONS -o ago -p public_perms -r',
-                ssh_hook=sshhook_instance,
-                )
-# Balances
-refresh_ago_balances = SSHOperator(
-                task_id="refresh_ago_balances",
-                dag=pipeline,
-                command='C:/scripts/ago_updater/ago_update.py -d CAMPFIN_BALANCES -o ago -p public_perms -r',
-                ssh_hook=sshhook_instance,
-                )
-
-# Expenditures
-refresh_ago_expenditures = SSHOperator(
-                task_id="refresh_ago_expenditures",
-                dag=pipeline,
-                command='C:/scripts/ago_updater/ago_update.py -d CAMPFIN_EXPENDITURES -o ago -p public_perms -r',
-                ssh_hook=sshhook_instance,
-                )
-
-# Contributions
-refresh_ago_contributions = SSHOperator(
-                task_id="refresh_ago_contributions",
-                dag=pipeline,
-                command='C:/scripts/ago_updater/ago_update.py -d CAMPFIN_CONTRIBUTIONS -o ago -p public_perms -r',
-                ssh_hook=sshhook_instance,
-                )
-# Unpaid Debts
-refresh_ago_unpaid_debts = SSHOperator(
-                task_id="refresh_ago_unpaid_debts",
-                dag=pipeline,
-                command='C:/scripts/ago_updater/ago_update.py -d CAMPFIN_UNPAID_DEBTS -o ago -p public_perms -r',
-                ssh_hook=sshhook_instance,
-                )
-# Summary
-refresh_ago_summary = SSHOperator(
-                task_id="refresh_ago_summary",
-                dag=pipeline,
-                command='C:/scripts/ago_updater/ago_update.py -d CAMPFIN_SUMMARY -o ago -p public_perms -r',
-                ssh_hook=sshhook_instance,
-                )
-
-# CAND_CONTRIBUTIONS_ZIP 
-refresh_ago_cand_contributions_zip = SSHOperator(
-                task_id="refresh_ago_cand_contributions_zip",
-                dag=pipeline,
-                command='C:/scripts/ago_updater/ago_update.py -d CAND_CONTRIBUTIONS_ZIP -o ago -p public_perms -r',
-                ssh_hook=sshhook_instance,
-                )
-
-# COMTE_CONTRIBUTIONS_ZIP 
-refresh_ago_comte_contributions_zip = SSHOperator(
-                task_id="refresh_ago_comte_contributions_zip",
-                dag=pipeline,
-                command='C:/scripts/ago_updater/ago_update.py -d COMTE_CONTRIBUTIONS_ZIP -o ago -p public_perms -r',
-                ssh_hook=sshhook_instance,
-                )
-
-# SMALL_CONTRIBUTIONS
-refresh_ago_small_contributions = SSHOperator(
-                task_id="refresh_ago_small_contributions",
-                dag=pipeline,
-                command='C:/scripts/ago_updater/ago_update.py -d SMALL_CONTRIBUTIONS -o ago -p public_perms -r',
-                ssh_hook=sshhook_instance,
-                )
-
-# CANDIDATE_CAMPAIGNS
-refresh_ago_candidate_campaigns = SSHOperator(
-                task_id="refresh_ago_candidate_campaigns",
-                dag=pipeline,
-                command='C:/scripts/ago_updater/ago_update.py -d CANDIDATE_CAMPAIGNS -o ago -p public_perms -r',
-                ssh_hook=sshhook_instance,
-                )
-
-#------------------------------------------------------------------
-# Refresh Carto
-
-# Transactions
-campfin_transactions_schema = Variable.get('schemas') + 'campfin_transactions.json'
-trigger_carto_campfin_transactions_update = CartoUpdateOperator(
-    task_id='update_carto_campfin_transactions',
-    dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_staging") }}/transactions.csv',
-    db_conn_id='carto_phl',
-    db_table_name='campfin_transactions',
-    db_schema_json=campfin_transactions_schema,
-    #db_indexes_fields=['parcel_number','pwd_parcel_id'],
-    db_select_users=['publicuser', 'tileuser']
-)
-
-# Contributions
-campfin_contributions_schema = Variable.get('schemas') + 'campfin_contributions.json'
-trigger_carto_campfin_contributions_update = CartoUpdateOperator(
-    task_id='update_carto_campfin_contributions',
-    dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_staging") }}/contributions.csv',
-    db_conn_id='carto_phl',
-    db_table_name='campfin_contributions',
-    db_schema_json=campfin_contributions_schema,
-    #db_indexes_fields=['parcel_number','pwd_parcel_id'],
-    db_select_users=['publicuser', 'tileuser']
-)
-
-# Expenditures
-campfin_expenditures_schema = Variable.get('schemas') + 'campfin_expenditures.json'
-trigger_carto_campfin_expenditures_update = CartoUpdateOperator(
-    task_id='update_carto_campfin_expenditures',
-    dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_staging") }}/expenditures.csv',
-    db_conn_id='carto_phl',
-    db_table_name='campfin_expenditures',
-    db_schema_json=campfin_expenditures_schema,
-    #db_indexes_fields=['parcel_number','pwd_parcel_id'],
-    db_select_users=['publicuser', 'tileuser']
-)
-
-# Unpaid Debts
-campfin_unpaid_debts_schema = Variable.get('schemas') + 'campfin_unpaid_debts.json'
-trigger_carto_campfin_unpaid_debts_update = CartoUpdateOperator(
-    task_id='update_carto_campfin_unpaid_debts',
-    dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_staging") }}/unpaid_debts.csv',
-    db_conn_id='carto_phl',
-    db_table_name='campfin_unpaid_debts',
-    db_schema_json=campfin_unpaid_debts_schema,
-    #db_indexes_fields=['parcel_number','pwd_parcel_id'],
-    db_select_users=['publicuser', 'tileuser']
-)
-
-# Summary
-campfin_summary_schema = Variable.get('schemas') + 'campfin_summary.json'
-trigger_carto_summary_update = CartoUpdateOperator(
-    task_id='update_carto_summary',
-    dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_staging") }}/summary.csv',
-    db_conn_id='carto_phl',
-    db_table_name='campfin_summary',
-    db_schema_json=campfin_summary_schema,
-    #db_indexes_fields=['parcel_number','pwd_parcel_id'],
-    db_select_users=['publicuser', 'tileuser']
-)
-
-# Balances
-campfin_balances_schema = Variable.get('schemas') + 'campfin_balances.json'
-trigger_carto_balances_update = CartoUpdateOperator(
-    task_id='update_carto_balances',
-    dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_staging") }}/balances.csv',
-    db_conn_id='carto_phl',
-    db_table_name='campfin_balances',
-    db_schema_json=campfin_balances_schema,
-    #db_indexes_fields=['parcel_number','pwd_parcel_id'],
-    db_select_users=['publicuser', 'tileuser']
-)
-
-# -----------------------------------------------------------------
-# Refresh AGO indexes:
-
-# Transactions
-refresh_ago_campfin_transaction_indexes = SSHOperator(
-                task_id="refresh_ago_campfin_transactions_indexes",
-                dag=pipeline,
-                command='bash /scripts/databridge_etl_tools_ago_uploads/campfin_indexes.sh ',
-                ssh_hook=sshhook_instance2,
-                )
 
 
 # -----------------------------------------------------------------
@@ -1599,33 +1316,24 @@ cleanup = DestroyStagingFolder(
 make_staging >> extract_knack_candidates >> write_knack_candidates >> etl_run_tests_and_load_csvs
 make_staging >> extract_knack_campaigns >> write_knack_campaigns >> etl_run_tests_and_load_csvs
 make_staging >> extract_knack_filer_types >> write_knack_filer_types >> etl_run_tests_and_load_csvs
-make_staging >> etl_source_views >> update_filers >> update_transactions >> extract_and_write_transactions >> refresh_ago_transactions >> refresh_ago_campfin_transaction_indexes >> cleanup
+make_staging >> etl_source_views >> update_filers >> update_transactions >> extract_and_write_transactions_db2 >> cleanup
 make_staging >> etl_run_tests_and_load_csvs >> update_filers
-make_staging >> etl_run_tests_and_load_csvs >> extract_candidate_campaigns >> write_candidate_campaigns >> refresh_ago_candidate_campaigns >> cleanup
-update_transactions >> update_balances >> extract_balances >> write_balances >> refresh_ago_balances >> cleanup
-update_transactions >> update_summary >> extract_summary >> write_summary >> refresh_ago_summary >> cleanup
-update_transactions >> extract_contributions >> write_contributions >> refresh_ago_contributions >> cleanup
-update_transactions >> extract_expenditures >> write_expenditures >> refresh_ago_expenditures >> cleanup
-update_transactions >> extract_unpaid_debts >> write_unpaid_debts >> refresh_ago_unpaid_debts >> cleanup
-cleanup << refresh_ago_cand_contributions_zip << extract_and_write_transactions
-cleanup << refresh_ago_comte_contributions_zip << extract_and_write_transactions
-cleanup << refresh_ago_small_contributions << extract_and_write_transactions
-cleanup << trigger_carto_campfin_transactions_update << extract_transactions << update_transactions
-cleanup << trigger_carto_campfin_contributions_update << extract_contributions
-cleanup << trigger_carto_campfin_expenditures_update << extract_expenditures
-cleanup << trigger_carto_campfin_unpaid_debts_update << extract_unpaid_debts
-cleanup << trigger_carto_summary_update << extract_summary
-cleanup << trigger_carto_balances_update << extract_balances
-extract_and_write_transactions >> refresh_s3_transactions >> cleanup
-write_contributions >> refresh_s3_contributions >> cleanup
-write_expenditures >> refresh_s3_expenditures >> cleanup
-write_unpaid_debts >> refresh_s3_unpaid_debts >> cleanup
-
-# Adding on writes into DB2 - Roland, 4/13/23
-update_transactions.set_downstream(extract_and_write_transactions_db2)
-extract_unpaid_debts.set_downstream(write_unpaid_debts_v2)
-extract_expenditures.set_downstream(write_expenditures_v2)
-extract_contributions.set_downstream(write_contributions_v2)
-extract_balances.set_downstream(write_balances_v2)
-extract_candidate_campaigns.set_downstream(write_candidate_campaigns_v2)
-extract_summary.set_downstream(write_summary_v2)
+make_staging >> etl_run_tests_and_load_csvs >> extract_candidate_campaigns >> write_candidate_campaigns_v2 >> cleanup
+update_transactions >> update_balances >> extract_balances >> write_balances_v2 >> cleanup
+update_transactions >> update_summary >> extract_summary >> write_summary_v2 >> cleanup
+update_transactions >> extract_contributions >> write_contributions_v2 >> cleanup
+update_transactions >> extract_expenditures >> write_expenditures_v2 >> cleanup
+update_transactions >> extract_unpaid_debts >> write_unpaid_debts_v2 >> cleanup
+cleanup << extract_and_write_transactions_db2
+cleanup << extract_and_write_transactions_db2
+cleanup << extract_and_write_transactions_db2
+cleanup << extract_transactions << update_transactions
+cleanup << extract_contributions
+cleanup << extract_expenditures
+cleanup << extract_unpaid_debts
+cleanup << extract_summary
+cleanup << extract_balances
+extract_and_write_transactions_db2 >> cleanup
+write_contributions_v2 >> cleanup
+write_expenditures_v2 >> cleanup
+write_unpaid_debts_v2 >> cleanup
