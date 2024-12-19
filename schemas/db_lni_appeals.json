@@ -1,0 +1,156 @@
+{
+  "fields": [
+    {
+      "name": "objectid",
+      "type": "integer",
+      "constraints": {
+        "required": "true"
+      }
+    },
+    {
+      "name": "addressobjectid",
+      "type": "text"
+    },
+    {
+      "name": "address",
+      "type": "text"
+    },
+    {
+      "name": "unit_type",
+      "type": "text"
+    },
+    {
+      "name": "unit_num",
+      "type": "text"
+    },
+    {
+      "name": "zip",
+      "type": "text"
+    },
+    {
+      "name": "opa_account_num",
+      "type": "text"
+    },
+    {
+      "name": "parcel_id_num",
+      "type": "text"
+    },
+    {
+      "name": "censustract",
+      "type": "text"
+    },
+    {
+      "name": "opa_owner",
+      "type": "text"
+    },
+    {
+      "name": "primaryappellant",
+      "type": "text"
+    },
+    {
+      "name": "appellanttype",
+      "type": "text"
+    },
+    {
+      "name": "internaljobid",
+      "type": "numeric"
+    },
+    {
+      "name": "appealnumber",
+      "type": "text"
+    },
+    {
+      "name": "acceleratedappeal",
+      "type": "text"
+    },
+    {
+      "name": "createddate",
+      "type": "timestamp without time zone"
+    },
+    {
+      "name": "completeddate",
+      "type": "timestamp without time zone"
+    },
+    {
+      "name": "relatedpermit",
+      "type": "text"
+    },
+    {
+      "name": "relatedcasefile",
+      "type": "text"
+    },
+    {
+      "name": "appealstatus",
+      "type": "text"
+    },
+    {
+      "name": "appealtype",
+      "type": "text"
+    },
+    {
+      "name": "agendadescription",
+      "type": "text"
+    },
+    {
+      "name": "applicationtype",
+      "type": "text"
+    },
+    {
+      "name": "meetingnumber",
+      "type": "text"
+    },
+    {
+      "name": "appealgrounds",
+      "type": "text"
+    },
+    {
+      "name": "scheduleddate",
+      "type": "timestamp without time zone"
+    },
+    {
+      "name": "decision",
+      "type": "text"
+    },
+    {
+      "name": "meetingresult",
+      "type": "text"
+    },
+    {
+      "name": "proviso",
+      "type": "text"
+    },
+    {
+      "name": "decisiondate",
+      "type": "timestamp without time zone"
+    },
+    {
+      "name": "systemofrecord",
+      "type": "text"
+    },
+    {
+      "name": "geocode_x",
+      "type": "numeric"
+    },
+    {
+      "name": "geocode_y",
+      "type": "numeric"
+    },
+    {
+      "name": "shape",
+      "type": "geometry",
+      "geometry_type": "point",
+      "srid": 2272
+    },
+    {
+      "name": "council_district",
+      "type": "text"
+    },
+    {
+      "name": "posse_jobid",
+      "type": "text"
+    }
+  ],
+  "primaryKey": [
+    "objectid"
+  ]
+}

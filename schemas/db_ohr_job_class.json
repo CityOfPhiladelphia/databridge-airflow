@@ -1,0 +1,41 @@
+{
+  "fields": [
+    {
+      "name": "job_class_code",
+      "type": "text"
+    },
+    {
+      "name": "job_class_title",
+      "type": "text"
+    },
+    {
+      "name": "pay_range",
+      "type": "text"
+    },
+    {
+      "name": "job_class_salary_min",
+      "type": "numeric"
+    },
+    {
+      "name": "job_class_salary_max",
+      "type": "numeric"
+    },
+    {
+      "name": "union_code",
+      "type": "text"
+    },
+    {
+      "name": "flsa_code",
+      "type": "text"
+    },
+    {
+      "name": "effective_date",
+      "type": "text"
+    },
+    {
+      "name": "family",
+      "type": "text"
+    }
+  ]
+}
+

@@ -1,0 +1,40 @@
+{
+  "fields": [
+    {
+      "name": "registration_type",
+      "type": "text"
+    },
+    {
+      "name": "doing_business_as_name",
+      "type": "text"
+    },
+    {
+      "name": "street_address",
+      "type": "text"
+    },
+    {
+      "name": "city",
+      "type": "text"
+    },
+    {
+      "name": "state",
+      "type": "text"
+    },
+    {
+      "name": "zip_code",
+      "type": "text"
+    },
+    {
+      "name": "phone_number",
+      "type": "text"
+    },
+    {
+      "name": "phone_extension",
+      "type": "text"
+    },
+    {
+      "name": "website",
+      "type": "text"
+    }
+  ]
+}

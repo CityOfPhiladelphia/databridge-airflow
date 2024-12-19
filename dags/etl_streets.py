@@ -4,6 +4,8 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.operators import GeopetlReadOperator, GeopetlWriteOperator
 from airflow.operators import CreateStagingFolder, DestroyStagingFolder
 from airflow.utils.slack import slack_failed_alert, slack_success_alert
+from airflow.utils.hash import update_hash_fields
+from airflow.utils.history import update_history_table
 from datetime import datetime, timedelta
 
 
@@ -17,7 +19,7 @@ default_args = {
     'retry_delay': timedelta(minutes=5),
     'start_date': datetime(2019, 2, 4, 0, 0, 0),
     'on_failure_callback': slack_failed_alert,
-    'on_success_callback': slack_success_alert,
+#    'on_success_callback': slack_success_alert,
     # 'queue': 'bash_queue',  # TODO: Lookup what queue is
     # 'pool': 'backfill',  # TODO: Lookup what pool is
 }
@@ -44,6 +46,15 @@ extract_street_centerline = GeopetlReadOperator(
     db_table_where='',
 )
 
+extract_curbs = GeopetlReadOperator(
+    task_id='read_curbs_no_cartways',
+    dag=pipeline,
+    csv_path='{{ ti.xcom_pull("make_streets_staging") }}/curbs_no_cartways.csv',
+    db_conn_id='databridge',
+    db_table_name='gis_streets.curbs_no_cartways',
+    db_table_where='',
+)
+
 # ----------------------------------------------------
 # Write extracted files to Databridge
 
@@ -55,6 +66,47 @@ write_street_centerline = GeopetlWriteOperator(
     db_table_name='streets.databridge_street_centerline',
 )
 
+write_curbs = GeopetlWriteOperator(
+    task_id='write_curbs_no_cartways',
+    dag=pipeline,
+    csv_path='{{ ti.xcom_pull("make_streets_staging") }}/curbs_no_cartways.csv',
+    db_conn_id='databridge2',
+    db_table_name='streets.databridge_curbs_no_cartways',
+)
+
+
+# Update hash
+update_street_centerline_hash = PythonOperator(
+    task_id='update_street_centerline_hash',
+    dag=pipeline,
+    python_callable=update_hash_fields,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'streets', 'table_name': 'databridge_street_centerline', 'hash_field': 'etl_hash'},
+)
+
+
+update_curbs_hash = PythonOperator(
+    task_id='update_curbs_hash',
+    dag=pipeline,
+    python_callable=update_hash_fields,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'streets', 'table_name': 'databridge_curbs_no_cartways', 'hash_field': 'etl_hash'},
+)
+
+# Update history
+update_street_centerline_history = PythonOperator(
+    task_id='update_street_centerline_history',
+    dag=pipeline,
+    python_callable=update_history_table,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'streets', 'table_name': 'databridge_street_centerline', 'hash_field': 'etl_hash'},
+)
+
+update_curbs_history = PythonOperator(
+    task_id='update_curbs_history',
+    dag=pipeline,
+    python_callable=update_history_table,
+    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'streets', 'table_name': 'databridge_curbs_no_cartways', 'hash_field': 'etl_hash'},
+)
+
+
 # -----------------------------------------------------------------
 # Cleanup - delete staging folder
 
@@ -65,5 +117,12 @@ cleanup = DestroyStagingFolder(
 )
 
 extract_street_centerline.set_upstream(make_staging)
+extract_curbs.set_upstream(make_staging)
 extract_street_centerline.set_downstream(write_street_centerline)
-write_street_centerline.set_downstream(cleanup)
+extract_curbs.set_downstream(write_curbs)
+write_street_centerline.set_downstream(update_street_centerline_hash)
+update_street_centerline_hash.set_downstream(update_street_centerline_history)
+update_street_centerline_history.set_downstream(cleanup)
+write_curbs.set_downstream(update_curbs_hash)
+update_curbs_hash.set_downstream(update_curbs_history)
+update_curbs_history.set_downstream(cleanup)

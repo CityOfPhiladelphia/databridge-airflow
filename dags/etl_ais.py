@@ -17,12 +17,12 @@ default_args = {
     'retry_delay': timedelta(minutes=5),
     'start_date': datetime(2019, 1, 23, 0, 0, 0),
     'on_failure_callback': slack_failed_alert,
-    'on_success_callback': slack_success_alert,
+#    'on_success_callback': slack_success_alert,
     # 'queue': 'bash_queue',  # TODO: Lookup what queue is
     # 'pool': 'backfill',  # TODO: Lookup what pool is
 }
 
-pipeline = DAG('etl_ais_geopetl_v0', schedule_interval='0 5 * * *', default_args=default_args)  # TODO: Look up how to schedule a DAG
+pipeline = DAG('etl_ais_geopetl_v0', schedule_interval=None, default_args=default_args)  # TODO: Look up how to schedule a DAG
 
 # ------------------------------------------------------------
 # Make staging area
@@ -35,43 +35,60 @@ make_staging = CreateStagingFolder(
 # ------------------------------------------------------------
 # Extract - read files from AIS
 
-extract_address_servicearea_summary = GeopetlReadOperator(
-    task_id='read_address_servicearea_summary',
+extract_source_address = GeopetlReadOperator(
+    task_id='read_source_address',
     dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_ais_staging") }}/address_servicearea_summary.csv',
+    csv_path='{{ ti.xcom_pull("make_ais_staging") }}/source_address.csv',
     db_conn_id='databridge',
-    db_table_name='gis_ais.vw_address_servicearea_summary',
+    db_table_name='gis_ais.source_address',
     db_table_where='',
 )
 
-extract_dor_parcel_address_check = GeopetlReadOperator(
-    task_id='read_dor_parcel_address_check',
-    dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_ais_staging") }}/dor_parcel_address_check.csv',
-    db_conn_id='databridge',
-    db_table_name='gis_ais.dor_parcel_address_check',
-    db_table_where='',
-)
+# extract_address_servicearea_summary = GeopetlReadOperator(
+#     task_id='read_address_servicearea_summary',
+#     dag=pipeline,
+#     csv_path='{{ ti.xcom_pull("make_ais_staging") }}/address_servicearea_summary.csv',
+#     db_conn_id='databridge',
+#     db_table_name='gis_ais.vw_address_servicearea_summary',
+#     db_table_where='',
+# )
+
+#extract_dor_parcel_address_check = GeopetlReadOperator(
+#    task_id='read_dor_parcel_address_check',
+#    dag=pipeline,
+#    csv_path='{{ ti.xcom_pull("make_ais_staging") }}/dor_parcel_address_check.csv',
+#    db_conn_id='databridge',
+#    db_table_name='gis_ais.dor_parcel_address_check',
+#    db_table_where='',
+#)
 
 
 # ----------------------------------------------------
 # Write extracted files to Databridge
-
-write_address_servicearea_summary = GeopetlWriteOperator(
-    task_id='write_address_servicearea_summary',
+write_source_address = GeopetlWriteOperator(
+    task_id='write_source_address',
     dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_ais_staging") }}/address_servicearea_summary.csv',
+    csv_path='{{ ti.xcom_pull("make_ais_staging") }}/source_address.csv',
     db_conn_id='databridge2',
-    db_table_name='ais.databridge_address_servicearea_summary',
+    db_table_name='ais.source_address',
 )
 
-write_dor_parcel_address_check = GeopetlWriteOperator(
-    task_id='write_dor_parcel_address_check',
-    dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_ais_staging") }}/dor_parcel_address_check.csv',
-    db_conn_id='databridge2',
-    db_table_name='ais.databridge_dor_parcel_address_check',
-)
+
+# write_address_servicearea_summary = GeopetlWriteOperator(
+#     task_id='write_address_servicearea_summary',
+#     dag=pipeline,
+#     csv_path='{{ ti.xcom_pull("make_ais_staging") }}/address_servicearea_summary.csv',
+#     db_conn_id='databridge2',
+#     db_table_name='ais.databridge_address_servicearea_summary',
+# )
+
+#write_dor_parcel_address_check = GeopetlWriteOperator(
+#    task_id='write_dor_parcel_address_check',
+#    dag=pipeline,
+#    csv_path='{{ ti.xcom_pull("make_ais_staging") }}/dor_parcel_address_check.csv',
+#    db_conn_id='databridge2',
+#    db_table_name='ais.databridge_dor_parcel_address_check',
+#)
 
 # -----------------------------------------------------------------
 # Cleanup - delete staging folder
@@ -82,11 +99,16 @@ cleanup = DestroyStagingFolder(
     dir='{{ ti.xcom_pull("make_ais_staging") }}',
 )
 
-extract_address_servicearea_summary.set_upstream(make_staging)
-extract_address_servicearea_summary.set_downstream(write_address_servicearea_summary)
-write_address_servicearea_summary.set_downstream(cleanup)
+# extract_address_servicearea_summary.set_upstream(make_staging)
+# extract_address_servicearea_summary.set_downstream(write_address_servicearea_summary)
+# write_address_servicearea_summary.set_downstream(cleanup)
 
-extract_dor_parcel_address_check.set_upstream(make_staging)
-extract_dor_parcel_address_check.set_downstream(write_dor_parcel_address_check)
-write_dor_parcel_address_check.set_downstream(cleanup)
+#extract_dor_parcel_address_check.set_upstream(make_staging)
+#extract_dor_parcel_address_check.set_downstream(write_dor_parcel_address_check)
+#write_dor_parcel_address_check.set_downstream(cleanup)
+
+
+extract_source_address.set_upstream(make_staging)
+extract_source_address.set_downstream(write_source_address)
+write_source_address.set_downstream(cleanup)
 

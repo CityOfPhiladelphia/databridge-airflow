@@ -1,0 +1,364 @@
+{
+  "fields": [
+    {
+      "name": "address_std",
+      "type": "text"
+    },
+    {
+      "name": "assessment_date",
+      "type": "date"
+    },
+    {
+      "name": "basements",
+      "type": "text"
+    },
+    {
+      "name": "beginning_point",
+      "type": "text"
+    },
+    {
+      "name": "book_and_page",
+      "type": "text"
+    },
+    {
+      "name": "building_code",
+      "type": "text"
+    },
+    {
+      "name": "building_code_description",
+      "type": "text"
+    },
+    {
+      "name": "category_code",
+      "type": "text"
+    },
+    {
+      "name": "category_code_description",
+      "type": "text"
+    },
+    {
+      "name": "census_tract",
+      "type": "text"
+    },
+    {
+      "name": "central_air",
+      "type": "text"
+    },
+    {
+      "name": "council_district_2016",
+      "type": "text"
+    },
+    {
+      "name": "cross_reference",
+      "type": "text"
+    },
+    {
+      "name": "date_exterior_condition",
+      "type": "timestamp without time zone"
+    },
+    {
+      "name": "depth",
+      "type": "numeric"
+    },
+    {
+      "name": "elementary_school",
+      "type": "text"
+    },
+    {
+      "name": "exempt_building",
+      "type": "numeric"
+    },
+    {
+      "name": "exempt_land",
+      "type": "numeric"
+    },
+    {
+      "name": "exterior_condition",
+      "type": "text"
+    },
+    {
+      "name": "fireplaces",
+      "type": "integer"
+    },
+    {
+      "name": "frontage",
+      "type": "numeric"
+    },
+    {
+      "name": "garage_spaces",
+      "type": "integer"
+    },
+    {
+      "name": "garage_type",
+      "type": "text"
+    },
+    {
+      "name": "general_construction",
+      "type": "text"
+    },
+    {
+      "name": "geocode_lat",
+      "type": "numeric"
+    },
+    {
+      "name": "geocode_lon",
+      "type": "numeric"
+    },
+    {
+      "name": "high_school",
+      "type": "text"
+    },
+    {
+      "name": "homestead_exemption",
+      "type": "integer"
+    },
+    {
+      "name": "house_extension",
+      "type": "text"
+    },
+    {
+      "name": "house_number",
+      "type": "text"
+    },
+    {
+      "name": "interior_condition",
+      "type": "text"
+    },
+    {
+      "name": "location",
+      "type": "text"
+    },
+    {
+      "name": "mailing_address_1",
+      "type": "text"
+    },
+    {
+      "name": "mailing_address_2",
+      "type": "text"
+    },
+    {
+      "name": "mailing_care_of",
+      "type": "text"
+    },
+    {
+      "name": "mailing_city_state",
+      "type": "text"
+    },
+    {
+      "name": "mailing_street",
+      "type": "text"
+    },
+    {
+      "name": "mailing_zip",
+      "type": "text"
+    },
+    {
+      "name": "market_value",
+      "type": "numeric"
+    },
+    {
+      "name": "market_value_date",
+      "type": "date"
+    },
+    {
+      "name": "middle_school",
+      "type": "text"
+    },
+    {
+      "name": "number_of_bathrooms",
+      "type": "integer"
+    },
+    {
+      "name": "number_of_bedrooms",
+      "type": "integer"
+    },
+    {
+      "name": "number_of_rooms",
+      "type": "integer"
+    },
+    {
+      "name": "number_stories",
+      "type": "integer"
+    },
+    {
+      "name": "off_street_open",
+      "type": "integer"
+    },
+    {
+      "name": "other_building",
+      "type": "text"
+    },
+    {
+      "name": "owner_1",
+      "type": "text"
+    },
+    {
+      "name": "owner_2",
+      "type": "text"
+    },
+    {
+      "name": "parcel_number",
+      "type": "text"
+    },
+    {
+      "name": "parcel_shape",
+      "type": "text"
+    },
+    {
+      "name": "police_district",
+      "type": "text"
+    },
+    {
+      "name": "political_district",
+      "type": "text"
+    },
+    {
+      "name": "political_ward",
+      "type": "text"
+    },
+    {
+      "name": "pwd_parcel_id",
+      "type": "text"
+    },
+    {
+      "name": "quality_grade",
+      "type": "text"
+    },
+    {
+      "name": "recording_date",
+      "type": "date"
+    },
+    {
+      "name": "registry_number",
+      "type": "text"
+    },
+    {
+      "name": "sale_date",
+      "type": "date"
+    },
+    {
+      "name": "sale_price",
+      "type": "numeric"
+    },
+    {
+      "name": "separate_utilities",
+      "type": "text"
+    },
+    {
+      "name": "shape",
+      "type": "geometry",
+      "geometry_type": "point",
+      "srid": 2272
+    },
+    {
+      "name": "site_type",
+      "type": "text"
+    },
+    {
+      "name": "state_code",
+      "type": "text"
+    },
+    {
+      "name": "street_code",
+      "type": "text"
+    },
+    {
+      "name": "street_designation",
+      "type": "text"
+    },
+    {
+      "name": "street_direction",
+      "type": "text"
+    },
+    {
+      "name": "street_name",
+      "type": "text"
+    },
+    {
+      "name": "suffix",
+      "type": "text"
+    },
+    {
+      "name": "taxable_building",
+      "type": "numeric"
+    },
+    {
+      "name": "taxable_land",
+      "type": "numeric"
+    },
+    {
+      "name": "topography",
+      "type": "text"
+    },
+    {
+      "name": "total_area",
+      "type": "numeric"
+    },
+    {
+      "name": "total_livable_area",
+      "type": "numeric"
+    },
+    {
+      "name": "type_heater",
+      "type": "text"
+    },
+    {
+      "name": "unfinished",
+      "type": "text"
+    },
+    {
+      "name": "unit",
+      "type": "text"
+    },
+    {
+      "name": "view_type",
+      "type": "text"
+    },
+    {
+      "name": "year_built",
+      "type": "text"
+    },
+    {
+      "name": "year_built_estimate",
+      "type": "text"
+    },
+    {
+      "name": "zip_code",
+      "type": "text"
+    },
+    {
+      "name": "zoning",
+      "type": "text"
+    },
+    {
+      "name": "li_district",
+      "type": "text"
+    },
+    {
+      "name": "rubbish_recycle_day",
+      "type": "text"
+    },
+    {
+      "name": "pin",
+      "type": "integer"
+    },
+    {
+      "name": "building_code_new",
+      "type": "text"
+    },
+    {
+      "name": "building_code_description_new",
+      "type": "text"
+    },
+    {
+      "constraints": {
+        "required": "true"
+      },
+      "name": "objectid",
+      "type": "numeric"
+    }
+  ],
+  "primaryKey": [
+    "objectid"
+  ]
+}

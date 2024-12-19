@@ -42,7 +42,7 @@ default_args = {
     # 'pool': 'backfill',  # TODO: Lookup what pool is
 }
 
-pipeline = DAG('etl_campfin_v0', schedule_interval='30 9 * * *', default_args=default_args)
+pipeline = DAG('etl_campfin_v0', schedule_interval='30 9 * * 6', default_args=default_args)
 
 # -----------------------------------------------------------
 def delete_temp_file(**kwargs):

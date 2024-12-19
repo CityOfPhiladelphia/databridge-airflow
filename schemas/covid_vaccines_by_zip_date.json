@@ -1,0 +1,33 @@
+{
+  "fields": [
+    {
+      "name": "zip_code",
+      "type": "text"
+    },
+    {
+      "name": "week_of_vaccination",
+      "type": "text"
+    },
+    {
+      "name": "partially_vaccinated",
+      "type": "integer"
+    },
+    {
+      "name": "fully_vaccinated",
+      "type": "integer"
+    },
+    {
+      "name": "boosted",
+      "type": "integer"
+    },
+    {
+      "name": "annotation",
+      "type": "text"
+    },
+    {
+      "name": "etl_timestamp",
+      "type": "timestamp without time zone"
+    }
+  ]
+}
+

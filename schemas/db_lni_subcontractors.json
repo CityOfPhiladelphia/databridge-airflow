@@ -1,0 +1,38 @@
+{
+  "fields": [
+    {
+      "name": "objectid",
+      "type": "integer",
+      "constraints": {
+        "required": "true"
+      }
+    },
+    {
+      "name": "permit_number",
+      "type": "text"
+    },
+    {
+      "name": "job_id",
+      "type": "integer"
+    },
+    {
+      "name": "contractor_id",
+      "type": "integer"
+    },
+    {
+      "name": "contractor_name",
+      "type": "text"
+    },
+    {
+      "name": "contractor_address_1",
+      "type": "text"
+    },
+    {
+      "name": "cal_number",
+      "type": "text"
+    }
+  ],
+  "primaryKey": [
+    "objectid"
+  ]
+}

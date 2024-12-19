@@ -1,0 +1,57 @@
+{
+  "fields": [
+    {
+      "name": "pay_range",
+      "type": "text"
+    },
+    {
+      "name": "step_1",
+      "type": "numeric"
+    },
+    {
+      "name": "step_2",
+      "type": "numeric"
+    },
+    {
+      "name": "step_3",
+      "type": "numeric"
+    },
+    {
+      "name": "step_4",
+      "type": "numeric"
+    },
+    {
+      "name": "step_5",
+      "type": "numeric"
+    },
+    {
+      "name": "step_6",
+      "type": "numeric"
+    },
+    {
+      "name": "step_7",
+      "type": "numeric"
+    },
+    {
+      "name": "step_8",
+      "type": "numeric"
+    },
+    {
+      "name": "hourly_rate",
+      "type": "numeric"
+    },
+    {
+      "name": "start_date",
+      "type": "timestamp with time zone"
+    },
+    {
+      "name": "family",
+      "type": "text"
+    },
+    {
+      "name": "step_count",
+      "type": "text"
+    }
+  ]
+}
+

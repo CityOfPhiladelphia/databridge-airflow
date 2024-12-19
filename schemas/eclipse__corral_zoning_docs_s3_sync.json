@@ -1,0 +1,24 @@
+{
+  "fields": [
+    {
+      "name": "permit_number",
+      "type": "text"
+    },
+    {
+      "name": "issue_date",
+      "type": "text"
+    },
+    {
+      "name": "pages_scanned",
+      "type": "integer"
+    },
+    {
+      "name": "address_objectid",
+      "type": "integer"
+    },
+    {
+      "name": "permit_location",
+      "type": "text"
+    }
+  ]
+}

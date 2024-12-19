@@ -1,0 +1,65 @@
+{
+  "primaryKey": [
+    "objectid"
+  ],
+  "fields": [
+    {
+      "type": "numeric",
+      "constraints": {
+        "required": true
+      },
+      "name": "objectid"
+    },
+    {
+      "type": "numeric",
+      "name": "area"
+    },
+    {
+      "type": "numeric",
+      "name": "perimeter"
+    },
+    {
+      "type": "numeric",
+      "name": "district_"
+    },
+    {
+      "type": "text",
+      "name": "district_id"
+    },
+    {
+      "type": "numeric",
+      "name": "dist_num"
+    },
+    {
+      "type": "numeric",
+      "name": "sum_area"
+    },
+    {
+      "type": "text",
+      "name": "dist_numc"
+    },
+    {
+      "type": "text",
+      "name": "location"
+    },
+    {
+      "type": "text",
+      "name": "phone"
+    },
+    {
+      "type": "text",
+      "name": "div_code"
+    },
+    {
+      "type": "numeric",
+      "name": "area_sqmi"
+    },
+    {
+      "type": "geometry",
+      "name": "shape",
+      "geometry_type": "geometry",
+      "srid": 2272
+    }
+  ]
+}
+

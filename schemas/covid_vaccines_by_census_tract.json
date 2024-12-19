@@ -1,0 +1,29 @@
+{
+  "fields": [
+    {
+      "name": "objectid",
+      "type": "integer",
+      "constraints": {
+        "required": "true"
+      }
+    },
+    {
+      "name": "census_tract_geoid",
+      "type": "text"
+    },
+    {
+      "name": "dose1_percent_range",
+      "type": "text"
+    },
+    {
+      "name": "etl_timestamp",
+      "type": "timestamp with time zone"
+    },
+    {
+      "name": "shape",
+      "type": "geometry",
+      "geometry_type": "geometry",
+      "srid": 2272
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "primaryKey": ["complaint_id"],
+  "fields": [
+    {
+      "constraints": {
+        "required": true
+      },
+      "name": "complaint_id",
+      "type": "text"
+    },
+    {
+      "name": "complainant_sex",
+      "type": "text"
+    },
+    {
+      "name": "complainant_race",
+      "type": "text"
+    },
+    {
+      "name": "complainant_age",
+      "type": "integer"
+    }
+  ]
+}

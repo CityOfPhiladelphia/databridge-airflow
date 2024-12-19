@@ -1,0 +1,12 @@
+{
+  "fields": [
+    {
+      "name": "census_tract",
+      "type": "text"
+    },
+    {
+      "name": "etl_timestamp",
+      "type": "timestamp with time zone"
+    }
+  ]
+}

@@ -43,6 +43,7 @@ class MsSQLReadOperator(BaseOperator):
                  db_conn_id,
                  db_table_name,
                  csv_path,
+                 db_fields,
                  db_table_where=None,
                  db_field_overrides=None,
                  sql_override=None,
@@ -52,7 +53,7 @@ class MsSQLReadOperator(BaseOperator):
         self.db_conn_id = db_conn_id
         self.db_table_name = db_table_name
         self.csv_path = csv_path
-        self.db_fields = db_field_overrides or {}
+        self.db_fields = db_fields
         self.db_table_where = db_table_where
         self.sql_override = sql_override
         self.db_timestamp = db_timestamp
@@ -63,13 +64,20 @@ class MsSQLReadOperator(BaseOperator):
         self.conn = self.hook.get_conn()
         # Define cursor:
         self.cur = self.conn.cursor()
-        selection = self.fields if self.fields else '*'
+        selection = self.db_fields if self.db_fields else '*'
         stmt = 'select {selection} from {table}'.format(selection=selection, table=self.db_table_name)
-        self.cur.execute(stmt)
-        f = open(self.csv_path, 'w')
-        for row in self.cur:
-            f.write(','.join([str(s) for s in row]))
-            f.write('\n')
+        rows = self.cur.execute(stmt)
+        with open(self.csv_path, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow([x[0].lower() for x in self.cur.description])  # column headers
+            for row in rows:
+                writer.writerow(row)
+
+#        self.cur.execute(stmt)
+#        f = open(self.csv_path, 'w')
+#        for row in self.cur:
+#            f.write(','.join([str(s) for s in row]))
+#            f.write('\n')
         logging.info("Done!")
 
 

@@ -19,7 +19,7 @@ default_args = {
     'retry_delay': timedelta(minutes=5),
     'start_date': datetime(2019, 1, 15, 0, 0, 0),
     'on_failure_callback': slack_failed_alert,
-    'on_success_callback': slack_success_alert,
+#    'on_success_callback': slack_success_alert,
     # 'queue': 'bash_queue',  # TODO: Lookup what queue is
     # 'pool': 'backfill',  # TODO: Lookup what pool is
 }
@@ -55,14 +55,14 @@ extract_propertycharacteristics = GeopetlReadOperator(
     db_table_where='',
 )
 
-extract_recordhistories = GeopetlReadOperator(
-    task_id='read_recordhistories',
-    dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_staging") }}/recordhistories.csv',
-    db_conn_id='brt-viewer',
-    db_table_name='brt_admin.recordhistories',
-    db_table_where='',
-)
+#extract_recordhistories = GeopetlReadOperator(
+#    task_id='read_recordhistories',
+#    dag=pipeline,
+#    csv_path='{{ ti.xcom_pull("make_staging") }}/recordhistories.csv',
+#    db_conn_id='brt-viewer',
+#    db_table_name='brt_admin.recordhistories',
+#    db_table_where='',
+#)
 
 extract_sales = GeopetlReadOperator(
     task_id='read_sales',
@@ -146,13 +146,13 @@ write_propertycharacteristics = GeopetlWriteOperator(
     db_table_name='opa.propertycharacteristics',
 )
 
-write_recordhistories = GeopetlWriteOperator(
-    task_id='write_recordhistories',
-    dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_staging") }}/recordhistories.csv',
-    db_conn_id='databridge2',
-    db_table_name='opa.recordhistories',
-)
+#write_recordhistories = GeopetlWriteOperator(
+#    task_id='write_recordhistories',
+#    dag=pipeline,
+#    csv_path='{{ ti.xcom_pull("make_staging") }}/recordhistories.csv',
+#    db_conn_id='databridge2',
+#    db_table_name='opa.recordhistories',
+#)
 
 write_sales = GeopetlWriteOperator(
     task_id='write_sales',
@@ -227,12 +227,12 @@ update_propertycharacteristics_hash = PythonOperator(
     op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'propertycharacteristics', 'hash_field': 'etl_hash'},
 )
 
-update_recordhistories_hash = PythonOperator(
-    task_id='update_recordhistories_hash',
-    dag=pipeline,
-    python_callable=update_hash_fields,
-    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'recordhistories', 'hash_field': 'etl_hash'},
-)
+#update_recordhistories_hash = PythonOperator(
+#    task_id='update_recordhistories_hash',
+#    dag=pipeline,
+#    python_callable=update_hash_fields,
+#    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'recordhistories', 'hash_field': 'etl_hash'},
+#)
 
 update_sales_hash = PythonOperator(
     task_id='update_sales_hash',
@@ -300,12 +300,12 @@ update_propertycharacteristics_history = PythonOperator(
     op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'propertycharacteristics', 'hash_field': 'etl_hash'},
 )
 
-update_recordhistories_history = PythonOperator(
-    task_id='update_recordhistories_history',
-    dag=pipeline,
-    python_callable=update_history_table,
-    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'recordhistories', 'hash_field': 'etl_hash'},
-)
+#update_recordhistories_history = PythonOperator(
+#    task_id='update_recordhistories_history',
+#    dag=pipeline,
+#    python_callable=update_history_table,
+#    op_kwargs={'db_conn_id':'databridge2', 'table_schema':'opa', 'table_name': 'recordhistories', 'hash_field': 'etl_hash'},
+#)
 
 update_sales_history = PythonOperator(
     task_id='update_sales_history',
@@ -373,7 +373,7 @@ cleanup = DestroyStagingFolder(
 
 extract_properties.set_upstream(make_staging)
 extract_propertycharacteristics.set_upstream(make_staging)
-extract_recordhistories.set_upstream(make_staging)
+#extract_recordhistories.set_upstream(make_staging)
 extract_sales.set_upstream(make_staging)
 extract_streetcodes.set_upstream(make_staging)
 extract_buildingcodes.set_upstream(make_staging)
@@ -384,7 +384,7 @@ extract_owners.set_upstream(make_staging)
 
 extract_properties.set_downstream(write_properties)
 extract_propertycharacteristics.set_downstream(write_propertycharacteristics)
-extract_recordhistories.set_downstream(write_recordhistories)
+#extract_recordhistories.set_downstream(write_recordhistories)
 extract_sales.set_downstream(write_sales)
 extract_streetcodes.set_downstream(write_streetcodes)
 extract_buildingcodes.set_downstream(write_buildingcodes)
@@ -395,7 +395,7 @@ extract_owners.set_downstream(write_owners)
 
 write_properties.set_downstream(update_properties_hash)
 write_propertycharacteristics.set_downstream(update_propertycharacteristics_hash)
-write_recordhistories.set_downstream(update_recordhistories_hash)
+#write_recordhistories.set_downstream(update_recordhistories_hash)
 write_sales.set_downstream(update_sales_hash)
 write_streetcodes.set_downstream(update_streetcodes_hash)
 write_buildingcodes.set_downstream(update_buildingcodes_hash)
@@ -406,7 +406,7 @@ write_owners.set_downstream(update_owners_hash)
 
 update_properties_hash.set_downstream(update_properties_history)
 update_propertycharacteristics_hash.set_downstream(update_propertycharacteristics_history)
-update_recordhistories_hash.set_downstream(update_recordhistories_history)
+#update_recordhistories_hash.set_downstream(update_recordhistories_history)
 update_sales_hash.set_downstream(update_sales_history)
 update_streetcodes_hash.set_downstream(update_streetcodes_history)
 update_buildingcodes_hash.set_downstream(update_buildingcodes_history)
@@ -417,7 +417,7 @@ update_owners_hash.set_downstream(update_owners_history)
 
 update_properties_history.set_downstream(cleanup)
 update_propertycharacteristics_history.set_downstream(cleanup)
-update_recordhistories_history.set_downstream(cleanup)
+#update_recordhistories_history.set_downstream(cleanup)
 update_sales_history.set_downstream(cleanup)
 update_streetcodes_history.set_downstream(cleanup)
 update_buildingcodes_history.set_downstream(cleanup)

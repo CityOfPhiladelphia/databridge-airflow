@@ -1,0 +1,181 @@
+{
+  "fields": [
+    {
+      "name": "objectid",
+      "type": "integer",
+      "constraints": {
+        "required": "true"
+      }
+    },
+    {
+      "name": "addressobjectid",
+      "type": "numeric"
+    },
+    {
+      "name": "address",
+      "type": "text"
+    },
+    {
+      "name": "unit_type",
+      "type": "text"
+    },
+    {
+      "name": "unit_num",
+      "type": "text"
+    },
+    {
+      "name": "zip",
+      "type": "text"
+    },
+    {
+      "name": "censustract",
+      "type": "text"
+    },
+    {
+      "name": "parcel_id_num",
+      "type": "text"
+    },
+    {
+      "name": "opa_account_num",
+      "type": "text"
+    },
+    {
+      "name": "opa_owner",
+      "type": "text"
+    },
+    {
+      "name": "licensenum",
+      "type": "text"
+    },
+    {
+      "name": "revenuecode",
+      "type": "text"
+    },
+    {
+      "name": "licensetype",
+      "type": "text"
+    },
+	{
+      "name": "rentalcategory",
+      "type": "text"
+    },
+    {
+      "name": "initialissuedate",
+      "type": "timestamp without time zone"
+    },
+    {
+      "name": "mostrecentissuedate",
+      "type": "timestamp without time zone"
+    },
+    {
+      "name": "expirationdate",
+      "type": "timestamp without time zone"
+    },
+    {
+      "name": "inactivedate",
+      "type": "timestamp without time zone"
+    },
+    {
+      "name": "licensestatus",
+      "type": "text"
+    },
+    {
+      "name": "numberofunits",
+      "type": "numeric"
+    },
+    {
+      "name": "owneroccupied",
+      "type": "text"
+    },
+    {
+      "name": "legalfirstname",
+      "type": "text"
+    },
+    {
+      "name": "legallastname",
+      "type": "text"
+    },
+    {
+      "name": "legalname",
+      "type": "text"
+    },
+    {
+      "name": "legalentitytype",
+      "type": "text"
+    },
+    {
+      "name": "business_name",
+      "type": "text"
+    },
+    {
+      "name": "business_mailing_address",
+      "type": "text"
+    },
+	{
+      "name": "ownercontact1name",
+      "type": "text"
+    },
+	{
+      "name": "ownercontact1mailingaddress",
+      "type": "text"
+    },
+	{
+      "name": "ownercontact1city",
+      "type": "text"
+    },
+	{
+      "name": "ownercontact1state",
+      "type": "text"
+    },
+	{
+      "name": "ownercontact1zippostalcode",
+      "type": "text"
+    },
+	{
+      "name": "ownercontact2name",
+      "type": "text"
+    },
+	{
+      "name": "ownercontact2mailingaddress",
+      "type": "text"
+    },
+	{
+      "name": "ownercontact2city",
+      "type": "text"
+    },
+	{
+      "name": "ownercontact2state",
+      "type": "text"
+    },
+	{
+      "name": "ownercontact2zippostalcode",
+      "type": "text"
+    },
+    {
+      "name": "geocode_x",
+      "type": "numeric"
+    },
+    {
+      "name": "geocode_y",
+      "type": "numeric"
+    },
+    {
+      "name": "shape",
+      "type": "geometry",
+      "geometry_type": "point",
+      "srid": 2272
+    },
+    {
+      "name": "council_district",
+      "type": "text"
+    },
+    {
+      "name": "posse_jobid",
+      "type": "text"
+    }
+  ],
+  "primaryKey": [
+    "objectid"
+  ]
+}
+

@@ -13,6 +13,7 @@ from airflow.models import Variable
 
 police_ppd_complaints_schema = Variable.get('schemas') + 'db_police_ppd_complaints.json'
 police_ppd_complaint_disciplines_schema = Variable.get('schemas') + 'db_police_ppd_complaint_disciplines.json'
+police_ppd_complainant_demographics_schema = Variable.get('schemas') + 'db_police_ppd_complainant_demographics.json'
 
 
 default_args = {
@@ -28,7 +29,7 @@ default_args = {
     # 'pool': 'backfill',  # TODO: Lookup what pool is
 }
 
-pipeline = DAG('etl_db_carto_police_ppd_complaints_and_disciplines_v0', default_args=default_args)  # TODO: Look up how to schedule a DAG
+pipeline = DAG('etl_db_carto_police_ppd_complaints_and_disciplines_v0', default_args=default_args, schedule_interval=None)  # TODO: Look up how to schedule a DAG
 
 # ------------------------------------------------------------
 # Make staging area
@@ -62,6 +63,17 @@ extract_ppd_disciplines = GeopetlReadOperator(
     db_timestamp=False,
 )
 
+extract_ppd_complainant_demographics = GeopetlReadOperator(
+    task_id='read_ppd_complainant_demographics',
+    dag=pipeline,
+    csv_path='{{ ti.xcom_pull("make_police_ppd_complaints_and_disciplines_staging") }}/police_ppd_complainant_demographics.csv',
+    db_conn_id='databridge2',
+    db_table_name='police.ppd_complainant_demographics',
+    db_table_where='',
+    db_timestamp=False,
+)
+
+
 # ----------------------------------------------------
 # Write extracted files to Carto
 
@@ -85,18 +97,33 @@ write_ppd_disciplines = CartoUpdateOperator(
     db_select_users=['publicuser', 'tileuser']
 )
 
+write_ppd_complainant_demographics = CartoUpdateOperator(
+    task_id='write_police_ppd_complainant_demographics',
+    dag=pipeline,
+    csv_path='{{ ti.xcom_pull("make_police_ppd_complaints_and_disciplines_staging") }}/police_ppd_complainant_demographics.csv',
+    db_conn_id='carto_phl',
+    db_table_name='ppd_complainant_demographics',
+    db_schema_json=police_ppd_complainant_demographics_schema,
+    db_select_users=['publicuser', 'tileuser']
+)
+
 # -----------------------------------------------------------------
 # Cleanup - delete staging folder
 
 cleanup = DestroyStagingFolder(
     task_id='cleanup_staging',
     dag=pipeline,
-    dir='{{ ti.xcom_pull("make_police_ppd_complaints_and_disciplines_staging") }}')
+    dir='{{ ti.xcom_pull("make_police_ppd_complaints_and_disciplines_staging") }}'
+)
 
 extract_ppd_complaints.set_upstream(make_staging)
 extract_ppd_disciplines.set_upstream(make_staging)
+extract_ppd_complainant_demographics.set_upstream(make_staging)
+
 extract_ppd_complaints.set_downstream(write_ppd_complaints)
 extract_ppd_disciplines.set_downstream(write_ppd_disciplines)
+extract_ppd_complainant_demographics.set_downstream(write_ppd_complainant_demographics)
 
 write_ppd_complaints.set_downstream(cleanup)
 write_ppd_disciplines.set_downstream(cleanup)
+write_ppd_complainant_demographics.set_downstream(cleanup)

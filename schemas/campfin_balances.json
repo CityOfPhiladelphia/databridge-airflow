@@ -1,0 +1,212 @@
+{
+    "fields": [
+        {
+            "name": "filing_form_id",
+            "type": "integer"
+        },
+        {
+            "name": "report_id",
+            "type": "integer"
+        },
+        {
+            "name": "report_cycle_start_date",
+            "type": "timestamp with time zone"
+        },
+        {
+            "name": "report_cycle_end_date",
+            "type": "timestamp with time zone"
+        },
+        {
+            "name": "report_cycle_due_date",
+            "type": "timestamp with time zone"
+        },
+        {
+            "name": "filer_name",
+            "type": "text"
+        },
+        {
+            "name": "filer_type",
+            "type": "text"
+        },
+        {
+            "name": "filer_local_flag",
+            "type": "text"
+        },
+        {
+            "name": "filer_local_flag_desc",
+            "type": "text"
+        },
+        {
+            "name": "beginning_cash_balance",
+            "type": "numeric"
+        },
+        {
+            "name": "ending_cash_balance",
+            "type": "numeric"
+        },
+        {
+            "name": "utmz_monetary_contribution",
+            "type": "numeric"
+        },
+        {
+            "name": "utmz_in_kind_contribution",
+            "type": "numeric"
+        },
+        {
+            "name": "num_contributions",
+            "type": "numeric"
+        },
+        {
+            "name": "num_expenditures",
+            "type": "numeric"
+        },
+        {
+            "name": "unpaid_debts",
+            "type": "numeric"
+        },
+        {
+            "name": "num_paper_filings",
+            "type": "integer"
+        },
+        {
+            "name": "report_year",
+            "type": "numeric"
+        },
+        {
+            "name": "election_date",
+            "type": "timestamp with time zone"
+        },
+        {
+            "name": "election_type",
+            "type": "text"
+        },
+        {
+            "name": "filer_id",
+            "type": "integer"
+        },
+        {
+            "name": "filer_state",
+            "type": "text"
+        },
+        {
+            "name": "filer_city",
+            "type": "text"
+        },
+        {
+            "name": "filer_zip",
+            "type": "text"
+        },
+        {
+            "name": "filer_actv_cand_flag",
+            "type": "text"
+        },
+        {
+            "name": "filer_actv_city_cand_flag",
+            "type": "text"
+        },
+        {
+            "name": "filer_actv_city_cand_desg_flag",
+            "type": "text"
+        },
+        {
+            "name": "filer_candidate_name",
+            "type": "text"
+        },
+        {
+            "name": "candidate_office",
+            "type": "text"
+        },
+        {
+            "name": "office_level",
+            "type": "text"
+        },
+        {
+            "name": "candidate_party",
+            "type": "text"
+        },
+        {
+            "name": "candidate_district_num",
+            "type": "text"
+        },
+        {
+            "name": "candidate_district_name",
+            "type": "text"
+        },
+        {
+            "name": "candidate_incumbency",
+            "type": "text"
+        },
+        {
+            "name": "candidate_election_outcome",
+            "type": "text"
+        },
+        {
+            "name": "candidate_endorsement",
+            "type": "text"
+        },
+        {
+            "name": "report_cycle_code",
+            "type": "text"
+        },
+        {
+            "name": "report_cycle_name",
+            "type": "text"
+        },
+        {
+            "name": "report_doc_type",
+            "type": "text"
+        },
+        {
+            "name": "report_doc_type_detail",
+            "type": "text"
+        },
+        {
+            "name": "report_type",
+            "type": "integer"
+        },
+        {
+            "name": "report_certified_date",
+            "type": "timestamp with time zone"
+        },
+        {
+            "name": "report_filed_by",
+            "type": "text"
+        },
+        {
+            "name": "report_filing_office",
+            "type": "text"
+        },
+        {
+            "name": "report_filing_status",
+            "type": "text"
+        },
+        {
+            "name": "report_url",
+            "type": "text"
+        },
+        {
+            "name": "sum_itmz_monetary_contribution",
+            "type": "numeric"
+        },
+        {
+            "name": "sum_itmz_inkind_contribution",
+            "type": "numeric"
+        },
+        {
+            "name": "total_monetary_contribution",
+            "type": "numeric"
+        },
+        {
+            "name": "total_in_kind_donations",
+            "type": "numeric"
+        },
+        {
+            "name": "total_contributions",
+            "type": "numeric"
+        },
+        {
+            "name": "total_expenditures",
+            "type": "numeric"
+        }
+    ]
+}

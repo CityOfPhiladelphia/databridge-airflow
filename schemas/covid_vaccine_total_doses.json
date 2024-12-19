@@ -1,0 +1,12 @@
+{
+  "fields": [
+    {
+      "name": "total_doses_administered",
+      "type": "integer"
+    },
+    {
+      "name": "etl_timestamp",
+      "type": "timestamp with time zone"
+    }
+  ]
+}

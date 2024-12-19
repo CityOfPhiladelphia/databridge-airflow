@@ -1,0 +1,63 @@
+{
+  "primaryKey": [
+    "objectid"
+  ],
+  "fields": [
+    {
+      "type": "numeric",
+      "constraints": {
+        "required": true
+      },
+      "name": "objectid"
+    },
+    {
+      "type": "text",
+      "name": "district"
+    },
+    {
+      "type": "text",
+      "name": "name"
+    },
+    {
+      "type": "date",
+      "format": "fmt:%Y-%m-%d %H:%M:%S",
+      "name": "inactive_date"
+    },
+    {
+      "type": "date",
+      "format": "fmt:%Y-%m-%d %H:%M:%S",
+      "name": "active_date"
+    },
+    {
+      "type": "text",
+      "name": "status"
+    },
+    {
+      "type": "text",
+      "name": "location"
+    },
+    {
+      "type": "text",
+      "name": "grid_plans"
+    },
+    {
+      "type": "text",
+      "name": "grid_report_cards"
+    },
+    {
+      "type": "text",
+      "name": "stats_link"
+    },
+    {
+      "type": "text",
+      "name": "pinpoint"
+    },
+    {
+      "type": "geometry",
+      "name": "shape",
+      "geometry_type": "geometry",
+      "srid": 2272
+    }
+  ]
+}
+

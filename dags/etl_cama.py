@@ -2438,20 +2438,18 @@ update_opa_property_deeds_new_queue_9_pub = PythonOperator(
     op_kwargs={'db_conn_id':'databridge-cama', 'stmt': update_opa_property_deeds_new_queue_9_pub_stmt},
 )
 
-# publish to AGO
-#E:/arcpy/python.exe E:/Scripts/ago_update_mulctithread/ago_update.py -d GIS_CAMA_property_deeds_new_queue_9 -o ago -p opa_suspense_queue_review_perms --republish --enable-editing --preserve-editor-tracking
-#C:/arcpy/python.exe C:/scripts/ago_updater/ago_update.py -d GIS_CAMA_property_deeds_new_queue_9 -o ago -p opa_suspense_queue_review_perms --republish --enable-editing --preserve-editor-tracking
+
 refresh_ago = SSHOperator(
                 task_id="refresh_ago",
                 dag=pipeline,
-                command="C:/arcpy/python.exe C:/scripts/ago_updater/ago_update.py -d GIS_CAMA_property_deeds_new_queue_9  -o ago -p opa_suspense_queue_review_perms --republish --enable-editing --preserve-editor-tracking",
+                command='C:/arcpy/python.exe C:/scripts/ago_updater/ago_update.py -d GIS_CAMA_property_deeds_new_queue_9 --ago-user maps.phl.data --enable-editing --preserve-editor-tracking --share-groups "OPA Suspense Queue Review"',
                 ssh_hook=sshhook_old_instance,
                 )
 
 backwards_q9_review_findings_sync = SSHOperator(
                 task_id="backwards_queue_9_review_findings_AGO_to_Databridge",
                 dag=pipeline,
-                command="C:/arcpy/python.exe C:/scripts/ago_to_databridge_backup_etl/ago_to_databridge_backup.py -ad '\"OPA Suspense Queue Findings\"' -d QUEUE_9_REVIEW_FINDINGS -a gis_cama --databridge-version 1",
+                command="C:/arcpy/python.exe C:/scripts/ago_to_databridge_backup_etl/ago_to_databridge_backup.py -ad '\"OPA Suspense Queue Findings\"' -d QUEUE_9_REVIEW_FINDINGS -a cama",
                 ssh_hook=sshhook_instance,
                 )
 
@@ -2460,8 +2458,8 @@ extract_q9_review_findings = GeopetlReadOperator(
     task_id='extract_q9_review_findings',
     dag=pipeline,
     csv_path='{{ ti.xcom_pull("make_staging") }}/queue_9_review_findings.csv',
-    db_conn_id='databridge',
-    db_table_name='gis_cama.queue_9_review_findings',
+    db_conn_id='databridge-v2-cama',
+    db_table_name='cama.queue_9_review_findings',
     db_table_where='',
 )
 

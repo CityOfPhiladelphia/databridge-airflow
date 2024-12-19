@@ -1,0 +1,44 @@
+{
+  "fields": [
+    {
+      "type": "text",
+      "name": "business_name"
+    },
+    {
+      "type": "text",
+      "name": "business_address"
+    },
+    {
+      "type": "text",
+      "name": "city"
+    },
+    {
+      "type": "text",
+      "name": "state"
+    },
+    {
+      "type": "text",
+      "name": "zip_code"
+    },
+    {
+      "type": "text",
+      "name": "business_contact"
+    },
+    {
+      "type": "text",
+      "name": "email"
+    },
+    {
+      "type": "text",
+      "name": "website"
+    },
+    {
+      "type": "datetime",
+      "name": "approval_date"
+    },
+    {
+      "type": "integer",
+      "name": "objectid"
+    }
+  ]
+}

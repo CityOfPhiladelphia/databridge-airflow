@@ -1,0 +1,25 @@
+{
+  "fields": [
+    {
+      "name": "sex",
+      "type": "text"
+    },
+    {
+      "name": "partially_vaccinated",
+      "type": "integer"
+    },
+    {
+      "name": "fully_vaccinated",
+      "type": "integer"
+    },
+    {
+      "name": "boosted",
+      "type": "integer"
+    },
+    {
+      "name": "etl_timestamp",
+      "type": "timestamp without time zone"
+    }
+  ]
+}
+

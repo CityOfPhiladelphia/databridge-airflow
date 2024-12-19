@@ -1,0 +1,32 @@
+{
+  "fields": [
+    {
+      "name": "parcel_number",
+      "type": "text"
+    },
+    {
+      "name": "year",
+      "type": "numeric"
+    },
+    {
+      "name": "market_value",
+      "type": "numeric"
+    },
+    {
+      "name": "taxable_land",
+      "type": "numeric"
+    },
+    {
+      "name": "taxable_building",
+      "type": "numeric"
+    },
+    {
+      "name": "exempt_land",
+      "type": "numeric"
+    },
+    {
+      "name": "exempt_building",
+      "type": "numeric"
+    }
+  ]
+}

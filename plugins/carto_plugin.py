@@ -39,7 +39,8 @@ geom_type_mapping = {
     'line': 'Linestring',
     'polygon': 'MultiPolygon',
     'multipolygon': 'MultiPolygon',
-    'multilinestring': 'MultiLineString'
+    'multilinestring': 'MultiLineString',
+    'geometry': 'geometry'
     }
 
 
@@ -99,7 +100,8 @@ class CartoUpdateOperator(BaseOperator):
         'line':            'Linestring',
         'polygon':         'MultiPolygon',
         'multipolygon':    'MultiPolygon',
-        'multilinestring': 'MultiLineString'
+        'multilinestring': 'MultiLineString',
+        'geometry': 'geometry'
     }
 
     @apply_defaults
@@ -118,6 +120,7 @@ class CartoUpdateOperator(BaseOperator):
         self.db_schema_json = db_schema_json
         self.db_indexes_fields = kwargs.get('db_indexes_fields')
         self.db_select_users = kwargs.get('db_select_users')
+        self.schema_fields = []
         self.schema_fmt = ''
         self.geom_field = ''
         self.geom_srid = ''
@@ -128,14 +131,6 @@ class CartoUpdateOperator(BaseOperator):
     def carto_sql_call(self, stmt, log_response=False):
         print(stmt)
         response = self.sql.send(stmt)
-#        print("HEREREREREREeEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
-#        print(response)
-#        try:
-#            print(vars(response))
-#        except Exception as e:
-#            logging.error('HTTP ' + str(response.status_code) + ': ' + response.text)
-#            print("some error occurred", e)
-#            raise
         if log_response:
             logging.info(response)
         return response
@@ -162,6 +157,9 @@ class CartoUpdateOperator(BaseOperator):
                         logging.error('srid and geometry_type must be provided with geometry field...')
                         raise
 
+                # Append to fields list
+                self.schema_fields.append(scheme['name'])
+                # Append to schema_fmt
                 self.schema_fmt += ' {} {}'.format(scheme['name'], scheme_type)
                 if i < num_fields - 1:
                     self.schema_fmt += ','
@@ -171,13 +169,14 @@ class CartoUpdateOperator(BaseOperator):
         logging.info('{} - creating table indexes - {}'.format(table_name=self.temp_table_name, indexes_fields=self.db_indexes_fields))
         stmt = ''
         for indexes_field in self.db_indexes_fields:
-            stmt += 'CREATE INDEX {table}_{field} ON "{table}" ("{field}");\n'.format(table=table_name, field=indexes_field)
+            stmt += 'CREATE INDEX {table}_{field} ON "{table}" ("{field}");\n'.format(table=self.temp_table_name, field=indexes_field)
         self.carto_sql_call(stmt)
 
 
     def create_table(self):
         self.format_schema()
         stmt = ''' CREATE TABLE {table_name} ({schema})'''.format(table_name=self.temp_table_name, schema=self.schema_fmt)
+        print(stmt)
         self.carto_sql_call(stmt)
         check_table_sql = "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = '{}');"
         response = self.carto_sql_call(check_table_sql.format(self.temp_table_name))
@@ -209,26 +208,28 @@ class CartoUpdateOperator(BaseOperator):
     def write(self):
         print("CSV PATH: ", self.csv_path)
         rows = etl.fromcsv(self.csv_path, encoding='utf-8')
-        # print(etl.look(rows))
-        header = rows[0]
+
+        # format geom field:
+        self.get_geom_field()
+        if self.geom_field and self.geom_srid:
+            rows = rows.convert(self.geom_field, lambda c: 'SRID={srid};{geom}'.format(srid=self.geom_srid, geom=c) if c else '')
+
+        # Write prepared csv with fields from schema file:
+        write_file = self.csv_path.replace('.csv', '_t.csv')
+        rows.cut(self.schema_fields).tocsv(write_file)
+
+        # Prepare insert query:
+        debug_rows = etl.fromcsv(write_file)
+        header = [h for h in debug_rows[0] if h in self.schema_fields]
         str_header = ''
         num_fields = len(header)
-        self.num_rows_in_upload_file = rows.nrows()
+        self.num_rows_in_upload_file = debug_rows.nrows()
         for i, field in enumerate(header):
             if i < num_fields - 1:
                 str_header += field + ', '
             else:
                 str_header += field
 
-        # format geom field:
-        self.get_geom_field()
-        if self.geom_field and self.geom_srid:
-            rows = rows.convert(self.geom_field, lambda c: 'SRID={srid};{geom}'.format(srid=self.geom_srid, geom=c) if c else '')
-            write_file = self.csv_path.replace('.csv', '_t.csv')
-            rows.tocsv(write_file)
-        else:
-            write_file = self.csv_path
-        print("write_file: ", write_file)
         q =  "COPY {table_name} ({header}) FROM STDIN WITH (FORMAT csv, HEADER true)".format(table_name=self.temp_table_name, header=str_header)
         url = self.USR_BASE_URL.format(user=self.account) + 'api/v2/sql/copyfrom'
         with open(write_file, 'rb') as f:
@@ -305,20 +306,21 @@ class CartoUpdateOperator(BaseOperator):
         self.hook = CartoHook(db_conn_id=self.db_conn_id)
         self.sql, self.account, self.api_key, self.USR_BASE_URL = self.hook.get_conn()
         self.temp_table_name = 't_' + self.db_table_name
+     # Create temp table:
         try:
             # Create temp table:
             print("creating temp table...")
             self.create_table()
             # Write rows to temp table:
             print("writing to temp table...")
-            self.write()
+            self.write() 
             # Verify row count:
             print("verifying row count...")
             self.verify_count()
             # Cartodbfytable:
             print("cartodbfying table...")
             self.cartodbfytable()
-            # Create indexes: 
+            # Create indexes:
             if self.db_indexes_fields:
                 print("creating indexes...")
                 self.create_indexes()

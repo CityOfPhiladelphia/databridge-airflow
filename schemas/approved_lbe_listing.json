@@ -1,0 +1,28 @@
+{
+  "fields": [
+    {
+      "type": "text",
+      "name": "company_name"
+    },
+    {
+      "type": "text",
+      "name": "company_address"
+    },
+    {
+      "type": "text",
+      "name": "city"
+    },
+    {
+      "type": "text",
+      "name": "state"
+    },
+    {
+      "type": "text",
+      "name": "zip_code"
+    },
+    {
+      "type": "text",
+      "name": "company_contact"
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "fields": [
+    {
+      "name": "objectid",
+      "type": "integer",
+      "constraints": {
+        "required": "true"
+      }
+    },
+    {
+      "name": "addressobjectid",
+      "type": "text"
+    },
+    {
+      "name": "parcel_id_num",
+      "type": "text"
+    },
+    {
+      "name": "casenumber",
+      "type": "text"
+    },
+    {
+      "name": "casetype",
+      "type": "text"
+    },
+    {
+      "name": "caseresponsibility",
+      "type": "text"
+    },
+    {
+      "name": "casepriority",
+      "type": "text"
+    },
+    {
+      "name": "investigationprocessid",
+      "type": "integer"
+    },
+    {
+      "name": "investigationtype",
+      "type": "text"
+    },
+    {
+      "name": "investigationcompleted",
+      "type": "timestamp without time zone"
+    },
+    {
+      "name": "investigationstatus",
+      "type": "text"
+    },
+    {
+      "name": "opa_account_num",
+      "type": "text"
+    },
+    {
+      "name": "address",
+      "type": "text"
+    },
+    {
+      "name": "unit_type",
+      "type": "text"
+    },
+    {
+      "name": "unit_num",
+      "type": "text"
+    },
+    {
+      "name": "zip",
+      "type": "text"
+    },
+    {
+      "name": "censustract",
+      "type": "text"
+    },
+    {
+      "name": "opa_owner",
+      "type": "text"
+    },
+    {
+      "name": "systemofrecord",
+      "type": "text"
+    },
+    {
+      "name": "geocode_x",
+      "type": "numeric"
+    },
+    {
+      "name": "geocode_y",
+      "type": "numeric"
+    },
+    {
+      "name": "council_district",
+      "type": "text"
+    },
+    {
+      "name": "posse_jobid",
+      "type": "text"
+    },
+    {
+      "name": "shape",
+      "type": "geometry",
+      "geometry_type": "point",
+      "srid": 2272
+    }
+  ],
+  "primaryKey": [
+    "objectid"
+  ]
+}

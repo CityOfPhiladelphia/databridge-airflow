@@ -1,0 +1,284 @@
+{
+    "fields": [
+        {
+            "name": "transaction_id",
+            "type": "integer"
+        },
+        {
+            "name": "transaction_date",
+            "type": "timestamp with time zone"
+        },
+        {
+            "name": "transaction_type",
+            "type": "text"
+        },
+        {
+            "name": "transaction_amount",
+            "type": "numeric"
+        },
+        {
+            "name": "transaction_description",
+            "type": "text"
+        },
+        {
+            "name": "description_type",
+            "type": "text"
+        },
+        {
+            "name": "filer_name",
+            "type": "text"
+        },
+        {
+            "name": "filer_type",
+            "type": "text"
+        },
+        {
+            "name": "filer_local_flag",
+            "type": "text"
+        },
+        {
+            "name": "filer_local_flag_desc",
+            "type": "text"
+        },
+        {
+            "name": "pa_pac_registry_name",
+            "type": "text"
+        },
+        {
+            "name": "pa_pac_registry_type",
+            "type": "text"
+        },
+        {
+            "name": "likely_unaffiliated",
+            "type": "text"
+        },
+        {
+            "name": "payee_name",
+            "type": "text"
+        },
+        {
+            "name": "payee_type",
+            "type": "text"
+        },
+        {
+            "name": "payee_type_detail",
+            "type": "text"
+        },
+        {
+            "name": "payee_local_flag",
+            "type": "integer"
+        },
+        {
+            "name": "payee_local_flag_desc",
+            "type": "text"
+        },
+        {
+            "name": "report_year",
+            "type": "integer"
+        },
+        {
+            "name": "report_election_date",
+            "type": "timestamp with time zone"
+        },
+        {
+            "name": "election_type",
+            "type": "text"
+        },
+        {
+            "name": "filer_id",
+            "type": "integer"
+        },
+        {
+            "name": "filer_city",
+            "type": "text"
+        },
+        {
+            "name": "filer_state",
+            "type": "text"
+        },
+        {
+            "name": "filer_zip",
+            "type": "text"
+        },
+        {
+            "name": "filer_actv_cand_flag",
+            "type": "text"
+        },
+        {
+            "name": "filer_actv_city_cand_flag",
+            "type": "text"
+        },
+        {
+            "name": "filer_actv_city_cand_desg_flag",
+            "type": "text"
+        },
+        {
+            "name": "filer_candidate_name",
+            "type": "text"
+        },
+        {
+            "name": "candidate_office",
+            "type": "text"
+        },
+        {
+            "name": "office_level",
+            "type": "text"
+        },
+        {
+            "name": "multiple_offices_flag",
+            "type": "text"
+        },
+        {
+            "name": "candidate_party",
+            "type": "text"
+        },
+        {
+            "name": "candidate_district_num",
+            "type": "text"
+        },
+        {
+            "name": "candidate_district_name",
+            "type": "text"
+        },
+        {
+            "name": "candidate_incumbency",
+            "type": "text"
+        },
+        {
+            "name": "candidate_election_outcome",
+            "type": "text"
+        },
+        {
+            "name": "candidate_endorsement",
+            "type": "text"
+        },
+        {
+            "name": "payee_id",
+            "type": "integer"
+        },
+        {
+            "name": "payee_name_std",
+            "type": "text"
+        },
+        {
+            "name": "payee_filer_id",
+            "type": "integer"
+        },
+        {
+            "name": "payee_city",
+            "type": "text"
+        },
+        {
+            "name": "payee_state",
+            "type": "text"
+        },
+        {
+            "name": "payee_zip",
+            "type": "text"
+        },
+        {
+            "name": "payee_zip4",
+            "type": "text"
+        },
+        {
+            "name": "payee_residency_flag",
+            "type": "text"
+        },
+        {
+            "name": "payee_naics",
+            "type": "text"
+        },
+        {
+            "name": "report_cycle_code",
+            "type": "text"
+        },
+        {
+            "name": "report_cycle_name",
+            "type": "text"
+        },
+        {
+            "name": "report_cycle_start_date",
+            "type": "timestamp with time zone"
+        },
+        {
+            "name": "report_cycle_end_date",
+            "type": "timestamp with time zone"
+        },
+        {
+            "name": "report_cycle_due_date",
+            "type": "timestamp with time zone"
+        },
+        {
+            "name": "report_doc_type",
+            "type": "text"
+        },
+        {
+            "name": "report_doc_type_detail",
+            "type": "text"
+        },
+        {
+            "name": "report_type",
+            "type": "text"
+        },
+        {
+            "name": "report_certified_date",
+            "type": "timestamp with time zone"
+        },
+        {
+            "name": "report_filed_by",
+            "type": "text"
+        },
+        {
+            "name": "report_filing_office",
+            "type": "text"
+        },
+        {
+            "name": "report_filing_status",
+            "type": "text"
+        },
+        {
+            "name": "termination_report",
+            "type": "text"
+        },
+        {
+            "name": "est_trans_count",
+            "type": "numeric"
+        },
+        {
+            "name": "transaction_supertype",
+            "type": "text"
+        },
+        {
+            "name": "label_total",
+            "type": "text"
+        },
+        {
+            "name": "filing_form_id",
+            "type": "integer"
+        },
+        {
+            "name": "report_id",
+            "type": "integer"
+        },
+        {
+            "name": "report_url",
+            "type": "text"
+        },
+        {
+            "name": "payee_source_address",
+            "type": "text"
+        },
+        {
+            "name": "payee_std_address",
+            "type": "text"
+        },
+        {
+            "name": "filer_type_review_status",
+            "type": "text"
+        },
+        {
+            "name": "payee_type_review_status",
+            "type": "text"
+        }
+    ]
+}

@@ -17,7 +17,7 @@ default_args = {
     'retry_delay': timedelta(minutes=5),
     'start_date': datetime(2019, 1, 23, 0, 0, 0),
     'on_failure_callback': slack_failed_alert,
-    'on_success_callback': slack_success_alert,
+#    'on_success_callback': slack_success_alert,
     # 'queue': 'bash_queue',  # TODO: Lookup what queue is
     # 'pool': 'backfill',  # TODO: Lookup what pool is
 }

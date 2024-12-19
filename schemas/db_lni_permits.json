@@ -1,0 +1,140 @@
+{
+  "fields": [
+    {
+      "name": "objectid",
+      "type": "integer",
+      "constraints": {
+        "required": "true"
+      }
+    },
+    {
+      "name": "permitnumber",
+      "type": "text"
+    },
+    {
+      "name": "addressobjectid",
+      "type": "text"
+    },
+    {
+      "name": "parcel_id_num",
+      "type": "text"
+    },
+    {
+      "name": "permittype",
+      "type": "text"
+    },
+    {
+      "name": "permitdescription",
+      "type": "text"
+    },
+    {
+      "name": "commercialorresidential",
+      "type": "text"
+    },
+    {
+      "name": "typeofwork",
+      "type": "text"
+    },
+    {
+      "name": "approvedscopeofwork",
+      "type": "text"
+    },
+    {
+      "name": "permitissuedate",
+      "type": "timestamp without time zone"
+    },
+    {
+      "name": "status",
+      "type": "text"
+    },
+    {
+      "name": "applicanttype",
+      "type": "text"
+    },
+    {
+      "name": "contractorname",
+      "type": "text"
+    },
+    {
+      "name": "contractoraddress1",
+      "type": "text"
+    },
+    {
+      "name": "contractoraddress2",
+      "type": "text"
+    },
+    {
+      "name": "contractorcity",
+      "type": "text"
+    },
+    {
+      "name": "contractorstate",
+      "type": "text"
+    },
+    {
+      "name": "contractorzip",
+      "type": "text"
+    },
+    {
+      "name": "mostrecentinsp",
+      "type": "timestamp without time zone"
+    },
+    {
+      "name": "opa_account_num",
+      "type": "text"
+    },
+    {
+      "name": "address",
+      "type": "text"
+    },
+    {
+      "name": "unit_type",
+      "type": "text"
+    },
+    {
+      "name": "unit_num",
+      "type": "text"
+    },
+    {
+      "name": "zip",
+      "type": "text"
+    },
+    {
+      "name": "censustract",
+      "type": "text"
+    },
+    {
+      "name": "council_district",
+      "type": "text"
+    },
+    {
+      "name": "opa_owner",
+      "type": "text"
+    },
+    {
+      "name": "systemofrecord",
+      "type": "text"
+    },
+    {
+      "name": "geocode_x",
+      "type": "numeric"
+    },
+    {
+      "name": "geocode_y",
+      "type": "numeric"
+    },
+    {
+      "name": "shape",
+      "type": "geometry",
+      "geometry_type": "point",
+      "srid": 2272
+    },
+    {
+      "name": "posse_jobid",
+      "type": "text"
+    }
+  ],
+  "primaryKey": [
+    "objectid"
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "fields": [
+    {
+      "name": "objectid",
+      "type": "integer",
+      "constraints": {
+        "required": "true"
+      }
+    },
+    {
+      "name": "internaljobid",
+      "type": "numeric"
+    },
+    {
+      "name": "appealnumber",
+      "type": "text"
+    },
+    {
+      "name": "meetingitemnumber",
+      "type": "text"
+    },
+    {
+      "name": "scheduleddate",
+      "type": "timestamp without time zone"
+    },
+    {
+      "name": "meetingstatus",
+      "type": "text"
+    },
+    {
+      "name": "decision",
+      "type": "text"
+    },
+    {
+      "name": "meetingremarks",
+      "type": "text"
+    },
+    {
+      "name": "location",
+      "type": "text"
+    },
+    {
+      "name": "decisiondate",
+      "type": "timestamp without time zone"
+    },
+    {
+      "name": "systemofrecord",
+      "type": "text"
+    }
+  ],
+  "primaryKey": [
+    "objectid"
+  ]
+}

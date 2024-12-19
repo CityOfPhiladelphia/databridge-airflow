@@ -1,0 +1,12 @@
+{
+  "fields": [
+    {
+      "name": "addressobjectid",
+      "type": "integer"
+    },
+    {
+      "name": "externalfilenum",
+      "type": "text"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "fields": [
+    {
+      "name": "title",
+      "type": "text"
+    },
+    {
+      "name": "class_code",
+      "type": "text"
+    },
+    {
+      "name": "date_app",
+      "type": "timestamp without time zone"
+    },
+    {
+      "name": "terms",
+      "type": "text"
+    },
+    {
+      "name": "waiver_number",
+      "type": "integer"
+    },
+    {
+      "name": "date_app_new_date",
+      "type": "timestamp without time zone"
+    },
+    {
+      "name": "specialty",
+      "type": "text"
+    }
+  ]
+}
+

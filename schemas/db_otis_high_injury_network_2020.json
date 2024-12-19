@@ -1,0 +1,29 @@
+{
+  "primaryKey": [
+    "objectid"
+  ],
+  "fields": [
+    {
+      "type": "numeric",
+      "constraints": {
+        "required": true
+      },
+      "name": "objectid"
+    },
+    {
+      "type": "text",
+      "name": "street_name"
+    },
+    {
+      "type": "text",
+      "name": "buffer"
+    },
+    {
+      "type": "geometry",
+      "name": "shape",
+      "geometry_type": "line",
+      "srid": 2272
+    }
+  ]
+}
+

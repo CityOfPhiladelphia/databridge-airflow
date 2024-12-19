@@ -17,7 +17,6 @@ default_args = {
     'retry_delay': timedelta(minutes=5),
     'start_date': datetime(2019, 2, 11, 0, 0, 0),
     'on_failure_callback': slack_failed_alert,
-    'on_success_callback': slack_success_alert,
     'provide_context': True
     # 'queue': 'bash_queue',  # TODO: Lookup what queue is
     # 'pool': 'backfill',  # TODO: Lookup what pool is
@@ -45,6 +44,23 @@ extract_zoning_basedistricts = GeopetlReadOperator(
     db_table_where='',
 )
 
+extract_zoning_overlays = GeopetlReadOperator(
+    task_id='read_zoning_overlays',
+    dag=pipeline,
+    csv_path='{{ ti.xcom_pull("make_planning_staging") }}/zoning_overlays.csv',
+    db_conn_id='databridge',
+    db_table_name='gis_planning.zoning_overlays',
+    db_table_where='',
+)
+
+extract_political_wards = GeopetlReadOperator(
+    task_id='read_political_wards',
+    dag=pipeline,
+    csv_path='{{ ti.xcom_pull("make_planning_staging") }}/political_wards.csv',
+    db_conn_id='databridge',
+    db_table_name='gis_planning.political_wards',
+    db_table_where='',
+)
 
 # ----------------------------------------------------
 # Write extracted files to Databridge
@@ -55,6 +71,22 @@ write_zoning_basedistricts = GeopetlWriteOperator(
     csv_path='{{ ti.xcom_pull("make_planning_staging") }}/zoning_basedistricts.csv',
     db_conn_id='databridge2',
     db_table_name='planning.databridge_zoning_basedistricts',
+)
+
+write_zoning_overlays = GeopetlWriteOperator(
+    task_id='write_zoning_overlays',
+    dag=pipeline,
+    csv_path='{{ ti.xcom_pull("make_planning_staging") }}/zoning_overlays.csv',
+    db_conn_id='databridge2',
+    db_table_name='planning.databridge_zoning_overlays',
+)
+
+write_political_wards = GeopetlWriteOperator(
+    task_id='write_political_wards',
+    dag=pipeline,
+    csv_path='{{ ti.xcom_pull("make_planning_staging") }}/political_wards.csv',
+    db_conn_id='databridge2',
+    db_table_name='planning.political_wards',
 )
 
 # -----------------------------------------------------------------
@@ -70,4 +102,12 @@ cleanup = DestroyStagingFolder(
 extract_zoning_basedistricts.set_upstream(make_staging)
 extract_zoning_basedistricts.set_downstream(write_zoning_basedistricts)
 write_zoning_basedistricts.set_downstream(cleanup)
+
+extract_zoning_overlays.set_upstream(make_staging)
+extract_zoning_overlays.set_downstream(write_zoning_overlays)
+write_zoning_overlays.set_downstream(cleanup)
+
+extract_political_wards.set_upstream(make_staging)
+extract_political_wards.set_downstream(write_political_wards)
+write_political_wards.set_downstream(cleanup)
 
