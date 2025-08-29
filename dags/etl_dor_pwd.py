@@ -92,14 +92,14 @@ make_staging = CreateStagingFolder(
 # ------------------------------------------------------------
 # Extract - read files from DOR
 
-#extract_databridge_rtt_summary = GeopetlReadOperator(
-#    task_id='read_databridge_rtt_summary',
+# extract_rtt_summary = GeopetlReadOperator(
+#    task_id='read_rtt_summary',
 #    dag=pipeline,
-#    csv_path='{{ ti.xcom_pull("make_dor_staging") }}/databridge_rtt_summary.csv',
-#    db_conn_id='databridge',
-#    db_table_name='gis_dor.rtt_summary',
+#    csv_path='{{ ti.xcom_pull("make_dor_staging") }}/rtt_summary.csv',
+#    db_conn_id='databridge2',
+#    db_table_name='dor.rtt_summary',
 #    db_table_where='',
-#)
+# )
 #
 #extract_databridge_dor_parcel = GeopetlReadOperator(
 #    task_id='read_databridge_dor_parcel',
@@ -123,8 +123,8 @@ extract_pwd_parcels = GeopetlReadOperator(
     task_id='read_pwd_parcels',
     dag=pipeline,
     csv_path='{{ ti.xcom_pull("make_dor_staging") }}/pwd_parcels.csv',
-    db_conn_id='databridge',
-    db_table_name='gis_water.pwd_parcels',
+    db_conn_id='databridge-v2-citygeo',
+    db_table_name='viewer_pwd.pwd_parcels',
     db_table_where='',
 )
 # ----------------------------------------------------
@@ -400,13 +400,13 @@ write_dor_er_deeds_erroneous_pin_report = GeopetlWriteOperator(
     db_table_name='dor.new_er_deeds_erroneous_pins',
 )
 
-#write_databridge_rtt_summary = GeopetlWriteOperator(
-#    task_id='write_databridge_rtt_summary',
+# write_rtt_summary = GeopetlWriteOperator(
+#    task_id='write_rtt_summary',
 #    dag=pipeline,
-#    csv_path='{{ ti.xcom_pull("make_dor_staging") }}/databridge_rtt_summary.csv',
-#    db_conn_id='databridge2',
-#    db_table_name='dor.databridge_rtt_summary',
-#)
+#    csv_path='{{ ti.xcom_pull("make_dor_staging") }}/rtt_summary.csv',
+#    db_conn_id='databridge-v2-citygeo',
+#    db_table_name='citygeo.rtt_summary',
+# )
 
 #
 #write_dadtabridge_dor_parcel = GeopetlWriteOperator(
@@ -501,13 +501,13 @@ write_dor_condominium = GeopetlWriteOperator(
 #------------------------------------------------------------------
 # Remove temp files
 
-#delete_temp_databridge_rtt_summary = PythonOperator(
-#    task_id='delete_temp_databridge_rtt_summary',
+# delete_temp_rtt_summary = PythonOperator(
+#    task_id='delete_temp_rtt_summary',
 #    dag=pipeline,
 #    python_callable=delete_temp_file,
 #    provide_context=True,
-#    templates_dict={'csv_path':'{{ ti.xcom_pull("make_dor_staging") }}', 'filename':'databridge_rtt_summary.csv',},
-#)
+#    templates_dict={'csv_path':'{{ ti.xcom_pull("make_dor_staging") }}', 'filename':'rtt_summary.csv',},
+# )
 
 
 delete_temp_tripoli_dor_parcel = PythonOperator(
@@ -757,7 +757,26 @@ delete_temp_dor_parcel_analysis = PythonOperator(
     templates_dict={'csv_path':'{{ ti.xcom_pull("make_dor_staging") }}', 'filename':'dor_parcel_analysis.csv',},
 )
 
+########################################
+# Analyses incorporating pin changes:
+#   update dor_parcel_pin_changes_geom
+db2_dor_parcel_pin_changes_geom_view_name = 'dor.vw_dor_parcel_pin_changes_geom'
+db2_dor_parcel_pin_changes_geom_table_name = 'dor.dor_parcel_pin_changes_geom'
+update_dor_parcel_pin_changes_geom_stmt = '''
+BEGIN;
+truncate table {db2_dor_parcel_pin_changes_geom_table_name};
+insert into {db2_dor_parcel_pin_changes_geom_table_name} (select * from {db2_dor_parcel_pin_changes_geom_view_name});
+COMMIT;
+'''.format(db2_dor_parcel_pin_changes_geom_table_name=db2_dor_parcel_pin_changes_geom_table_name, db2_dor_parcel_pin_changes_geom_view_name=db2_dor_parcel_pin_changes_geom_view_name)
 
+update_dor_parcel_pin_changes_geom = PythonOperator(
+    task_id='update_dor_parcel_pin_changes_geom',
+    dag=pipeline,
+    python_callable=update_postgres,
+    op_kwargs={'db_conn_id':'databridge2', 'stmt':update_dor_parcel_pin_changes_geom_stmt},
+)
+
+#
 # -----------------------------------------------------------------
 # Extract and perform standardization report for distinct street_addresses from pin_source_addresses
 pin_source_address_table_name = 'property.pin_source_address'
@@ -841,33 +860,33 @@ update_pin_source_address_plus_std_from_view = PythonOperator(
     op_kwargs={'db_conn_id':'databridge2', 'stmt':update_pin_source_address_plus_std_stmt},
 )
 
-# extract updated table:
-extract_pin_source_address_plus_std = GeopetlReadOperator(
-    task_id='read_pin_source_address_plus_std',
-    dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_dor_staging") }}/pin_source_address_plus_std.csv',
-    db_conn_id='databridge2',
-    db_table_name='property.pin_source_address_plus_std',
-    db_table_where='',
-)
+# # extract updated table:
+# extract_pin_source_address_plus_std = GeopetlReadOperator(
+#     task_id='read_pin_source_address_plus_std',
+#     dag=pipeline,
+#     csv_path='{{ ti.xcom_pull("make_dor_staging") }}/pin_source_address_plus_std.csv',
+#     db_conn_id='databridge2',
+#     db_table_name='property.pin_source_address_plus_std',
+#     db_table_where='',
+# )
 
-write_pin_source_address_plus_std = GeopetlWriteOperator(
-    task_id='write_pin_source_address_plus_std',
-    dag=pipeline,
-    csv_path = '{{ ti.xcom_pull("make_dor_staging") }}/pin_source_address_plus_std.csv',
-    db_conn_id='databridge-gsg',
-    db_table_name='GIS_GSG.PIN_SOURCE_ADDRESS_STD',
-    db_table_where = '',
-    append=False,
-)
+# write_pin_source_address_plus_std = GeopetlWriteOperator(
+#     task_id='write_pin_source_address_plus_std',
+#     dag=pipeline,
+#     csv_path = '{{ ti.xcom_pull("make_dor_staging") }}/pin_source_address_plus_std.csv',
+#     db_conn_id='databridge-v2-citygeo',
+#     db_table_name='citygeo.pin_source_address_std',
+#     db_table_where = '',
+#     append=False,
+# )
 
-delete_temp_pin_source_address_plus_std = PythonOperator(
-    task_id='delete_temp_pin_source_address_plus_std',
-    dag=pipeline,
-    python_callable=delete_temp_file,
-    provide_context=True,
-    templates_dict={'csv_path':'{{ ti.xcom_pull("make_dor_staging") }}', 'filename':'pin_source_address_plus_std.csv',},
-)
+# delete_temp_pin_source_address_plus_std = PythonOperator(
+#     task_id='delete_temp_pin_source_address_plus_std',
+#     dag=pipeline,
+#     python_callable=delete_temp_file,
+#     provide_context=True,
+#     templates_dict={'csv_path':'{{ ti.xcom_pull("make_dor_staging") }}', 'filename':'pin_source_address_plus_std.csv',},
+# )
 
 ##########################
 # Update property.parcel #
@@ -899,10 +918,10 @@ cleanup = DestroyStagingFolder(
     dir='{{ ti.xcom_pull("make_dor_staging") }}',
 )
 
-#extract_databridge_rtt_summary.set_upstream(make_staging)
-#extract_databridge_rtt_summary.set_downstream(write_databridge_rtt_summary)
-#write_databridge_rtt_summary.set_downstream(delete_temp_databridge_rtt_summary)
-#write_databridge_rtt_summary.set_downstream(cleanup)
+# extract_rtt_summary.set_upstream(make_staging)
+# extract_rtt_summary.set_downstream(write_rtt_summary)
+# write_rtt_summary.set_downstream(delete_temp_rtt_summary)
+# write_rtt_summary.set_downstream(cleanup)
 #
 #extract_databridge_dor_parcel.set_upstream(make_staging)
 #extract_databridge_dor_parcel.set_downstream(write_databridge_dor_parcel)
@@ -972,10 +991,15 @@ update_pin_source_address_from_view.set_downstream(extract_distinct_pin_source_a
 extract_distinct_pin_source_addresses.set_downstream(standardize_address_comps)
 standardize_address_comps.set_downstream(write_std_pin_source_address_comps)
 write_std_pin_source_address_comps.set_downstream(update_pin_source_address_plus_std_from_view)
-update_pin_source_address_plus_std_from_view.set_downstream(extract_pin_source_address_plus_std)
-extract_pin_source_address_plus_std.set_downstream(write_pin_source_address_plus_std)
-write_pin_source_address_plus_std.set_downstream(delete_temp_pin_source_address_plus_std)
-delete_temp_pin_source_address_plus_std.set_downstream(cleanup)
+update_pin_source_address_plus_std_from_view.set_downstream(cleanup)
+# update_pin_source_address_plus_std_from_view.set_downstream(extract_pin_source_address_plus_std)
+# extract_pin_source_address_plus_std.set_downstream(write_pin_source_address_plus_std)
+# write_pin_source_address_plus_std.set_downstream(delete_temp_pin_source_address_plus_std)
+# delete_temp_pin_source_address_plus_std.set_downstream(cleanup)
+
+write_tripoli_dor_parcel.set_downstream(update_dor_parcel_pin_changes_geom)
+write_tripoli_dor_pin_changes.set_downstream(update_dor_parcel_pin_changes_geom)
+update_dor_parcel_pin_changes_geom.set_downstream(cleanup)
 
 
 extract_tripoli_dor_pin_changes.set_upstream(make_staging)
