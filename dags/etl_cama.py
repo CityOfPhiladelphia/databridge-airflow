@@ -137,7 +137,7 @@ COMMIT;
 '''
 
 # get last updated timestamp from db oracle revenue interface:
-get_last_asmt_update_from_oracle_for_revenue_stmt = '''select max(etl_modified_timestamp) as last_update from {table_name}'''
+get_last_update_for_revenue_stmt = '''select max(etl_modified_timestamp) as last_update from {table_name}'''
 
 # get last updated timestamp from audit table:
 get_last_update_from_audit_stmt = ''' select max(last_etl_timestamp_processed) as last_update from audit.file_upload_history where schema_name = '{last_update_schema_name}' and table_name = '{last_update_table_name}' '''
@@ -433,13 +433,13 @@ extract_address_servicearea_summary = GeopetlReadOperator(
     task_id='read_address_servicearea_summary',
     dag=pipeline,
     csv_path='{{ ti.xcom_pull("make_staging") }}/address_servicearea_summary.csv',
-    db_conn_id='databridge',
-    db_table_name='gis_ais.vw_address_servicearea_summary',
+    db_conn_id='databridge-v2-citygeo',
+    db_table_name='viewer_ais.address_service_area_summary',
     db_table_where='',
 )
 
-extract_property_codes_for_water = GeopetlReadOperator(
-    task_id='read_property_codes_for_water',
+extract_property_codes = GeopetlReadOperator(
+    task_id='read_property_codes',
     dag=pipeline,
     csv_path='{{ ti.xcom_pull("make_staging") }}/property_codes.csv',
     db_conn_id='databridge2',
@@ -453,6 +453,15 @@ extract_processed_deeds = GeopetlReadOperator(
     csv_path='{{ ti.xcom_pull("make_staging") }}/processed_deeds.csv',
     db_conn_id='databridge2',
     db_table_name='cama.vw_processed_deeds',
+    db_table_where='',
+)
+
+extract_processed_property_deeds = GeopetlReadOperator(
+    task_id='read_processed_property_deeds',
+    dag=pipeline,
+    csv_path='{{ ti.xcom_pull("make_staging") }}/processed_property_deeds.csv',
+    db_conn_id='databridge2',
+    db_table_name='cama.vw_processed_property_deeds',
     db_table_where='',
 )
 # ----------------------------------------------------
@@ -651,20 +660,29 @@ write_address_servicearea_summary = GeopetlWriteOperator(
     db_table_name='ais.databridge_address_servicearea_summary',
 )
 
-write_property_codes_for_water = GeopetlWriteOperator(
-    task_id='write_property_codes_for_water',
+write_property_codes = GeopetlWriteOperator(
+    task_id='write_property_codes',
     dag=pipeline,
     csv_path='{{ ti.xcom_pull("make_staging") }}/property_codes.csv',
-    db_conn_id='databridge-opa',
-    db_table_name='gis_opa.property_codes',
+    db_conn_id='databridge-v2-opa',
+    db_table_name='opa.property_codes',
 )
 
-write_processed_deeds = GeopetlWriteOperator(
-    task_id='write_processed_deeds',
+# migrate to db2
+write_processed_deeds_db2 = GeopetlWriteOperator(
+    task_id='write_processed_deeds_db2',
     dag=pipeline,
     csv_path='{{ ti.xcom_pull("make_staging") }}/processed_deeds.csv',
-    db_conn_id='databridge-cama',
-    db_table_name='gis_cama.processed_deeds',
+    db_conn_id='databridge-v2-citygeo',
+    db_table_name='citygeo.processed_deeds',
+)
+
+write_processed_property_deeds = GeopetlWriteOperator(
+    task_id='write_processed_property_deeds',
+    dag=pipeline,
+    csv_path='{{ ti.xcom_pull("make_staging") }}/processed_property_deeds.csv',
+    db_conn_id='databridge-v2-citygeo',
+    db_table_name='citygeo.processed_property_deeds',
 )
 # -----------------------------------------------------------------
 # Cleanup temp files
@@ -832,8 +850,8 @@ delete_temp_address_servicearea_summary = PythonOperator(
     templates_dict={'csv_path':'{{ ti.xcom_pull("make_staging") }}', 'filename':'/address_servicearea_summary.csv',},
 )
 
-delete_temp_property_codes_for_water = PythonOperator(
-    task_id='delete_temp_property_codes_for_water',
+delete_temp_property_codes = PythonOperator(
+    task_id='delete_temp_property_codes',
     dag=pipeline,
     python_callable=delete_temp_file,
     provide_context=True,
@@ -1116,7 +1134,7 @@ extract_last_asmt_update_from_oracle_for_revenue = GeopetlReadOperator(
     db_conn_id='databridge-opa',
     db_table_name='assessment_cert_update',
     db_table_where='',
-    db_sql=get_last_asmt_update_from_oracle_for_revenue_stmt.format(table_name='assessment_cert_update')
+    db_sql=get_last_update_for_revenue_stmt.format(table_name='assessment_cert_update')
 )
 
 #extract_last_asmt_update_from_oracle_test_for_revenue = GeopetlReadOperator(
@@ -1126,7 +1144,7 @@ extract_last_asmt_update_from_oracle_for_revenue = GeopetlReadOperator(
 #    db_conn_id='gisdbp_t_gis_opa',
 #    db_table_name='assessment_cert_update',
 #    db_table_where='',
-#    db_sql=get_last_asmt_update_from_oracle_for_revenue_stmt.format(table_name='assessment_cert_update')
+#    db_sql=get_last_update_for_revenue_stmt.format(table_name='assessment_cert_update')
 #)
 
 db2_asmt_updates_schema_table_name = 'opa.assessment_cert_updates_history'
@@ -1248,17 +1266,17 @@ delete_temp_asmt_updates = PythonOperator(
 #    db_conn_id='gisdbp_t_gis_opa',
 #    db_table_name='splcom',
 #    db_table_where='',
-#    db_sql=get_last_asmt_update_from_oracle_for_revenue_stmt.format(table_name='splcom')
+#    db_sql=get_last_update_for_revenue_stmt.format(table_name='splcom')
 #)
 
-extract_last_splcom_assessments_update_from_oracle_for_revenue = GeopetlReadOperator(
-    task_id='read_last_splcom_assessments_update_from_oracle_for_revenue',
+extract_last_splcom_assessments_update_from_db2_for_revenue = GeopetlReadOperator(
+    task_id='read_last_splcom_assessments_update_from_db2_for_revenue',
     dag=pipeline,
     csv_path='{{ ti.xcom_pull("make_staging") }}/last_splcom_assessments_update_timestamp.csv',
-    db_conn_id='databridge',
-    db_table_name='GIS_OPA.SPLCOM_ASSESSMENTS',
+    db_conn_id='databridge-v2-citygeo',
+    db_table_name='viewer_opa.splcom_assessments',
     db_table_where='',
-    db_sql=get_last_asmt_update_from_oracle_for_revenue_stmt.format(table_name='gis_opa.splcom_assessments')
+    db_sql=get_last_update_for_revenue_stmt.format(table_name='viewer_opa.splcom_assessments')
 )
 
 
@@ -1300,12 +1318,12 @@ extract_splcom_assessments_updates_for_revenue = PythonOperator(
     templates_dict={'csv_path':'{{ ti.xcom_pull("make_staging") }}/splcom_assessments_updates_for_revenue.csv', 'update_date_csv_path':'{{ ti.xcom_pull("make_staging") }}/last_splcom_assessments_update_timestamp.csv'},
 )
 
-write_splcom_assessments_updates_for_revenue_to_db_oracle = GeopetlWriteOperator(
-    task_id='write_splcom_assessments_updates_for_revenue',
+write_splcom_assessments_updates_to_db2 = GeopetlWriteOperator(
+    task_id='write_splcom_assessments_updates_to_db2',
     dag=pipeline,
     csv_path = '{{ ti.xcom_pull("make_staging") }}/splcom_assessments_updates_for_revenue.csv',
-    db_conn_id='databridge-opa',
-    db_table_name='GIS_OPA.SPLCOM_ASSESSMENTS',
+    db_conn_id='databridge-v2-cama',
+    db_table_name='cama.splcom_assessments_history',
     db_table_where = '',
     append=True,
 )
@@ -1506,25 +1524,25 @@ insert_assessment_and_property_updates_for_revenue_sftp_update_audit_record =  P
     templates_dict={'csv_path':'{{ ti.xcom_pull("make_staging") }}/last_assessment_and_property_updates_for_revenue_update_ts_for_audit.csv'},
 )
 
-write_assessment_and_property_updates_for_revenue_to_db_oracle = GeopetlWriteOperator(
-    task_id='write_assessment_and_property_updates_for_revenue',
-    dag=pipeline,
-    csv_path = '{{ ti.xcom_pull("make_staging") }}//assessment_and_property_updates_for_revenue_updates_for_sftp.csv',
-    db_conn_id='databridge-opa',
-    db_table_name='GIS_OPA.ASSESSMENT_PROPERTY_UPDATES',
-    db_table_where = '',
-    append=True,
-)
+# write_assessment_and_property_updates_for_revenue_to_db_oracle = GeopetlWriteOperator(
+#     task_id='write_assessment_and_property_updates_for_revenue',
+#     dag=pipeline,
+#     csv_path = '{{ ti.xcom_pull("make_staging") }}//assessment_and_property_updates_for_revenue_updates_for_sftp.csv',
+#     db_conn_id='databridge-opa',
+#     db_table_name='GIS_OPA.ASSESSMENT_PROPERTY_UPDATES',
+#     db_table_where = '',
+#     append=True,
+# )
 
 
-extract_last_splcom_update_from_oracle_for_revenue = GeopetlReadOperator(
-    task_id='read_last_splcom_update_from_oracle_for_revenue',
+extract_last_splcom_update_from_db2_for_revenue = GeopetlReadOperator(
+    task_id='read_last_splcom_update_from_db2_for_revenue',
     dag=pipeline,
     csv_path='{{ ti.xcom_pull("make_staging") }}/last_splcom_update_timestamp.csv',
-    db_conn_id='databridge',
-    db_table_name='GIS_OPA.SPLCOM',
+    db_conn_id='databridge-v2-citygeo',
+    db_table_name='viewer_opa.splcom',
     db_table_where='',
-    db_sql=get_last_asmt_update_from_oracle_for_revenue_stmt.format(table_name='gis_opa.splcom')
+    db_sql=get_last_update_for_revenue_stmt.format(table_name='viewer_opa.splcom')
 )
 
 extract_splcom_updates_for_revenue = PythonOperator(
@@ -1537,7 +1555,7 @@ extract_splcom_updates_for_revenue = PythonOperator(
     templates_dict={'csv_path':'{{ ti.xcom_pull("make_staging") }}/splcom_updates_for_revenue.csv', 'update_date_csv_path':'{{ ti.xcom_pull("make_staging") }}/last_splcom_update_timestamp.csv'},
 )
 
-#write_splcom_updates_for_revenue_to_db_oracle_test = GeopetlWriteOperator(
+#write_splcom_updates_for_revenue_to_db2_test = GeopetlWriteOperator(
 #    task_id='write_splcom_updates_for_revenue_test',
 #    dag=pipeline,
 #    csv_path = '{{ ti.xcom_pull("make_staging") }}/splcom_updates_for_revenue.csv',
@@ -1547,44 +1565,41 @@ extract_splcom_updates_for_revenue = PythonOperator(
 #    append=True,
 #)
 
-write_splcom_updates_for_revenue_to_db_oracle = GeopetlWriteOperator(
+write_splcom_updates_for_revenue_to_db2 = GeopetlWriteOperator(
     task_id='write_splcom_updates_for_revenue',
     dag=pipeline,
     csv_path = '{{ ti.xcom_pull("make_staging") }}/splcom_updates_for_revenue.csv',
-    db_conn_id='databridge-opa',
-    db_table_name='GIS_OPA.SPLCOM',
+    db_conn_id='databridge-v2-cama',
+    db_table_name='cama.splcom',
     db_table_where = '',
     append=True,
 )
 
-extract_last_opa_account_num_history_update_from_oracle_for_revenue = GeopetlReadOperator(
-    task_id='read_last_opa_account_num_hist_update_from_oracle_for_revenue',
+# extract_last_opa_account_num_history_update_from_oracle_for_revenue = GeopetlReadOperator(
+#     task_id='read_last_opa_account_num_hist_update_from_oracle_for_revenue',
+#     dag=pipeline,
+#     csv_path='{{ ti.xcom_pull("make_staging") }}/last_opa_account_num_history_update_timestamp.csv',
+#     db_conn_id='databridge-opa',
+#     db_table_name='opa_account_num_history',
+#     db_table_where='',
+#     db_sql=get_last_update_for_revenue_stmt.format(table_name='opa_account_num_history')
+# )
+
+extract_opa_account_num_changes = GeopetlReadOperator(
+    task_id='read_opa_account_num_changes',
     dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_staging") }}/last_opa_account_num_history_update_timestamp.csv',
-    db_conn_id='databridge-opa',
-    db_table_name='opa_account_num_history',
-    db_table_where='',
-    db_sql=get_last_asmt_update_from_oracle_for_revenue_stmt.format(table_name='opa_account_num_history')
+    csv_path='{{ ti.xcom_pull("make_staging") }}/opa_account_num_changes.csv',
+    db_conn_id='databridge2',
+    db_table_name='cama.vw_opa_account_num_changes',
+    db_sql='select * from cama.vw_opa_account_num_changes'
 )
 
-extract_opa_account_num_history_updates_for_revenue = PythonOperator(
-    task_id='read_opa_account_num_history_updates_for_revenue',
+write_opa_account_num_changes_to_db2 = GeopetlWriteOperator(
+    task_id='write_opa_account_num_changes',
     dag=pipeline,
-    python_callable=extract_from_postgres,
-    provide_context=True,
-    op_kwargs={'db_conn_id':'databridge2', 'table_name': db2_opa_account_num_history_updates_table_name, 'stmt': get_updates_from_db2_for_revenue_stmt.format(table_name=db2_opa_account_num_history_updates_table_name, fields=opa_account_num_history_update_fields),
-        'stmt_where': get_updates_from_db2_for_revenue_stmt_where},
-    templates_dict={'csv_path':'{{ ti.xcom_pull("make_staging") }}/opa_account_num_history_updates_for_revenue.csv', 'update_date_csv_path':'{{ ti.xcom_pull("make_staging") }}/last_opa_account_num_history_update_timestamp.csv'},
-)
-
-write_opa_account_num_history_updates_for_revenue_to_db_oracle = GeopetlWriteOperator(
-    task_id='write_opa_account_num_history_updates_for_revenue',
-    dag=pipeline,
-    csv_path = '{{ ti.xcom_pull("make_staging") }}/opa_account_num_history_updates_for_revenue.csv',
-    db_conn_id='databridge-opa',
-    db_table_name='GIS_OPA.OPA_ACCOUNT_NUM_HISTORY',
-    db_table_where = '',
-    append=True,
+    csv_path = '{{ ti.xcom_pull("make_staging") }}/opa_account_num_changes.csv',
+    db_conn_id='databridge-v2-cama',
+    db_table_name='cama.opa_account_num_changes',
 )
 
 # update cama.pardat_latest_prop_data from view:
@@ -1681,6 +1696,14 @@ write_property_summary = GeopetlWriteOperator(
     db_table_name='gis_opa.property_summary',
 )
 
+write_property_summary_db2 = GeopetlWriteOperator(
+    task_id='write_property_summary_db2',
+    dag=pipeline,
+    csv_path='{{ ti.xcom_pull("make_staging") }}/property_summary.csv',
+    db_conn_id='databridge-v2-citygeo',
+    db_table_name='citygeo.property_summary',
+)
+
 delete_temp_property_summary = PythonOperator(
     task_id='delete_temp_property_summary',
     dag=pipeline,
@@ -1689,13 +1712,13 @@ delete_temp_property_summary = PythonOperator(
     templates_dict={'csv_path':'{{ ti.xcom_pull("make_staging") }}', 'filename':'property_summary.csv',},
 )
 
-update_opa_properties_public_stmt = '''CALL SP_REFRESH_OPA_PROPERTIES_PUB()'''
-update_opa_properties_public = PythonOperator(
-    task_id='update_opa_properties_public',
-    dag=pipeline,
-    python_callable=query_oracle,
-    op_kwargs={'db_conn_id':'databridge-opa', 'stmt': update_opa_properties_public_stmt},
-)
+# update_opa_properties_public_stmt = '''CALL SP_REFRESH_OPA_PROPERTIES_PUB()'''
+# update_opa_properties_public = PythonOperator(
+#     task_id='update_opa_properties_public',
+#     dag=pipeline,
+#     python_callable=query_oracle,
+#     op_kwargs={'db_conn_id':'databridge-opa', 'stmt': update_opa_properties_public_stmt},
+# )
 
 # extract_opa_properties_public = GeopetlReadOperator(
 #     task_id='read_opa_properties_public',
@@ -1726,13 +1749,13 @@ update_opa_properties_public = PythonOperator(
 #     templates_dict={'csv_path':'{{ ti.xcom_pull("make_staging") }}', 'filename':'opa_properties_public.csv',},
 # )
 
-update_opa_properties_public_pde_stmt = '''CALL SP_REFRESH_OPA_PROPS_PUB_PDE()'''
-update_opa_properties_public_pde = PythonOperator(
-    task_id='update_opa_properties_public_pde',
-    dag=pipeline,
-    python_callable=query_oracle,
-    op_kwargs={'db_conn_id':'databridge-opa', 'stmt': update_opa_properties_public_pde_stmt},
-)
+# update_opa_properties_public_pde_stmt = '''CALL SP_REFRESH_OPA_PROPS_PUB_PDE()'''
+# update_opa_properties_public_pde = PythonOperator(
+#     task_id='update_opa_properties_public_pde',
+#     dag=pipeline,
+#     python_callable=query_oracle,
+#     op_kwargs={'db_conn_id':'databridge-opa', 'stmt': update_opa_properties_public_pde_stmt},
+# )
 
 # extract_opa_properties_public_pde = GeopetlReadOperator(
 #     task_id='read_opa_properties_public_pde',
@@ -1824,8 +1847,8 @@ write_property_summary_new_prod_db2 = GeopetlWriteOperator(
     task_id='write_property_summary_new_prod_db2',
     dag=pipeline,
     csv_path='{{ ti.xcom_pull("make_staging") }}/property_summary_new.csv',
-    db_conn_id='databridge-v2-opa',
-    db_table_name='opa.property_summary_new',
+    db_conn_id='databridge-v2-citygeo',
+    db_table_name='citygeo.property_summary_new',
 )
 
 delete_temp_property_summary_new = PythonOperator(
@@ -1927,15 +1950,23 @@ extract_pin_owner_mailing = GeopetlReadOperator(
     db_table_where='',
 )
 
+# write_pin_owner_mailing = GeopetlWriteOperator(
+#     task_id='write_pin_owner_mailing',
+#     dag=pipeline,
+#     csv_path='{{ ti.xcom_pull("make_staging") }}/pin_owner_mailing.csv',
+#     db_conn_id='databridge-gsg',
+#     db_table_name='gis_gsg.pin_owner_mailing',
+#     db_table_where='',
+# )
+
 write_pin_owner_mailing = GeopetlWriteOperator(
     task_id='write_pin_owner_mailing',
     dag=pipeline,
     csv_path='{{ ti.xcom_pull("make_staging") }}/pin_owner_mailing.csv',
-    db_conn_id='databridge-gsg',
-    db_table_name='gis_gsg.pin_owner_mailing',
+    db_conn_id='databridge-v2-citygeo',
+    db_table_name='citygeo.pin_owner_mailing',
     db_table_where='',
 )
-
 # update pin master:
 pin_master_table_name='property.pin_master'
 pin_master_view_name='property.vw_pin_master'
@@ -1967,12 +1998,22 @@ extract_pin_master = GeopetlReadOperator(
     db_table_where='',
 )
 
+# write_databridge_pin_master = GeopetlWriteOperator(
+#     task_id='write_databridge_pin_master',
+#     dag=pipeline,
+#     csv_path = '{{ ti.xcom_pull("make_staging") }}/pin_master.csv',
+#     db_conn_id='databridge-gsg',
+#     db_table_name='GIS_GSG.PIN_MASTER',
+#     db_table_where = '',
+#     append=False,
+# )
+
 write_databridge_pin_master = GeopetlWriteOperator(
     task_id='write_databridge_pin_master',
     dag=pipeline,
     csv_path = '{{ ti.xcom_pull("make_staging") }}/pin_master.csv',
-    db_conn_id='databridge-gsg',
-    db_table_name='GIS_GSG.PIN_MASTER',
+    db_conn_id='databridge-v2-citygeo',
+    db_table_name='citygeo.pin_master',
     db_table_where = '',
     append=False,
 )
@@ -1983,6 +2024,33 @@ delete_temp_pin_master = PythonOperator(
     python_callable=delete_temp_file,
     provide_context=True,
     templates_dict={'csv_path':'{{ ti.xcom_pull("make_staging") }}', 'filename':'pin_master.csv',},
+)
+
+extract_opa_pin_account_history = GeopetlReadOperator(
+    task_id='read_opa_pin_account_history',
+    dag=pipeline,
+    csv_path='{{ ti.xcom_pull("make_staging") }}/opa_pin_account_history.csv',
+    db_conn_id='databridge2',
+    db_table_name='property.vw_opa_pin_account_history',
+    db_table_where='',
+)
+
+write_opa_pin_account_history = GeopetlWriteOperator(
+    task_id='write_opa_pin_account_history',
+    dag=pipeline,
+    csv_path = '{{ ti.xcom_pull("make_staging") }}/opa_pin_account_history.csv',
+    db_conn_id='databridge-v2-cama',
+    db_table_name='cama.opa_pin_account_history',
+    db_table_where = '',
+    append=False,
+)
+
+delete_temp_opa_pin_account_history = PythonOperator(
+    task_id='delete_temp_opa_pin_account_history',
+    dag=pipeline,
+    python_callable=delete_temp_file,
+    provide_context=True,
+    templates_dict={'csv_path':'{{ ti.xcom_pull("make_staging") }}', 'filename':'opa_pin_account_history.csv',},
 )
 
 # -----------------------------------------------------------------
@@ -2078,12 +2146,22 @@ extract_pin_source_address_plus_std = GeopetlReadOperator(
     db_table_where='',
 )
 
+# write_pin_source_address_plus_std = GeopetlWriteOperator(
+#     task_id='write_pin_source_address_plus_std',
+#     dag=pipeline,
+#     csv_path = '{{ ti.xcom_pull("make_staging") }}/pin_source_address_plus_std.csv',
+#     db_conn_id='databridge-gsg',
+#     db_table_name='GIS_GSG.PIN_SOURCE_ADDRESS_STD',
+#     db_table_where = '',
+#     append=False,
+# )
+
 write_pin_source_address_plus_std = GeopetlWriteOperator(
     task_id='write_pin_source_address_plus_std',
     dag=pipeline,
     csv_path = '{{ ti.xcom_pull("make_staging") }}/pin_source_address_plus_std.csv',
-    db_conn_id='databridge-gsg',
-    db_table_name='GIS_GSG.PIN_SOURCE_ADDRESS_STD',
+    db_conn_id='databridge-v2-citygeo',
+    db_table_name='citygeo.pin_source_address_std',
     db_table_where = '',
     append=False,
 )
@@ -2107,12 +2185,22 @@ extract_opa_owners_cama_for_ais = GeopetlReadOperator(
     db_table_where='',
 )
 
+# write_opa_owners_cama_for_ais = GeopetlWriteOperator(
+#     task_id='write_opa_owners_cama_for_ais',
+#     dag=pipeline,
+#     csv_path = '{{ ti.xcom_pull("make_staging") }}//opa_owners_cama_for_ais.csv',
+#     db_conn_id='databridge-ais-sources',
+#     db_table_name='GIS_AIS_SOURCES.OPA_OWNERS_CAMA_AIS',
+#     db_table_where = '',
+#     append=False,
+# )
+
 write_opa_owners_cama_for_ais = GeopetlWriteOperator(
     task_id='write_opa_owners_cama_for_ais',
     dag=pipeline,
     csv_path = '{{ ti.xcom_pull("make_staging") }}//opa_owners_cama_for_ais.csv',
-    db_conn_id='databridge-ais-sources',
-    db_table_name='GIS_AIS_SOURCES.OPA_OWNERS_CAMA_AIS',
+    db_conn_id='databridge-v2-citygeo',
+    db_table_name='citygeo.opa_owners_cama_ais',
     db_table_where = '',
     append=False,
 )
@@ -2266,88 +2354,97 @@ update_cama_property_deeds_new = PythonOperator(
     op_kwargs={'db_conn_id':'databridge2', 'stmt':upsert_property_deeds_new_stmt},
 )
 
-# send to CAMA
-
-# non-queue 9 records:
-get_last_update_from_target_stmt = '''select max(etl_modified_timestamp) as last_update from {table_name}'''
-extract_last_update_from_property_deeds_new_non_queue_9 = GeopetlReadOperator(
-    task_id='read_last_update_from_property_deeds_new_non_queue_9',
+# send to Databridge
+get_last_update_from_target_stmt_db2 = '''select MAX(etl_modified_timestamp) AS last_update from {table_name}'''
+extract_last_update_from_property_deeds_new_db2 = GeopetlReadOperator(
+    task_id='read_last_update_from_property_deeds_db2',
     dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_staging") }}/last_property_deeds_new_non_queue_9_update_timestamp.csv',
-    db_conn_id='databridge-cama',
-    db_table_name='gis_cama.property_deeds_new',
+    csv_path='{{ ti.xcom_pull("make_staging") }}/last_property_deeds_new_update_timestamp.csv',
+    db_conn_id='databridge-v2-citygeo',
+    db_table_name='citygeo.property_deeds_new',
     db_table_where='',
-    db_sql=get_last_update_from_target_stmt.format(table_name='gis_cama.property_deeds_new')
+    db_sql=get_last_update_from_target_stmt_db2.format(table_name='citygeo.property_deeds_new')
 )
 
-extract_property_deeds_new_non_queue_9_updates = PythonOperator(
-    task_id='read_property_deeds_new_non_queue_9_updates',
+extract_property_deeds_new_updates = PythonOperator(
+    task_id='read_property_deeds_new_updates',
     dag=pipeline,
     python_callable=extract_from_postgres,
     provide_context=True,
     op_kwargs={'db_conn_id':'databridge2', 'table_name': 'cama.property_deeds_new', 'stmt': select_property_deeds_new_non_queue_9_stmt},
-    templates_dict={'csv_path':'{{ ti.xcom_pull("make_staging") }}/property_deeds_new_non_queue_9_updates.csv', 'update_date_csv_path':'{{ ti.xcom_pull("make_staging") }}/last_property_deeds_new_non_queue_9_update_timestamp.csv'},
+    templates_dict={'csv_path':'{{ ti.xcom_pull("make_staging") }}/property_deeds_new_updates.csv', 'update_date_csv_path':'{{ ti.xcom_pull("make_staging") }}/last_property_deeds_new_update_timestamp.csv'},
 )
 
 # append updated records to target table:
-write_property_deeds_new_non_queue_9_updates = GeopetlWriteOperator(
-    task_id='write_property_deeds_new_non_queue_9_updates',
+# write_property_deeds_new_updates_db1 = GeopetlWriteOperator(
+#     task_id='write_property_deeds_new_db1',
+#     dag=pipeline,
+#     csv_path = '{{ ti.xcom_pull("make_staging") }}//property_deeds_new_updates.csv',
+#     db_conn_id='databridge-cama',
+#     db_table_name='gis_cama.property_deeds_new',
+#     db_table_where = '',
+#     append=True,
+# )
+
+write_property_deeds_new_updates_db2 = GeopetlWriteOperator(
+    task_id='write_property_deeds_new_db2',
     dag=pipeline,
-    csv_path = '{{ ti.xcom_pull("make_staging") }}//property_deeds_new_non_queue_9_updates.csv',
-    db_conn_id='databridge-cama',
-    db_table_name='gis_cama.property_deeds_new',
+    csv_path = '{{ ti.xcom_pull("make_staging") }}//property_deeds_new_updates.csv',
+    db_conn_id='databridge-v2-citygeo',
+    db_table_name='citygeo.property_deeds_new',
     db_table_where = '',
     append=True,
 )
 
-delete_temp_property_deeds_new_non_queue_9_updates = PythonOperator(
-    task_id='delete_temp_property_deeds_new_non_queue_9_updates',
+delete_temp_property_deeds_new_updates = PythonOperator(
+    task_id='delete_temp_property_deeds_new_updates',
     dag=pipeline,
     python_callable=delete_temp_file,
     provide_context=True,
-    templates_dict={'csv_path':'{{ ti.xcom_pull("make_staging") }}', 'filename':'property_deeds_new_non_queue_9_updates.csv',},
+    templates_dict={'csv_path':'{{ ti.xcom_pull("make_staging") }}', 'filename':'property_deeds_new_updates.csv',},
 )
 
-# queue 9 records:
-get_last_update_from_target_stmt = '''select max(etl_modified_timestamp) as last_update from {table_name}'''
-extract_last_update_from_property_deeds_new_queue_9 = GeopetlReadOperator(
-    task_id='read_last_update_from_property_deeds_new_queue_9',
+# # queue 9 records:
+
+get_last_update_from_target_stmt_db2 = '''select MAX(etl_modified_timestamp) as last_update from {table_name}'''
+extract_last_update_from_property_deeds_new_queue_9_db2 = GeopetlReadOperator(
+    task_id='read_last_update_from_property_deeds_new_queue_9_db2',
     dag=pipeline,
-    csv_path='{{ ti.xcom_pull("make_staging") }}/last_property_deeds_new_queue_9_update_timestamp.csv',
-    db_conn_id='databridge-cama',
-    db_table_name='gis_cama.property_deeds_new_queue_9_his',
+    csv_path='{{ ti.xcom_pull("make_staging") }}/last_property_deeds_new_queue_9_update_timestamp_db2.csv',
+    db_conn_id='databridge-v2-citygeo',
+    db_table_name='citygeo.property_deeds_new_queue_9_his',
     db_table_where='',
-    db_sql=get_last_update_from_target_stmt.format(table_name='gis_cama.property_deeds_new_queue_9_his')
+    db_sql=get_last_update_from_target_stmt_db2.format(table_name='citygeo.property_deeds_new_queue_9_his')
 )
 
-extract_property_deeds_new_queue_9_updates = PythonOperator(
-    task_id='read_property_deeds_new_queue_9_updates',
+extract_property_deeds_new_queue_9_updates_db2 = PythonOperator(
+    task_id='read_property_deeds_new_queue_9_updates_db2',
     dag=pipeline,
     python_callable=extract_from_postgres,
     provide_context=True,
-    op_kwargs={'db_conn_id':'databridge2', 'table_name': 'gis_cama.property_deeds_new_queue_9', 'stmt': select_property_deeds_new_queue_9_stmt},
-    templates_dict={'csv_path':'{{ ti.xcom_pull("make_staging") }}/property_deeds_new_queue_9_updates.csv', 'update_date_csv_path':'{{ ti.xcom_pull("make_staging") }}/last_property_deeds_new_queue_9_update_timestamp.csv'},
+    op_kwargs={'db_conn_id':'databridge2', 'table_name': 'cama.property_deeds_new_queue_9', 'stmt': select_property_deeds_new_queue_9_stmt},
+    templates_dict={'csv_path':'{{ ti.xcom_pull("make_staging") }}/property_deeds_new_queue_9_updates_db2.csv', 'update_date_csv_path':'{{ ti.xcom_pull("make_staging") }}/last_property_deeds_new_queue_9_update_timestamp_db2.csv'},
 )
 
-# append updated records to target table:
-write_property_deeds_new_queue_9_updates = GeopetlWriteOperator(
-    task_id='write_property_deeds_new_queue_9_updates',
+write_property_deeds_new_queue_9_updates_db2 = GeopetlWriteOperator(
+    task_id='write_property_deeds_new_queue_9_updates_db2',
     dag=pipeline,
-    csv_path = '{{ ti.xcom_pull("make_staging") }}//property_deeds_new_queue_9_updates.csv',
-    db_conn_id='databridge-cama',
-    db_table_name='gis_cama.property_deeds_new_queue_9_his',
+    csv_path = '{{ ti.xcom_pull("make_staging") }}//property_deeds_new_queue_9_updates_db2.csv',
+    db_conn_id='databridge-v2-citygeo',
+    db_table_name='citygeo.property_deeds_new_queue_9_his',
     db_table_where = '',
     append=True,
 )
 
-delete_temp_property_deeds_new_queue_9_updates = PythonOperator(
-    task_id='delete_temp_property_deeds_new_queue_9_updates',
+delete_temp_property_deeds_new_queue_9_updates_db2 = PythonOperator(
+    task_id='delete_temp_property_deeds_new_queue_9_updates_db2',
     dag=pipeline,
     python_callable=delete_temp_file,
     provide_context=True,
-    templates_dict={'csv_path':'{{ ti.xcom_pull("make_staging") }}', 'filename':'property_deeds_new_queue_9_updates.csv',},
+    templates_dict={'csv_path':'{{ ti.xcom_pull("make_staging") }}', 'filename':'property_deeds_new_queue_9_updates_db2.csv',},
 )
 
+#######
 
 # After sending, update_er_stage_parcel_sent_date and update_er_stage_transaction_status_opa_queue
 update_er_stage_parcel_sent_date = PythonOperator(
@@ -2363,7 +2460,6 @@ update_er_stage_transaction_opa_queue = PythonOperator(
     python_callable=update_db,
     op_kwargs={'db_conn_id':'databridge2', 'stmt':update_er_stage_transaction_opa_queue_sql},
 )
-
 
 update_er_stage_transaction_status_opa_queue = PythonOperator(
     task_id='update_er_stage_transaction_status_opa_queue',
@@ -2407,10 +2503,6 @@ def query_oracle(**kwargs):
     conn.commit()
 
 gisscripts = BaseHook.get_connection('gisscripts')
-sshhook_old_instance = SSHHook(remote_host="citygeo-SC3-aws.city.phila.local",
-                                       username="gisscripts",
-                                       password=gisscripts.password,
-                                       )
 
 sshhook_instance = SSHHook(remote_host="citygeo-SC3-aws.city.phila.local",
                                         username="gisscripts",
@@ -2418,38 +2510,18 @@ sshhook_instance = SSHHook(remote_host="citygeo-SC3-aws.city.phila.local",
                                         )
 
 # reverse sync AGO queue 9 table from AGO to Databridge:
-
 backwards_oracle_sync = SSHOperator(
-                task_id="backwards_oracle_sync_AGO_queue_9_to_Databridge",
+                task_id="backwards_sync_AGO_queue_9_to_Databridge",
                 dag=pipeline,
-                command='C:/arcpy/python.exe C:/scripts/ago_to_databridge_backup_etl/ago_to_databridge_backup.py -ad PROPERTY_DEEDS_NEW_QUEUE_9 -d PROPERTY_DEEDS_NEW_QUEUE_9_AGO -a gis_cama --databridge-version 1',
+                command="C:/Python312/python.exe C:/scripts/ago_reverse_extract_v2/run.py --table citygeo.property_deeds_new_queue_9_ago --ago_target_rest_name GIS_CAMA_property_deeds_new_queue_9 --layer_num 0 --ago_user maps.phl.data --databridge_user citygeo",
                 ssh_hook=sshhook_instance,
                 )
 
-
-# update Databridge queue_9 table from historical view & joining AGO editor info for publishing
-
-update_opa_property_deeds_new_queue_9_pub_stmt = '''CALL GIS_CAMA.REFRESH_PROP_DEEDS_NEW_QUEUE_9()'''
-
-update_opa_property_deeds_new_queue_9_pub = PythonOperator(
-    task_id='update_opa_property_deeds_new_queue_9_pub',
-    dag=pipeline,
-    python_callable=query_oracle,
-    op_kwargs={'db_conn_id':'databridge-cama', 'stmt': update_opa_property_deeds_new_queue_9_pub_stmt},
-)
-
-
-refresh_ago = SSHOperator(
-                task_id="refresh_ago",
-                dag=pipeline,
-                command='C:/arcpy/python.exe C:/scripts/ago_updater/ago_update.py -d GIS_CAMA_property_deeds_new_queue_9 --ago-user maps.phl.data --enable-editing --preserve-editor-tracking --share-groups "OPA Suspense Queue Review"',
-                ssh_hook=sshhook_old_instance,
-                )
-
+# reverse sync AGO review findings table from AGO to Databridge:
 backwards_q9_review_findings_sync = SSHOperator(
                 task_id="backwards_queue_9_review_findings_AGO_to_Databridge",
                 dag=pipeline,
-                command="C:/arcpy/python.exe C:/scripts/ago_to_databridge_backup_etl/ago_to_databridge_backup.py -ad '\"OPA Suspense Queue Findings\"' -d QUEUE_9_REVIEW_FINDINGS -a cama",
+                command="C:/Python312/python.exe C:/scripts/ago_reverse_extract_v2/run.py --table cama.queue_9_review_findings --ago_target_rest_name service_f123a34903294925ab135d5cf0e71407 --layer_num 0 --ago_user maps.phl.data --databridge_user cama --exclude_fields globalid",
                 ssh_hook=sshhook_instance,
                 )
 
@@ -2473,10 +2545,92 @@ write_q9_review_findings = GeopetlWriteOperator(
     db_table_where='',
 )
 
+#---------------------------------------------------------------
+# Extract CAMA address/opa_account_num duplication reports and range/in-range address w/ different pin reports and write to DB2:
+#
+
+extract_vw_report_duplicate_active_addresses =  GeopetlReadOperator(
+    task_id='read_vw_report_duplicate_active_addresses',
+    dag=pipeline,
+    csv_path='{{ ti.xcom_pull("make_staging") }}/vw_report_duplicate_active_addresses.csv',
+    db_conn_id='databridge2',
+    db_table_name='cama.vw_report_duplicate_active_addresses',
+    db_sql='select * from cama.vw_report_duplicate_active_addresses',
+    db_table_where='',
+)
+
+extract_vw_report_duplicate_active_opa_accounts =  GeopetlReadOperator(
+    task_id='read_vw_report_duplicate_active_opa_accounts',
+    dag=pipeline,
+    csv_path='{{ ti.xcom_pull("make_staging") }}/vw_report_duplicate_active_opa_accounts.csv',
+    db_conn_id='databridge2',
+    db_table_name='cama.vw_report_duplicate_active_opa_accounts',
+    db_sql='select * from cama.vw_report_duplicate_active_opa_accounts',
+    db_table_where='',
+)
+
+extract_vw_report_ranged_non_ranged_pin_conflicts =  GeopetlReadOperator(
+    task_id='read_vw_report_ranged_non_ranged_pin_conflicts',
+    dag=pipeline,
+    csv_path='{{ ti.xcom_pull("make_staging") }}/vw_report_ranged_non_ranged_pin_conflicts.csv',
+    db_conn_id='databridge2',
+    db_table_name='cama.vw_report_ranged_non_ranged_pin_conflicts',
+    db_table_where='',
+)
 
 
+# Write to db2
+write_vw_report_duplicate_active_addresses = GeopetlWriteOperator(
+    task_id='write_vw_report_duplicate_active_addresses',
+    dag=pipeline,
+    csv_path='{{ ti.xcom_pull("make_staging") }}/vw_report_duplicate_active_addresses.csv',
+    db_conn_id='databridge-v2-citygeo',
+    db_table_name='citygeo.cama_report_duplicate_active_addresses',
+    db_table_where='',
+)
 
+write_vw_report_duplicate_active_opa_accounts = GeopetlWriteOperator(
+    task_id='write_vw_report_duplicate_active_opa_accounts',
+    dag=pipeline,
+    csv_path='{{ ti.xcom_pull("make_staging") }}/vw_report_duplicate_active_opa_accounts.csv',
+    db_conn_id='databridge-v2-citygeo',
+    db_table_name='citygeo.cama_report_duplicate_active_opa_accounts',
+    db_table_where='',
+)
 
+write_vw_report_ranged_non_ranged_pin_conflicts = GeopetlWriteOperator(
+    task_id='write_vw_report_ranged_non_ranged_pin_conflicts',
+    dag=pipeline,
+    csv_path='{{ ti.xcom_pull("make_staging") }}/vw_report_ranged_non_ranged_pin_conflicts.csv',
+    db_conn_id='databridge-v2-citygeo',
+    db_table_name='citygeo.cama_report_ranged_non_ranged_pin_conflicts',
+    db_table_where='',
+)
+
+# Delete temp files
+delete_temp_vw_report_duplicate_active_addresses = PythonOperator(
+    task_id='delete_temp_vw_report_duplicate_active_addresses',
+    dag=pipeline,
+    python_callable=delete_temp_file,
+    provide_context=True,
+    templates_dict={'csv_path':'{{ ti.xcom_pull("make_staging") }}', 'filename':'vw_report_duplicate_active_addresses.csv',},
+)
+
+delete_temp_vw_report_duplicate_active_opa_accounts = PythonOperator(
+    task_id='delete_temp_vw_report_duplicate_active_opa_accounts',
+    dag=pipeline,
+    python_callable=delete_temp_file,
+    provide_context=True,
+    templates_dict={'csv_path':'{{ ti.xcom_pull("make_staging") }}', 'filename':'vw_report_duplicate_active_opa_accounts.csv',},
+)
+
+delete_temp_vw_report_ranged_non_ranged_pin_conflicts = PythonOperator(
+    task_id='delete_temp_vw_report_ranged_non_ranged_pin_conflicts',
+    dag=pipeline,
+    python_callable=delete_temp_file,
+    provide_context=True,
+    templates_dict={'csv_path':'{{ ti.xcom_pull("make_staging") }}', 'filename':'vw_report_ranged_non_ranged_pin_conflicts.csv',},
+)
 # -----------------------------------------------------------------
 # Cleanup - delete staging folder
 
@@ -2555,8 +2709,8 @@ update_assessment_and_property_updates_for_revenue.set_upstream(write_comdat)
 update_assessment_and_property_updates_for_revenue.set_upstream(write_dweldat)
 update_assessment_and_property_updates_for_revenue.set_downstream(extract_assessment_and_property_updates_for_revenue_updates_for_sftp)
 extract_assessment_and_property_updates_for_revenue_updates_for_sftp.set_downstream(upload_assessment_and_property_updates_for_revenue_updates_to_sftp)
-extract_assessment_and_property_updates_for_revenue_updates_for_sftp.set_downstream(write_assessment_and_property_updates_for_revenue_to_db_oracle)
-write_assessment_and_property_updates_for_revenue_to_db_oracle.set_downstream(cleanup)
+# extract_assessment_and_property_updates_for_revenue_updates_for_sftp.set_downstream(write_assessment_and_property_updates_for_revenue_to_db_oracle)
+# write_assessment_and_property_updates_for_revenue_to_db_oracle.set_downstream(cleanup)
 extract_assessment_and_property_updates_for_revenue_updates_for_sftp.set_downstream(extract_last_assessment_and_property_updates_for_revenue_update_ts_for_audit)
 extract_last_assessment_and_property_updates_for_revenue_update_ts_for_audit.set_downstream(insert_assessment_and_property_updates_for_revenue_sftp_update_audit_record)
 upload_assessment_and_property_updates_for_revenue_updates_to_sftp.set_downstream(insert_assessment_and_property_updates_for_revenue_sftp_update_audit_record)
@@ -2668,11 +2822,11 @@ update_splcom_assessments_history.set_downstream(extract_splcom_assessments_upda
 #upload_splcom_assessments_updates_for_revenue_to_sftp.set_downstream(cleanup)
 
 
-extract_splcom_assessments_updates_for_revenue.set_downstream(write_splcom_assessments_updates_for_revenue_to_db_oracle)
-write_splcom_assessments_updates_for_revenue_to_db_oracle.set_downstream(delete_temp_splcom_assessments_updates)
-write_splcom_assessments_updates_for_revenue_to_db_oracle.set_downstream(cleanup)
-extract_last_splcom_assessments_update_from_oracle_for_revenue.set_upstream(make_staging)
-extract_last_splcom_assessments_update_from_oracle_for_revenue.set_downstream(extract_splcom_assessments_updates_for_revenue)
+extract_splcom_assessments_updates_for_revenue.set_downstream(write_splcom_assessments_updates_to_db2)
+write_splcom_assessments_updates_to_db2.set_downstream(delete_temp_splcom_assessments_updates)
+write_splcom_assessments_updates_to_db2.set_downstream(cleanup)
+extract_last_splcom_assessments_update_from_db2_for_revenue.set_upstream(make_staging)
+extract_last_splcom_assessments_update_from_db2_for_revenue.set_downstream(extract_splcom_assessments_updates_for_revenue)
 
 
 #write_homestead.set_downstream(update_homestead_hash)
@@ -2713,7 +2867,7 @@ update_legdat_history.set_downstream(cleanup)
 #update_comnt_history.set_downstream(cleanup)
 update_sales_history.set_downstream(cleanup)
 update_phl_asmt_history.set_downstream(cleanup)
-update_phl_acct_hist_det_history.set_downstream(extract_last_opa_account_num_history_update_from_oracle_for_revenue)
+update_phl_acct_hist_det_history.set_downstream(cleanup)
 #update_homestead_history.set_downstream(cleanup)
 #update_homestead_archive_history.set_downstream(cleanup)
 
@@ -2739,16 +2893,17 @@ write_asmt_updates_for_revenue_to_db_oracle.set_downstream(delete_temp_asmt_upda
 #extract_test_asmt_updates_for_revenue.set_downstream(write_test_asmt_updates_for_revenue_to_db_oracle)
 #write_test_asmt_updates_for_revenue_to_db_oracle.set_downstream(cleanup)
 
-extract_last_splcom_update_from_oracle_for_revenue.set_upstream(make_staging)
-extract_last_splcom_update_from_oracle_for_revenue.set_downstream(extract_splcom_updates_for_revenue)
-#extract_splcom_updates_for_revenue.set_downstream(write_splcom_updates_for_revenue_to_db_oracle_test)
+extract_last_splcom_update_from_db2_for_revenue.set_upstream(make_staging)
+extract_last_splcom_update_from_db2_for_revenue.set_downstream(extract_splcom_updates_for_revenue)
+#extract_splcom_updates_for_revenue.set_downstream(write_splcom_updates_for_revenue_to_db2_test)
 write_splcom.set_downstream(extract_splcom_updates_for_revenue)
-extract_splcom_updates_for_revenue.set_downstream(write_splcom_updates_for_revenue_to_db_oracle)
-#write_splcom_updates_for_revenue_to_db_oracle_test.set_downstream(cleanup)
-write_splcom_updates_for_revenue_to_db_oracle.set_downstream(cleanup)
-extract_last_opa_account_num_history_update_from_oracle_for_revenue.set_downstream(extract_opa_account_num_history_updates_for_revenue)
-extract_opa_account_num_history_updates_for_revenue.set_downstream(write_opa_account_num_history_updates_for_revenue_to_db_oracle)
-write_opa_account_num_history_updates_for_revenue_to_db_oracle.set_downstream(cleanup)
+extract_splcom_updates_for_revenue.set_downstream(write_splcom_updates_for_revenue_to_db2)
+#write_splcom_updates_for_revenue_to_db2_test.set_downstream(cleanup)
+write_splcom_updates_for_revenue_to_db2.set_downstream(cleanup)
+# extract_last_opa_account_num_history_update_from_oracle_for_revenue.set_downstream(extract_opa_account_num_history_updates_for_revenue)
+extract_opa_account_num_changes.set_upstream(write_phl_acct_hist_det)
+extract_opa_account_num_changes.set_downstream(write_opa_account_num_changes_to_db2)
+write_opa_account_num_changes_to_db2.set_downstream(cleanup)
 
 update_property_party.set_upstream(update_pardat_latest_prop_data)
 update_property_party.set_upstream(write_owndat)
@@ -2759,17 +2914,21 @@ update_property_summary_cama.set_upstream(update_property_assessments_for_summar
 # update_property_summary_cama.set_downstream(update_property_summary_hybrid)
 update_property_summary_hybrid_trunc.set_downstream(extract_property_summary)
 extract_property_summary.set_downstream(write_property_summary)
+extract_property_summary.set_downstream(write_property_summary_db2)
 write_property_summary.set_downstream(delete_temp_property_summary)
+write_property_summary_db2.set_downstream(delete_temp_property_summary)
 delete_temp_property_summary.set_downstream(cleanup)
 
-write_property_summary_new_prod.set_downstream(update_opa_properties_public)
-update_opa_properties_public.set_downstream(cleanup)
+# write_property_summary_new_prod.set_downstream(update_opa_properties_public)
+# # update_opa_properties_public.set_downstream(cleanup)
+# update_opa_properties_public.set_downstream(extract_opa_properties_public)
 # extract_opa_properties_public.set_downstream(trigger_carto_opa_properties_public_update)
 # trigger_carto_opa_properties_public_update.set_downstream(delete_temp_opa_properties_public)
 # delete_temp_opa_properties_public.set_downstream(cleanup)
 
-write_property_summary_new_prod.set_downstream(update_opa_properties_public_pde)
-update_opa_properties_public_pde.set_downstream(cleanup)
+# write_property_summary_new_prod.set_downstream(update_opa_properties_public_pde)
+# # update_opa_properties_public_pde.set_downstream(cleanup)
+# update_opa_properties_public_pde.set_downstream(extract_opa_properties_public_pde)
 # extract_opa_properties_public_pde.set_downstream(trigger_carto_opa_properties_public_pde_update)
 # trigger_carto_opa_properties_public_pde_update.set_downstream(delete_temp_opa_properties_public_pde)
 # delete_temp_opa_properties_public_pde.set_downstream(cleanup)
@@ -2817,10 +2976,15 @@ write_pin_owner_mailing.set_downstream(cleanup)
 update_pardat_latest_prop_data.set_downstream(update_pin_master)
 update_active_props.set_downstream(update_pin_master)
 update_pin_master.set_downstream(extract_pin_master)
+# extract_pin_master.set_downstream(write_databridge_pin_master)
+# write_databridge_pin_master.set_downstream(delete_temp_pin_master)
 extract_pin_master.set_downstream(write_databridge_pin_master)
 write_databridge_pin_master.set_downstream(delete_temp_pin_master)
 delete_temp_pin_master.set_downstream(cleanup)
 
+# opa_pin_account_history
+write_pardat >> extract_opa_pin_account_history >> write_opa_pin_account_history >> delete_temp_opa_pin_account_history >> cleanup
+update_pin_source_address_plus_std_from_view >> extract_opa_pin_account_history
 
 # pin source address std
 update_pin_master.set_downstream(update_pin_source_address_from_view)
@@ -2841,10 +3005,10 @@ write_opa_owners_cama_for_ais.set_downstream(delete_temp_opa_owners_cama_for_ais
 write_opa_owners_cama_for_ais.set_downstream(cleanup)
 
 # property codes
-update_property_summary_cama.set_downstream(extract_property_codes_for_water)
-extract_property_codes_for_water.set_downstream(write_property_codes_for_water)
-write_property_codes_for_water.set_downstream(delete_temp_property_codes_for_water)
-write_property_codes_for_water.set_downstream(cleanup)
+update_property_summary_cama.set_downstream(extract_property_codes)
+extract_property_codes.set_downstream(write_property_codes)
+write_property_codes.set_downstream(delete_temp_property_codes)
+write_property_codes.set_downstream(cleanup)
 
 # Deeds exchange:
 update_pin_master.set_downstream(upsert_records_into_er_stage_transaction)
@@ -2870,31 +3034,39 @@ extract_er_stage_props_for_geocoding.set_downstream(geocode_er_stage_props)
 geocode_er_stage_props.set_downstream(upsert_geocoded_er_stage_props)
 upsert_geocoded_er_stage_props.set_downstream(update_er_stage_parcel_pin_matching)
 update_er_stage_parcel_pin_matching.set_downstream(update_cama_property_deeds_new)
-make_staging.set_downstream(extract_last_update_from_property_deeds_new_non_queue_9)
-make_staging.set_downstream(extract_last_update_from_property_deeds_new_queue_9)
 
-update_cama_property_deeds_new.set_downstream(extract_property_deeds_new_non_queue_9_updates)
-extract_property_deeds_new_non_queue_9_updates.set_upstream(extract_last_update_from_property_deeds_new_non_queue_9)
-extract_property_deeds_new_non_queue_9_updates.set_downstream(write_property_deeds_new_non_queue_9_updates)
+update_er_stage_parcel_sent_date.set_upstream(write_property_deeds_new_updates_db2)
 
-update_cama_property_deeds_new.set_downstream(extract_property_deeds_new_queue_9_updates)
-extract_property_deeds_new_queue_9_updates.set_upstream(extract_last_update_from_property_deeds_new_queue_9)
-extract_property_deeds_new_queue_9_updates.set_downstream(write_property_deeds_new_queue_9_updates)
-write_property_deeds_new_queue_9_updates.set_downstream(delete_temp_property_deeds_new_queue_9_updates)
+# migrate db2
+make_staging.set_downstream(extract_last_update_from_property_deeds_new_db2)
+make_staging.set_downstream(extract_last_update_from_property_deeds_new_queue_9_db2)
 
-update_er_stage_parcel_sent_date.set_upstream(write_property_deeds_new_non_queue_9_updates)
+update_cama_property_deeds_new.set_downstream(extract_property_deeds_new_updates)
+extract_property_deeds_new_updates.set_upstream(extract_last_update_from_property_deeds_new_db2)
+extract_property_deeds_new_updates.set_downstream(write_property_deeds_new_updates_db2)
+write_property_deeds_new_updates_db2.set_downstream(delete_temp_property_deeds_new_updates)
+# extract_property_deeds_new_updates.set_downstream(write_property_deeds_new_updates_db1)
+# write_property_deeds_new_updates_db1.set_downstream(delete_temp_property_deeds_new_updates)
+
+
+update_cama_property_deeds_new.set_downstream(extract_property_deeds_new_queue_9_updates_db2)
+extract_property_deeds_new_queue_9_updates_db2.set_upstream(extract_last_update_from_property_deeds_new_queue_9_db2)
+extract_property_deeds_new_queue_9_updates_db2.set_downstream(write_property_deeds_new_queue_9_updates_db2)
+write_property_deeds_new_queue_9_updates_db2.set_downstream(delete_temp_property_deeds_new_queue_9_updates_db2)
+
+update_er_stage_parcel_sent_date.set_upstream(write_property_deeds_new_updates_db2)
+
+
 update_er_stage_transaction_opa_queue.set_upstream(update_er_stage_parcel_sent_date)
 update_er_stage_transaction_status_opa_queue.set_upstream(update_er_stage_transaction_opa_queue)
-update_er_stage_transaction_status_opa_queue.set_downstream(delete_temp_property_deeds_new_queue_9_updates)
-update_er_stage_transaction_status_opa_queue.set_downstream(delete_temp_property_deeds_new_non_queue_9_updates)
+update_er_stage_transaction_status_opa_queue.set_downstream(delete_temp_property_deeds_new_queue_9_updates_db2)
+update_er_stage_transaction_status_opa_queue.set_downstream(delete_temp_property_deeds_new_updates)
 
 update_er_stage_parcel_sent_date.set_downstream(cleanup)
 update_er_stage_transaction_status_opa_queue.set_downstream(cleanup)
 
 # Queue 9
-make_staging >> backwards_oracle_sync >> update_opa_property_deeds_new_queue_9_pub >> refresh_ago >> cleanup
-write_property_deeds_new_queue_9_updates >> update_opa_property_deeds_new_queue_9_pub
-write_property_deeds_new_non_queue_9_updates >> write_property_deeds_new_queue_9_updates
+make_staging >> backwards_oracle_sync >> cleanup
 make_staging >> backwards_q9_review_findings_sync >> extract_q9_review_findings >> write_q9_review_findings
 update_cama_property_deeds_new.set_upstream(write_q9_review_findings)
 
@@ -2903,10 +3075,24 @@ extract_processed_deeds << write_owndat
 extract_processed_deeds << write_sales
 extract_processed_deeds << upsert_records_into_er_stage_parcel
 extract_processed_deeds << update_splcom_assessments
-extract_processed_deeds >> write_processed_deeds
-write_processed_deeds >> update_opa_property_deeds_new_queue_9_pub
+extract_processed_deeds >> write_processed_deeds_db2
+
+# processed property deeds
+extract_processed_property_deeds << write_owndat
+extract_processed_property_deeds << write_sales
+extract_processed_property_deeds << upsert_records_into_er_stage_parcel
+extract_processed_property_deeds << update_splcom_assessments
+extract_processed_property_deeds >> write_processed_property_deeds
 
 # condo pins
 extract_dor_condo_parcel_pin.set_upstream(update_pin_source_address_plus_std_from_view)
 extract_dor_condo_parcel_pin.set_downstream(write_dor_condo_parcel_pin_to_tripoli)
 write_dor_condo_parcel_pin_to_tripoli.set_downstream(cleanup)
+
+# cama duplication reports
+extract_vw_report_duplicate_active_addresses << write_pardat
+extract_vw_report_duplicate_active_addresses >> write_vw_report_duplicate_active_addresses >> delete_temp_vw_report_duplicate_active_addresses
+extract_vw_report_duplicate_active_opa_accounts << write_pardat
+extract_vw_report_duplicate_active_opa_accounts >> write_vw_report_duplicate_active_opa_accounts >> delete_temp_vw_report_duplicate_active_opa_accounts
+extract_vw_report_ranged_non_ranged_pin_conflicts << update_pin_source_address_plus_std_from_view
+extract_vw_report_ranged_non_ranged_pin_conflicts >> write_vw_report_ranged_non_ranged_pin_conflicts >> delete_temp_vw_report_ranged_non_ranged_pin_conflicts
